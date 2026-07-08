@@ -25,24 +25,8 @@ export default function App() {
 
   return (
     <div className="bg-white">
-      {/* Auth nav buttons */}
-      <div className="fixed top-4 right-4 z-50 flex gap-2">
-        <button
-          onClick={() => setPage('login')}
-          className="bg-white border border-line text-ink px-4 py-2 rounded-lg text-sm font-medium hover:bg-paper-soft transition-colors font-display shadow-sm"
-        >
-          Log In
-        </button>
-        <button
-          onClick={() => setPage('signup')}
-          className="bg-navy text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-navy-deep transition-colors font-display shadow-sm"
-        >
-          Sign Up
-        </button>
-      </div>
-
       <div id="hero">
-        <HeroAiInfrastructure />
+        <HeroAiInfrastructure onLogin={() => setPage('login')} onSignup={() => setPage('signup')} />
       </div>
       <div id="features">
         <FeatureHero />
