@@ -12,7 +12,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
   return (
     <section
       ref={timelineRef}
-      className="relative min-h-screen flex flex-col bg-white text-ink w-full overflow-hidden"
+      className="relative min-h-screen flex flex-col bg-white text-ink w-full"
     >
       {isMobile && (
         <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-line">
