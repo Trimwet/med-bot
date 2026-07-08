@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Sora', sans-serif;
+  --color-navy-deep: #12173B;
+  --color-navy: #1B2160;
+  --color-navy-mid: #232B79;
+  --color-ink: #101223;
+  --color-paper: #FFFFFF;
+  --color-paper-soft: #F4F5FA;
+  --color-muted: #6A6E85;
+  --color-line: #E4E5EF;
+  --color-on-navy: #DADCF0;
+  --color-green: #4C8C5B;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
