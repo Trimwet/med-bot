@@ -15,15 +15,11 @@ export default function App() {
 
   if (page === 'login' || page === 'signup') {
     return (
-      <>
-        <button
-          onClick={() => setPage('landing')}
-          className="fixed top-4 left-4 z-50 bg-navy text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-navy-deep transition-colors font-display"
-        >
-          ← Back to Home
-        </button>
-        <AuthPage initialMode={page === 'signup' ? 'signup' : 'login'} />
-      </>
+      <AuthPage
+        initialMode={page === 'signup' ? 'signup' : 'login'}
+        onBack={() => setPage('landing')}
+        onToggleMode={() => setPage(page === 'signup' ? 'login' : 'signup')}
+      />
     )
   }
 

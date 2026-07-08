@@ -56,7 +56,7 @@ export const DetailedFooter = () => {
             href="#contact"
             className="inline-flex items-center gap-2 bg-white text-navy px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors font-display"
           >
-            Request a Demo <ArrowRight size={16} />
+            Request a Demo <ArrowRight size={16}   />
           </a>
         </div>
       </div>

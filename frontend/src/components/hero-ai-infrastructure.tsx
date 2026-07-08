@@ -42,14 +42,6 @@ export const HeroAiInfrastructure = () => {
               </a>
             </nav>
           </MotionDrawer>
-          <TimelineAnimation
-            as="button"
-            timelineRef={timelineRef}
-            animationNum={1}
-            className="cursor-pointer bg-navy hover:bg-navy-deep transition px-2 py-2 rounded text-sm font-medium text-white"
-          >
-            Get Early Access
-          </TimelineAnimation>
         </div>
       )}
       {!isMobile && (
@@ -66,16 +58,6 @@ export const HeroAiInfrastructure = () => {
               <a href="#pricing" className="hover:text-ink transition">Pricing</a>
             </nav>
           </TimelineAnimation>
-          <div className="flex items-center gap-4">
-            <TimelineAnimation
-              as="button"
-              timelineRef={timelineRef}
-              animationNum={2}
-              className="cursor-pointer bg-navy hover:bg-navy-deep transition px-2 py-2 rounded text-sm font-medium text-white"
-            >
-              Get Early Access
-            </TimelineAnimation>
-          </div>
         </header>
       )}
 
