@@ -157,14 +157,22 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
           animationNum={5.5}
           className="flex-1 flex justify-center lg:justify-end"
         >
-          <div className="relative">
-            <div className="absolute inset-0 bg-paper-soft rounded-2xl transform rotate-3 scale-105 border border-line shadow-lg"></div>
-            <div className="absolute inset-0 bg-paper rounded-2xl transform -rotate-2 scale-102 border border-line shadow-xl"></div>
-            <img
-              src="/hero-bg.png"
-              alt="Doctor consulting with patient"
-              className="relative w-full max-w-lg rounded-2xl border border-line shadow-2xl object-cover"
-            />
+          <div className="relative group">
+            {/* Animated paper border layers */}
+            <div className="absolute -inset-4 bg-paper-soft rounded-3xl border border-line shadow-lg animate-[float-border_6s_ease-in-out_infinite]"></div>
+            <div className="absolute -inset-2 bg-paper rounded-3xl border border-line shadow-xl animate-[float-border_6s_ease-in-out_infinite_0.5s]"></div>
+            {/* Image container */}
+            <div className="relative overflow-hidden rounded-2xl border border-line shadow-2xl bg-white">
+              <img
+                src="/hero-doctor.jpg"
+                alt="Doctor consulting with patient"
+                className="w-full max-w-lg object-cover object-center mix-blend-multiply"
+                style={{ aspectRatio: '4/3' }}
+              />
+              {/* Soft edge fade to blend with white background */}
+              <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-white/20 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 pointer-events-none"></div>
+            </div>
           </div>
         </TimelineAnimation>
       </div>

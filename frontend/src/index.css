@@ -27,3 +27,8 @@ html {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
 }
+
+@keyframes float-border {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(0.5deg); }
+}
