@@ -159,8 +159,8 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
         >
           <div className="relative group">
             {/* Animated paper border layers */}
-            <div className="absolute -inset-4 bg-paper-soft rounded-3xl border border-line shadow-lg animate-[float-border_6s_ease-in-out_infinite]"></div>
-            <div className="absolute -inset-2 bg-paper rounded-3xl border border-line shadow-xl animate-[float-border_6s_ease-in-out_infinite_0.5s]"></div>
+            <div className="absolute -inset-4 bg-paper-soft rounded-3xl border border-line shadow-lg animate-[float-border_4s_ease-in-out_infinite]"></div>
+            <div className="absolute -inset-2 bg-paper rounded-3xl border border-line shadow-xl animate-[float-border_4s_ease-in-out_infinite_0.4s]"></div>
             {/* Image container */}
             <div className="relative overflow-hidden rounded-2xl border border-line shadow-2xl bg-white">
               <img

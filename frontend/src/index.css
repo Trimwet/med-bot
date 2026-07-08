@@ -29,6 +29,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes float-border {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-6px) rotate(0.5deg); }
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-14px) rotate(1.5deg) scale(1.01); }
 }
