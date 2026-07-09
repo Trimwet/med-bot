@@ -14,6 +14,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
       {isMobile && (
         <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-line">
           <div className="flex gap-4 justify-between items-center px-6 py-3">
+            <img src="/assets/Logo.jpeg" alt="Logo" className="h-10 w-auto" />
             <MotionDrawer
               direction="left"
               width={300}
@@ -23,19 +24,34 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
               btnClassName="bg-[#0A202A] text-white relative w-fit p-2 left-0 top-0"
             >
               <nav className="space-y-4">
-                <a href="#features" className="block p-2 hover:bg-white/10 text-white rounded-sm">
+                <a
+                  href="#features"
+                  className="block p-2 hover:bg-white/10 text-white rounded-sm"
+                >
                   Features
                 </a>
-                <a href="#results" className="block p-2 hover:bg-white/10 text-white rounded-sm">
+                <a
+                  href="#results"
+                  className="block p-2 hover:bg-white/10 text-white rounded-sm"
+                >
                   Results
                 </a>
-                <a href="#testimonials" className="block p-2 hover:bg-white/10 text-white rounded-sm">
+                <a
+                  href="#testimonials"
+                  className="block p-2 hover:bg-white/10 text-white rounded-sm"
+                >
                   Testimonials
                 </a>
-                <a href="#pricing" className="block p-2 hover:bg-white/10 text-white rounded-sm">
+                <a
+                  href="#pricing"
+                  className="block p-2 hover:bg-white/10 text-white rounded-sm"
+                >
                   Pricing
                 </a>
-                <a href="#contact" className="block p-2 hover:bg-white/10 text-white rounded-sm">
+                <a
+                  href="#contact"
+                  className="block p-2 hover:bg-white/10 text-white rounded-sm"
+                >
                   Contact
                 </a>
               </nav>
@@ -60,16 +76,28 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
       {!isMobile && (
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-line">
           <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-4">
+            <div className="flex items-center gap-2">
+              <img src="/assets/Logo.jpeg" alt="Logo" className="h-10 w-auto" />
+              <p className="font-extrabold text-2xl text-[#073B4C]">MedBot</p>
+            </div>
             <TimelineAnimation
               timelineRef={timelineRef}
               animationNum={1}
               className="flex items-center gap-5"
             >
               <nav className="hidden md:flex items-center gap-6 text-md text-muted">
-                <a href="#features" className="hover:text-ink transition">Features</a>
-                <a href="#results" className="hover:text-ink transition">Results</a>
-                <a href="#testimonials" className="hover:text-ink transition">Testimonials</a>
-                <a href="#pricing" className="hover:text-ink transition">Pricing</a>
+                <a href="#features" className="hover:text-ink transition">
+                  Features
+                </a>
+                <a href="#results" className="hover:text-ink transition">
+                  Results
+                </a>
+                <a href="#testimonials" className="hover:text-ink transition">
+                  Testimonials
+                </a>
+                <a href="#pricing" className="hover:text-ink transition">
+                  Pricing
+                </a>
               </nav>
             </TimelineAnimation>
             <div className="flex items-center gap-3">
@@ -81,7 +109,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
               </button>
               <button
                 onClick={onSignup}
-                className="text-sm font-medium bg-teal text-white px-4 py-2 rounded-lg hover:bg-teal/80 transition-colors font-display"
+                className="text-sm font-medium bg-[#073B4C] text-white px-4 py-2 rounded-lg hover:bg-teal/80 transition-colors font-display"
               >
                 Sign Up
               </button>
@@ -127,8 +155,8 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
             animationNum={5}
             className="text-muted text-lg md:text-xl max-w-xl mb-6 font-light"
           >
-            Describe your symptoms, get instant guidance, and receive personalized
-            recommendations powered by clinical knowledge and AI.
+            Describe your symptoms, get instant guidance, and receive
+            personalized recommendations powered by clinical knowledge and AI.
           </TimelineAnimation>
 
           <div className="flex flex-col sm:flex-row gap-4 items-center lg:items-start">
@@ -170,7 +198,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
                 loading="lazy"
                 decoding="async"
                 className="w-full max-w-lg object-cover object-center mix-blend-multiply"
-                style={{ aspectRatio: '4/3' }}
+                style={{ aspectRatio: "4/3" }}
               />
               {/* Soft edge fade to blend with white background */}
               <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-white/20 pointer-events-none"></div>
