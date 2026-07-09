@@ -142,8 +142,8 @@ export const CompareSection = () => {
                 <div className="p-4 px-5 text-sm font-semibold text-navy uppercase tracking-wider bg-paper-soft/50">
                   {category}
                 </div>
-                {plans.map(() => (
-                  <div key={category} className="border-l border-line" />
+                {plans.map((plan) => (
+                  <div key={plan} className="border-l border-line" />
                 ))}
               </div>
               {features

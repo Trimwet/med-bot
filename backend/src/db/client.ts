@@ -20,6 +20,7 @@ export async function getDb(): Promise<Db> {
 export const COLLECTIONS = {
   sessions: "sessions_collection",
   knowledge: "knowledge_collection",
+  users: "users_collection",
 } as const;
 
 export async function closeDb() {

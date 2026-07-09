@@ -5,6 +5,7 @@ import { Elysia } from "elysia";
 import { healthRoute } from "@/routes/health.route";
 import { sessionRoute } from "@/routes/session.route";
 import { chatRoute } from "@/routes/chat.route";
+import { authRoute } from "@/routes/auth.route";
 import { toErrorResponse } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
@@ -17,6 +18,7 @@ export const app = new Elysia()
   })
   .use(healthRoute)
   .use(sessionRoute)
-  .use(chatRoute);
+  .use(chatRoute)
+  .use(authRoute);
 
 export type App = typeof app;

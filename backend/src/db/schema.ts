@@ -45,3 +45,16 @@ export interface KnowledgeDocument {
   metadata: KnowledgeChunkMetadata;
   createdAt: string;
 }
+
+export interface UserDocument {
+  _id?: ObjectId;
+  name?: string;
+  email: string;
+  password?: string;
+  googleId?: string;
+  isVerified: boolean;
+  otp?: string;
+  otpExpires?: Date;
+  createdAt?: string;
+  updatedAt?: string;
+}

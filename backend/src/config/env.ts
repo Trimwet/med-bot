@@ -17,6 +17,12 @@ const ENV_SPEC: EnvVar[] = [
   { key: "OPENAI_API_KEY", required: true },
   { key: "EMBEDDING_MODEL", required: false, default: "text-embedding-3-small" },
   { key: "LLM_MODEL", required: false, default: "gpt-4o-mini" },
+  { key: "JWT_SECRET", required: true },
+  { key: "BREVO_API_KEY", required: true },
+  { key: "SENDER_EMAIL", required: true },
+  { key: "GOOGLE_CLIENT_ID", required: true },
+  { key: "GOOGLE_CLIENT_SECRET", required: true },
+  { key: "CLIENT_URL", required: true },
 ];
 
 function loadEnv() {
@@ -58,4 +64,10 @@ export const env = {
   openaiApiKey: raw.OPENAI_API_KEY,
   embeddingModel: raw.EMBEDDING_MODEL,
   llmModel: raw.LLM_MODEL,
+  jwtSecret: raw.JWT_SECRET,
+  brevoApiKey: raw.BREVO_API_KEY,
+  senderEmail: raw.SENDER_EMAIL,
+  googleClientId: raw.GOOGLE_CLIENT_ID,
+  googleClientSecret: raw.GOOGLE_CLIENT_SECRET,
+  clientUrl: raw.CLIENT_URL,
 } as const;
