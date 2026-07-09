@@ -10,17 +10,14 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
   const isMobile = useMediaQuery('(max-width: 768px)')
 
   return (
-    <section
-      ref={timelineRef}
-      className="relative min-h-screen flex flex-col bg-white text-ink w-full"
-    >
+    <>
       {isMobile && (
         <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-line">
           <div className="flex gap-4 justify-between items-center px-6 py-3">
             <MotionDrawer
               direction="left"
               width={300}
-              backgroundColor={'#1B2160'}
+              backgroundColor={'#0A202A'}
               clsBtnClassName="bg-[#0A202A] border-r border-teal/30 text-white"
               contentClassName="bg-[#0A202A] border-r border-teal/30 text-white"
               btnClassName="bg-[#0A202A] text-white relative w-fit p-2 left-0 top-0"
@@ -93,6 +90,10 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
         </header>
       )}
 
+      <section
+        ref={timelineRef}
+        className="relative min-h-screen flex flex-col bg-white text-ink w-full"
+      >
       <div className="relative z-10 grow flex flex-col lg:flex-row items-center justify-center px-8 pt-24 pb-16 gap-12 max-w-7xl mx-auto w-full">
         {/* Left content */}
         <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left">
@@ -179,5 +180,6 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
         </TimelineAnimation>
       </div>
     </section>
+    </>
   )
 }
