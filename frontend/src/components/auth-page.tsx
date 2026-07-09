@@ -8,9 +8,10 @@ interface AuthPageProps {
   initialMode?: AuthMode
   onBack?: () => void
   onToggleMode?: () => void
+  onSignupSuccess?: () => void
 }
 
-export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthPageProps) => {
+export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignupSuccess }: AuthPageProps) => {
   const [mode, setMode] = useState<AuthMode>(initialMode)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -50,7 +51,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthP
           </div>
 
           {/* Form */}
-          <form onSubmit={(e) => e.preventDefault()} className="px-8 pb-8 pt-6 space-y-5">
+          <form onSubmit={(e) => { e.preventDefault(); if (isSignup) onSignupSuccess?.() }} className="px-8 pb-8 pt-6 space-y-5">
             {isSignup && (
               <>
                 <div>

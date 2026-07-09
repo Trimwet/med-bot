@@ -8,8 +8,9 @@ import { CompareSection } from '@/components/compare-section'
 import { DetailedFooter } from '@/components/footer-detailed'
 import { AuthPage } from '@/components/auth-page'
 import { DisclaimerPage } from '@/components/disclaimer-page'
+import { HealthProfilePage } from '@/components/health-profile-page'
 
-type Page = 'landing' | 'login' | 'signup' | 'disclaimer'
+type Page = 'landing' | 'login' | 'signup' | 'disclaimer' | 'health-profile'
 
 export default function App() {
   const [page, setPage] = useState<Page>('landing')
@@ -39,6 +40,16 @@ export default function App() {
         initialMode="signup"
         onBack={() => setPage('landing')}
         onToggleMode={() => setPage('login')}
+        onSignupSuccess={() => setPage('health-profile')}
+      />
+    )
+  }
+
+  if (page === 'health-profile') {
+    return (
+      <HealthProfilePage
+        onBack={() => setPage('landing')}
+        onContinue={() => setPage('landing')}
       />
     )
   }
