@@ -14,21 +14,31 @@ type Page = 'landing' | 'login' | 'signup' | 'disclaimer'
 export default function App() {
   const [page, setPage] = useState<Page>('landing')
 
-  if (page === 'login' || page === 'signup') {
+  if (page === 'login') {
     return (
       <AuthPage
-        initialMode={page === 'signup' ? 'signup' : 'login'}
+        initialMode="login"
         onBack={() => setPage('landing')}
-        onToggleMode={() => setPage(page === 'signup' ? 'login' : 'signup')}
+        onToggleMode={() => setPage('signup')}
+      />
+    )
+  }
+
+  if (page === 'signup') {
+    return (
+      <DisclaimerPage
+        onBack={() => setPage('landing')}
+        onAccept={() => setPage('disclaimer')}
       />
     )
   }
 
   if (page === 'disclaimer') {
     return (
-      <DisclaimerPage
+      <AuthPage
+        initialMode="signup"
         onBack={() => setPage('landing')}
-        onAccept={() => setPage('landing')}
+        onToggleMode={() => setPage('login')}
       />
     )
   }
