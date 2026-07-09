@@ -74,10 +74,27 @@ export function resendOtp(email: string) {
   })
 }
 
+// Step 1 of login: verify credentials, triggers an OTP email.
+// No token comes back here — call verifyLoginOtp next.
 export function login(payload: LoginPayload) {
-  return request<AuthResponse>('/api/auth/login', {
+  return request<{ message: string }>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify(payload),
+  })
+}
+
+// Step 2 of login: verify the OTP, get the token back.
+export function verifyLoginOtp(email: string, otp: string) {
+  return request<AuthResponse>('/api/auth/verify-login-otp', {
+    method: 'POST',
+    body: JSON.stringify({ email, otp }),
+  })
+}
+
+export function resendLoginOtp(email: string) {
+  return request<{ message: string }>('/api/auth/resend-login-otp', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
   })
 }
 

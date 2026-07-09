@@ -16,16 +16,16 @@ type Page = 'landing' | 'login' | 'signup' | 'disclaimer' | 'health-profile'
 export default function App() {
   const [page, setPage] = useState<Page>("landing");
 
-  if (page === 'login') {
-    return (
-      <AuthPage
-        initialMode="login"
-        onBack={() => setPage('landing')}
-        onToggleMode={() => setPage('signup')}
-      />
-    )
-  }
-
+ if (page === 'login') {
+  return (
+    <AuthPage
+      initialMode="login"
+      onBack={() => setPage('landing')}
+      onToggleMode={() => setPage('signup')}
+      onSignupSuccess={() => setPage('landing')}
+    />
+  )
+}
   if (page === 'signup') {
     return (
       <DisclaimerPage

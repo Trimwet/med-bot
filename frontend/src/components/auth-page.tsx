@@ -1,7 +1,16 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff, Mail, Lock, User, Phone, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { signup, login, verifyOtp, resendOtp, getGoogleAuthUrl, ApiError } from '@/lib/api'
+import {
+  signup,
+  login,
+  verifyOtp,
+  resendOtp,
+  verifyLoginOtp,
+  resendLoginOtp,
+  getGoogleAuthUrl,
+  ApiError,
+} from '@/lib/api'
 
 type AuthMode = 'login' | 'signup'
 type Step = 'form' | 'otp'
@@ -47,9 +56,9 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
         setStep('otp')
         setInfo('We sent a verification code to your email.')
       } else {
-        const result = await login({ email, password })
-        saveSession(result.token, result.user)
-        onSignupSuccess?.()
+        await login({ email, password })
+        setStep('otp')
+        setInfo('We sent a login code to your email.')
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
@@ -64,7 +73,10 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
     setLoading(true)
 
     try {
-      const result = await verifyOtp(email, otp)
+      const result = isSignup
+        ? await verifyOtp(email, otp)
+        : await verifyLoginOtp(email, otp)
+
       saveSession(result.token, result.user)
       onSignupSuccess?.()
     } catch (err) {
@@ -80,7 +92,11 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
     setLoading(true)
 
     try {
-      await resendOtp(email)
+      if (isSignup) {
+        await resendOtp(email)
+      } else {
+        await resendLoginOtp(email)
+      }
       setInfo('A new code has been sent to your email.')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to resend code.')
@@ -108,7 +124,9 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
               </button>
 
               <div className="flex flex-col items-center pt-4">
-                <h1 className="text-2xl font-bold text-ink font-display">Verify your email</h1>
+                <h1 className="text-2xl font-bold text-ink font-display">
+                  {isSignup ? 'Verify your email' : 'Enter login code'}
+                </h1>
                 <p className="text-sm text-muted mt-2 text-center">
                   Enter the 6-digit code we sent to <strong className="text-ink">{email}</strong>
                 </p>
@@ -138,7 +156,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
                 disabled={loading || otp.length !== 6}
                 className="w-full py-3 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal/80 transition-colors font-display disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Verifying...' : 'Verify Email'}
+                {loading ? 'Verifying...' : isSignup ? 'Verify Email' : 'Verify & Log In'}
               </button>
 
               <button

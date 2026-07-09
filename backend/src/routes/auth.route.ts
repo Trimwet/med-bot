@@ -4,12 +4,14 @@ import { AppError } from "@/lib/errors";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import {
   getAuthenticatedUser,
-  loginUser,
+  requestLoginOtp,
+  resendLoginOtp,
   resendOtp,
   signJwtToken,
   signupUser,
   upsertGoogleUser,
   verifyJwtToken,
+  verifyLoginOtp,
   verifyOtp,
 } from "@/services/auth.service";
 import { sendOtpEmail } from "@/services/otp.service";
@@ -63,15 +65,50 @@ authRoute.post("/api/auth/resend-otp", async (req, res, next) => {
   }
 });
 
+// Step 1 of login: verify email + password, then send an OTP.
+// No token is issued here.
 authRoute.post("/api/auth/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const result = await loginUser({ email, password });
+    const result = await requestLoginOtp({ email, password });
+    const sent = await sendOtpEmail(email, result.otp);
+
+    if (!sent) {
+      throw new AppError("Failed to send OTP email", 500, "OTP_EMAIL_FAILED");
+    }
+
+    res.json({ message: result.message });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Step 2 of login: verify the OTP, then issue the token.
+authRoute.post("/api/auth/verify-login-otp", async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const result = await verifyLoginOtp({ email, otp });
     res.json({
       message: "Login successful",
       token: result.token,
       user: result.user,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+authRoute.post("/api/auth/resend-login-otp", async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const newOtp = await resendLoginOtp(email);
+    const sent = await sendOtpEmail(email, newOtp);
+
+    if (!sent) {
+      throw new AppError("Failed to send OTP email", 500, "OTP_EMAIL_FAILED");
+    }
+
+    res.json({ message: "OTP resent successfully" });
   } catch (err) {
     next(err);
   }
