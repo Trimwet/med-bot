@@ -27,7 +27,15 @@ export const DisclaimerPage = ({ onBack, onAccept }: DisclaimerPageProps) => {
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg">
-          <div className="bg-white rounded-2xl border border-line shadow-sm px-8 py-10">
+          <div className="bg-white rounded-2xl border border-line shadow-sm px-8 py-10 relative">
+            {/* Back button */}
+            <button
+              onClick={onBack}
+              className="absolute top-6 left-6 flex items-center gap-1.5 text-sm text-muted hover:text-ink transition-colors group"
+            >
+              <ChevronLeft className="size-4 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Back</span>
+            </button>
             {/* Logo */}
             <div className="flex flex-col items-center mb-8">
               <div className="w-14 h-14 rounded-xl bg-teal flex items-center justify-center mb-3">
@@ -119,13 +127,6 @@ export const DisclaimerPage = ({ onBack, onAccept }: DisclaimerPageProps) => {
               >
                 ACCEPT & CONTINUE
                 <ChevronRight className="size-4" />
-              </button>
-              <button
-                onClick={onBack}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-sm border border-line text-muted hover:text-ink hover:border-ink/30 transition-all font-display"
-              >
-                <ChevronLeft className="size-4" />
-                BACK
               </button>
             </div>
           </div>
