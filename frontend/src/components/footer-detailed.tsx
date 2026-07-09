@@ -67,20 +67,14 @@ export const DetailedFooter = () => {
           {/* Brand column */}
           <div className="col-span-2">
             <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[#0A202A] font-extrabold text-sm">
-                M
+              <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-[#0A202A] font-extrabold text-sm">
+                <img src="/assets/Logoico.png" alt="Logo" />
               </div>
               <span className="text-white font-bold text-lg font-display">MedBot</span>
             </div>
             <p className="text-sm text-[#9CA3AF] leading-relaxed mb-6 max-w-xs">
               AI-powered patient triage for hospitals. Interview, sort, and hand off — clinically grounded, always improving.
             </p>
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-2 text-xs text-[#9CA3AF]/60">
-                <span className="w-2 h-2 rounded-full bg-teal animate-pulse" />
-                All systems operational
-              </span>
-            </div>
           </div>
 
           {/* Link columns */}

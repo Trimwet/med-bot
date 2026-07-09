@@ -77,6 +77,14 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-line">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-4">
+        <div className="flex items-center gap-2">
+          <a href="/">
+            <img src="/assets/Logoico.png" alt="Logo" className="h-10 w-auto" />
+          </a>
+          <a href="/">
+            <p className="font-extrabold text-2xl text-[#073B4C]">MedBot</p>
+          </a>
+        </div>
         <div className="flex items-center gap-5">
           <nav className="hidden md:flex items-center gap-6 text-md text-muted">
             <a href="#features" className="hover:text-ink transition">

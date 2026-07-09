@@ -1,4 +1,4 @@
-import { MessageSquare, Activity, ClipboardList, Brain, Shield } from 'lucide-react'
+import { MessageSquare, Zap, ClipboardList, Brain, Shield } from 'lucide-react'
 import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
@@ -9,7 +9,7 @@ const features = [
     desc: 'Guided chat or voice conversation asks the right clinical questions, every time',
   },
   {
-    icon: Activity,
+    icon: Zap,
     title: 'Urgency Scoring',
     desc: 'Sorts patients by acuity level so your team knows who needs attention first',
     highlight: true,
@@ -75,12 +75,13 @@ export const FeatureHero = () => {
 const FeatureCard = ({ icon: Icon, title, desc, highlight }: any) => (
   <div
     className={cn(
-      'relative flex flex-col items-start text-left p-6 rounded-xl transition-all duration-300 group overflow-hidden',
-      'bg-[rgba(255,255,255,0.04)] backdrop-blur-md',
-      'border border-[rgba(255,255,255,0.06)]',
-      'shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_0_0_1px_rgba(255,255,255,0.04)]',
-      'hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.12)]',
-      highlight && 'md:scale-105 bg-teal/10 border-teal/30 shadow-xl shadow-black/30'
+      "relative flex flex-col items-start text-left p-6 rounded-xl transition-all duration-300 group overflow-hidden",
+      "bg-[rgba(255,255,255,0.04)] backdrop-blur-md",
+      "border border-[rgba(255,255,255,0.06)]",
+      "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_0_0_1px_rgba(255,255,255,0.04)]",
+      "hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.12)]",
+      highlight &&
+        "md:scale-105 bg-teal/10 border-teal/30 shadow-xl shadow-black/30",
     )}
   >
     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
@@ -88,10 +89,10 @@ const FeatureCard = ({ icon: Icon, title, desc, highlight }: any) => (
     </div>
     <div
       className={cn(
-        'relative z-10 size-12 rounded-full flex items-center justify-center mb-4 transition-all duration-300',
+        "relative z-10 size-12 rounded-full flex items-center justify-center mb-4 transition-all duration-300",
         highlight
-          ? 'bg-teal text-white shadow-lg shadow-teal/20'
-          : 'bg-white/8 text-[#9CA3AF] group-hover:bg-teal/20 group-hover:text-teal'
+          ? "bg-teal text-white shadow-lg shadow-teal/20"
+          : "bg-teal/20 text-teal group-hover:bg-teal/20 group-hover:text-[#9CA3AF]",
       )}
     >
       <Icon className="size-6" />
@@ -103,4 +104,4 @@ const FeatureCard = ({ icon: Icon, title, desc, highlight }: any) => (
       {desc}
     </p>
   </div>
-)
+);
