@@ -7,8 +7,9 @@ import { PricingSection } from '@/components/pricing-section'
 import { CompareSection } from '@/components/compare-section'
 import { DetailedFooter } from '@/components/footer-detailed'
 import { AuthPage } from '@/components/auth-page'
+import { DisclaimerPage } from '@/components/disclaimer-page'
 
-type Page = 'landing' | 'login' | 'signup'
+type Page = 'landing' | 'login' | 'signup' | 'disclaimer'
 
 export default function App() {
   const [page, setPage] = useState<Page>('landing')
@@ -19,6 +20,15 @@ export default function App() {
         initialMode={page === 'signup' ? 'signup' : 'login'}
         onBack={() => setPage('landing')}
         onToggleMode={() => setPage(page === 'signup' ? 'login' : 'signup')}
+      />
+    )
+  }
+
+  if (page === 'disclaimer') {
+    return (
+      <DisclaimerPage
+        onBack={() => setPage('landing')}
+        onAccept={() => setPage('landing')}
       />
     )
   }
