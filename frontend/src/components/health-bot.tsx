@@ -22,9 +22,9 @@ export const HealthBot = ({ className }: { className?: string }) => (
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-4px); }
       }
-      .bot-eyes { animation: blink 4s ease-in-out infinite; transform-origin: center 98px; }
-      .bot-antenna { animation: antennaPulse 2s ease-in-out infinite; }
-      .bot-body { animation: float 3s ease-in-out infinite; }
+      .bot-eyes { animation: blink 4s ease-in-out infinite; transform-origin: center 98px; will-change: transform; }
+      .bot-antenna { animation: antennaPulse 2s ease-in-out infinite; will-change: opacity; }
+      .bot-body { animation: float 3s ease-in-out infinite; will-change: transform; }
     `}</style>
 
     <g className="bot-body">

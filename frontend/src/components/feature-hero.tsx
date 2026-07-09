@@ -39,10 +39,11 @@ export const FeatureHero = () => {
 
       <div className="py-24 px-6 max-w-7xl mx-auto text-center relative">
         <motion.div
-          initial={{ opacity: 0, transform: 'translateY(20px)' }}
-          whileInView={{ opacity: 1, transform: 'translateY(0)' }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="will-change-transform"
         >
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-6 text-balance">
             Turn intake into a <br /> sorted queue

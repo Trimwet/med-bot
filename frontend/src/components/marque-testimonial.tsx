@@ -97,9 +97,11 @@ export const MarqueeTestimonials = () => {
         }
         .marquee-row-left {
           animation: marquee-left 40s linear infinite;
+          will-change: transform;
         }
         .marquee-row-right {
           animation: marquee-right 45s linear infinite;
+          will-change: transform;
         }
         .marquee-row-left:hover,
         .marquee-row-right:hover {

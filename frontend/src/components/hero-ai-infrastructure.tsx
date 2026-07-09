@@ -159,13 +159,15 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
         >
           <div className="relative group">
             {/* Animated paper border layers */}
-            <div className="absolute -inset-4 bg-paper-soft rounded-3xl border border-line shadow-lg animate-[float-border_4s_ease-in-out_infinite]"></div>
-            <div className="absolute -inset-2 bg-paper rounded-3xl border border-line shadow-xl animate-[float-border_4s_ease-in-out_infinite_0.4s]"></div>
+            <div className="absolute -inset-4 bg-paper-soft rounded-3xl border border-line shadow-lg animate-[float-border_4s_ease-in-out_infinite] will-change-transform"></div>
+            <div className="absolute -inset-2 bg-paper rounded-3xl border border-line shadow-xl animate-[float-border_4s_ease-in-out_infinite_0.4s] will-change-transform"></div>
             {/* Image container */}
             <div className="relative overflow-hidden rounded-2xl border border-line shadow-2xl bg-white">
               <img
                 src="/hero-doctor.jpg"
                 alt="Doctor consulting with patient"
+                loading="lazy"
+                decoding="async"
                 className="w-full max-w-lg object-cover object-center mix-blend-multiply"
                 style={{ aspectRatio: '4/3' }}
               />
