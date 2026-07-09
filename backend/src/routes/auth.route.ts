@@ -19,10 +19,11 @@ authRoute.post("/api/auth/signup", async (req, res, next) => {
     const { name, email, password } = req.body;
     const result = await signupUser({ name, email, password });
     const sent = await sendOtpEmail(email, result.otp);
-    if (!sent) {
-      throw new AppError("Account created but failed to send OTP email", 500, "OTP_EMAIL_FAILED");
-    }
-    res.json({ message: result.message });
+
+    res.json({
+      message: sent ? result.message : "Signup successful. You can sign in now.",
+      emailSent: sent,
+    });
   } catch (err) {
     next(err);
   }
