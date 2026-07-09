@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { TimelineAnimation } from '@/components/ui/timeline-animation'
 
-export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => void; onSignup?: () => void }) => {
+export const HeroAiInfrastructure = () => {
   const timelineRef = useRef<HTMLDivElement>(null)
   return (
     <>
