@@ -124,7 +124,7 @@ export const DetailedFooter = () => {
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-navy-deep size-8 rounded-md flex items-center justify-center hover:bg-white/90 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-teal text-white size-8 rounded-md flex items-center justify-center hover:bg-teal/80 transition-colors"
             >
               <ArrowRight size={14} />
             </button>

@@ -15,7 +15,7 @@ export const StatsSection = () => {
       <div className="max-w-7xl mx-auto relative">
         <div className="grid lg:grid-cols-2 gap-24 items-center">
           <div className="space-y-10">
-            <span className="inline-flex px-4 py-1.5 text-xs font-semibold border border-on-navy/20 rounded-full text-on-navy uppercase tracking-[0.2em] bg-white/5">
+            <span className="inline-flex px-4 py-1.5 text-xs font-semibold border border-teal/40 rounded-full text-teal uppercase tracking-[0.2em] bg-teal/10">
               Impact
             </span>
             <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-balance leading-none">

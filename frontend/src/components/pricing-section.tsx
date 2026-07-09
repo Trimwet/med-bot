@@ -131,7 +131,7 @@ export const PricingSection = () => {
                   'w-full py-3 rounded-lg font-semibold text-sm transition-all duration-200 font-display',
                   plan.highlight
                     ? 'bg-white text-navy hover:bg-white/90'
-                    : 'bg-navy text-white hover:bg-navy-deep'
+                    : 'bg-teal text-white hover:bg-teal/80'
                 )}
               >
                 {plan.price === 'Custom' ? 'Contact Sales' : 'Get Started'}

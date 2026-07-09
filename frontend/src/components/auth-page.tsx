@@ -145,7 +145,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthP
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3 rounded-lg bg-navy text-white font-semibold text-sm hover:bg-navy-deep transition-colors font-display"
+              className="w-full py-3 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal/80 transition-colors font-display"
             >
               {isSignup ? 'Sign Up' : 'Log In'}
             </button>
@@ -160,7 +160,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthP
               setMode(isSignup ? 'login' : 'signup')
               onToggleMode?.()
             }}
-            className="text-navy font-semibold hover:text-navy-deep transition-colors"
+            className="text-teal font-semibold hover:text-teal/80 transition-colors"
           >
             {isSignup ? 'Log in' : 'Create account'}
           </button>

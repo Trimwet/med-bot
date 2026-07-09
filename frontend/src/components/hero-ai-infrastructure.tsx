@@ -52,7 +52,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
               </button>
               <button
                 onClick={onSignup}
-                className="text-sm font-medium bg-navy text-white px-4 py-1.5 rounded-lg hover:bg-navy-deep transition-colors"
+                className="text-sm font-medium bg-teal text-white px-4 py-1.5 rounded-lg hover:bg-teal/80 transition-colors"
               >
                 Sign Up
               </button>
@@ -84,7 +84,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
               </button>
               <button
                 onClick={onSignup}
-                className="text-sm font-medium bg-navy text-white px-4 py-2 rounded-lg hover:bg-navy-deep transition-colors font-display"
+                className="text-sm font-medium bg-teal text-white px-4 py-2 rounded-lg hover:bg-teal/80 transition-colors font-display"
               >
                 Sign Up
               </button>
@@ -101,7 +101,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
             animationNum={3}
             className="flex items-center gap-2 rounded-full px-1.5 py-1 pr-4 bg-navy/10 text-ink text-sm font-medium font-display"
           >
-            <span className="py-0.5 px-2.5 rounded-full bg-navy text-white font-semibold text-xs">
+            <span className="py-0.5 px-2.5 rounded-full bg-teal text-white font-semibold text-xs">
               New
             </span>
             <span>Trusted by 999+ growing B2B teams</span>
@@ -117,7 +117,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
             <br />
             Assistant is
             <br />
-            <span className="text-navy">Always Available</span>
+            <span className="text-teal">Always Available</span>
           </TimelineAnimation>
 
           <TimelineAnimation
@@ -136,7 +136,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
               as="a"
               animationNum={6}
               href="#contact"
-              className="cursor-pointer bg-navy text-white px-6 py-3 rounded-sm font-semibold flex items-center gap-2 hover:bg-navy-deep transition font-display"
+              className="cursor-pointer bg-teal text-white px-6 py-3 rounded-sm font-semibold flex items-center gap-2 hover:bg-teal/80 transition font-display"
             >
               Start Symptom Check <ArrowRight size={18} />
             </TimelineAnimation>
