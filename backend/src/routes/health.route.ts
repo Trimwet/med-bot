@@ -1,8 +1,7 @@
-// Health check route — no auth required, used by Vercel/uptime monitors.
+import { Router } from "express";
 
-import { Elysia } from "elysia";
+export const healthRoute = Router();
 
-export const healthRoute = new Elysia().get("/health", () => ({
-  status: "ok",
-  timestamp: new Date().toISOString(),
-}));
+healthRoute.get("/health", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});

@@ -1,7 +1,5 @@
-// Main Elysia app assembly, exported for both local `bun run` and the
-// Vercel edge adapter.
-
-import { Elysia } from "elysia";
+import express from "express";
+import cors from "cors";
 import { healthRoute } from "@/routes/health.route";
 import { sessionRoute } from "@/routes/session.route";
 import { chatRoute } from "@/routes/chat.route";
@@ -9,16 +7,20 @@ import { authRoute } from "@/routes/auth.route";
 import { toErrorResponse } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
-export const app = new Elysia()
-  .onError(({ error, set }) => {
-    const { status, body } = toErrorResponse(error);
-    set.status = status;
-    logger.error("request error", { message: (error as Error).message });
-    return body;
-  })
-  .use(healthRoute)
-  .use(sessionRoute)
-  .use(chatRoute)
-  .use(authRoute);
+export const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.use(healthRoute);
+app.use(sessionRoute);
+app.use(chatRoute);
+app.use(authRoute);
+
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const { status, body } = toErrorResponse(err);
+  logger.error("request error", { message: (err as Error).message });
+  res.status(status).json(body);
+});
 
 export type App = typeof app;

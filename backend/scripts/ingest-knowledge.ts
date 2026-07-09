@@ -1,14 +1,14 @@
-// Ingestion script — chunks markdown protocols, embeds, and upserts
-// into knowledge_collection. Run via: bun run ingest
-
 import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import matter from "gray-matter";
 import { getDb, COLLECTIONS, closeDb } from "@/db/client";
 import { embedText } from "@/services/embeddings.service";
 import type { KnowledgeDocument } from "@/db/schema";
 
-const KNOWLEDGE_DIR = join(import.meta.dir, "..", "knowledge");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const KNOWLEDGE_DIR = join(__dirname, "..", "knowledge");
 
 async function ingestFile(fileName: string) {
   const filePath = join(KNOWLEDGE_DIR, fileName);

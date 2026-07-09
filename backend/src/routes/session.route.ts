@@ -1,18 +1,14 @@
-// Session route — fetch session state/history.
-
-import { Elysia, t } from "elysia";
+import { Router } from "express";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import { getOrCreateSession } from "@/services/session.service";
 
-export const sessionRoute = new Elysia()
-  .use(authMiddleware)
-  .get(
-    "/session/:sessionId",
-    async ({ params }) => {
-      const session = await getOrCreateSession(params.sessionId);
-      return session;
-    },
-    {
-      params: t.Object({ sessionId: t.String() }),
-    }
-  );
+export const sessionRoute = Router();
+
+sessionRoute.get("/session/:sessionId", authMiddleware, async (req, res, next) => {
+  try {
+    const session = await getOrCreateSession(req.params.sessionId);
+    res.json(session);
+  } catch (err) {
+    next(err);
+  }
+});

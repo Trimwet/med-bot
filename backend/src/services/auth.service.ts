@@ -109,7 +109,7 @@ export async function signupUser(input: SignupInput) {
       {
         $set: {
           name: input.name?.trim() || existingUser.name,
-          email,
+    email: email ?? "",
           password: hashedPassword,
           otp,
           otpExpires,
@@ -120,7 +120,7 @@ export async function signupUser(input: SignupInput) {
   } else {
     await users.insertOne({
       name: input.name?.trim(),
-      email,
+      email: email ?? "",
       password: hashedPassword,
       otp,
       otpExpires,
@@ -202,7 +202,7 @@ export async function upsertGoogleUser(profile: { id: string; displayName?: stri
 
   const created = await users.insertOne({
     name: profile.displayName,
-    email,
+    email: email ?? "",
     googleId: profile.id,
     isVerified: true,
     createdAt: new Date().toISOString(),
@@ -212,7 +212,7 @@ export async function upsertGoogleUser(profile: { id: string; displayName?: stri
   return {
     _id: created.insertedId,
     name: profile.displayName,
-    email,
+    email: email ?? "",
     googleId: profile.id,
     isVerified: true,
     createdAt: new Date().toISOString(),
