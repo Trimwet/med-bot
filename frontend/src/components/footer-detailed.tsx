@@ -42,21 +42,21 @@ const footerLinks = [
 
 export const DetailedFooter = () => {
   return (
-    <footer className="w-full bg-navy-deep text-on-navy border-t border-white/5">
+    <footer className="w-full bg-[#0A202A] text-white border-t border-white/5">
       {/* CTA Banner */}
       <div className="border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 py-16 md:py-20 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-display">
             Let's turn your intake line into a sorted queue.
           </h2>
-          <p className="text-on-navy/60 mb-8 max-w-xl mx-auto">
+          <p className="text-[#9CA3AF] mb-8 max-w-xl mx-auto">
             Join 120+ hospitals already using MedBot to triage patients faster and reduce wait times.
           </p>
           <a
             href="#contact"
-            className="inline-flex items-center gap-2 bg-white text-navy px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors font-display"
+            className="inline-flex items-center gap-2 bg-white text-[#0A202A] px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors font-display"
           >
-            Request a Demo <ArrowRight size={16}   />
+            Request a Demo <ArrowRight size={16} />
           </a>
         </div>
       </div>
@@ -67,17 +67,17 @@ export const DetailedFooter = () => {
           {/* Brand column */}
           <div className="col-span-2">
             <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-navy-deep font-extrabold text-sm">
+              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[#0A202A] font-extrabold text-sm">
                 M
               </div>
               <span className="text-white font-bold text-lg font-display">MedBot</span>
             </div>
-            <p className="text-sm text-on-navy/60 leading-relaxed mb-6 max-w-xs">
+            <p className="text-sm text-[#9CA3AF] leading-relaxed mb-6 max-w-xs">
               AI-powered patient triage for hospitals. Interview, sort, and hand off — clinically grounded, always improving.
             </p>
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-2 text-xs text-on-navy/40">
-                <span className="w-2 h-2 rounded-full bg-green animate-pulse" />
+              <span className="flex items-center gap-2 text-xs text-[#9CA3AF]/60">
+                <span className="w-2 h-2 rounded-full bg-teal animate-pulse" />
                 All systems operational
               </span>
             </div>
@@ -94,7 +94,7 @@ export const DetailedFooter = () => {
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-sm text-on-navy/60 hover:text-white transition-colors"
+                      className="text-sm text-[#9CA3AF] hover:text-white transition-colors"
                     >
                       {link.label}
                     </a>
@@ -107,7 +107,7 @@ export const DetailedFooter = () => {
 
         {/* Bottom bar */}
         <div className="mt-14 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-on-navy/40">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-[#9CA3AF]/60">
             <span>© 2026 MedBot Health. All rights reserved.</span>
             <span className="hidden md:inline">•</span>
             <span>Not a substitute for emergency care</span>
@@ -120,7 +120,7 @@ export const DetailedFooter = () => {
             <input
               type="email"
               placeholder="Enter your email for updates"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 pr-12 text-sm text-white placeholder:text-on-navy/40 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 pr-12 text-sm text-white placeholder:text-[#9CA3AF]/40 focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal/40 transition-all"
             />
             <button
               type="submit"

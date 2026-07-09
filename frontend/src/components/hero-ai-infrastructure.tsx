@@ -21,9 +21,9 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
               direction="left"
               width={300}
               backgroundColor={'#1B2160'}
-              clsBtnClassName="bg-navy border-r border-navy-mid text-white"
-              contentClassName="bg-navy border-r border-navy-mid text-white"
-              btnClassName="bg-navy text-white relative w-fit p-2 left-0 top-0"
+              clsBtnClassName="bg-[#0A202A] border-r border-teal/30 text-white"
+              contentClassName="bg-[#0A202A] border-r border-teal/30 text-white"
+              btnClassName="bg-[#0A202A] text-white relative w-fit p-2 left-0 top-0"
             >
               <nav className="space-y-4">
                 <a href="#features" className="block p-2 hover:bg-white/10 text-white rounded-sm">
@@ -46,7 +46,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
             <div className="flex items-center gap-2">
               <button
                 onClick={onLogin}
-                className="text-sm font-medium text-ink hover:text-navy transition-colors px-3 py-1.5"
+                className="text-sm font-medium text-ink hover:text-teal transition-colors px-3 py-1.5"
               >
                 Log In
               </button>
@@ -78,7 +78,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
             <div className="flex items-center gap-3">
               <button
                 onClick={onLogin}
-                className="text-sm font-medium text-ink hover:text-navy transition-colors px-3 py-1.5"
+                className="text-sm font-medium text-ink hover:text-teal transition-colors px-3 py-1.5"
               >
                 Log In
               </button>
@@ -99,7 +99,7 @@ export const HeroAiInfrastructure = ({ onLogin, onSignup }: { onLogin?: () => vo
           <TimelineAnimation
             timelineRef={timelineRef}
             animationNum={3}
-            className="flex items-center gap-2 rounded-full px-1.5 py-1 pr-4 bg-navy/10 text-ink text-sm font-medium font-display"
+            className="flex items-center gap-2 rounded-full px-1.5 py-1 pr-4 bg-teal/10 text-ink text-sm font-medium font-display"
           >
             <span className="py-0.5 px-2.5 rounded-full bg-teal text-white font-semibold text-xs">
               New

@@ -10,8 +10,8 @@ const stats = [
 
 export const StatsSection = () => {
   return (
-    <section className="pb-10 px-6 bg-navy-deep text-white relative overflow-hidden">
-      <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(218,220,240,0.07)_0%,transparent_70%)] pointer-events-none"></div>
+    <section className="pb-16 px-6 bg-[#0A202A] text-white relative overflow-hidden">
+      <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(0,168,168,0.06)_0%,transparent_70%)] pointer-events-none"></div>
       <div className="max-w-7xl mx-auto relative">
         <div className="grid lg:grid-cols-2 gap-24 items-center">
           <div className="space-y-10">
@@ -20,7 +20,7 @@ export const StatsSection = () => {
             </span>
             <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-balance leading-none">
               Real results, <br />
-              <span className="text-on-navy/60">real hospitals.</span>
+              <span className="text-[#9CA3AF]">real hospitals.</span>
             </h2>
             <div className="grid grid-cols-2 gap-x-12 gap-y-12 pt-10">
               {stats.map((stat, i) => (
@@ -38,7 +38,7 @@ export const StatsSection = () => {
                   <div className="text-3xl font-semibold mb-1 tracking-tighter">
                     {stat.value}
                   </div>
-                  <div className="text-xs font-medium text-on-navy/60 uppercase tracking-widest">
+                  <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-widest">
                     {stat.label}
                   </div>
                 </motion.div>
@@ -47,15 +47,15 @@ export const StatsSection = () => {
           </div>
 
           <div className="relative group">
-            <div className="absolute -inset-20 bg-linear-to-tr from-white/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 blur-3xl pointer-events-none" />
+            <div className="absolute -inset-20 bg-linear-to-tr from-teal/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 blur-3xl pointer-events-none" />
             <div className="space-y-6 relative z-10">
-              <p className="text-lg md:text-xl text-on-navy/80 leading-relaxed text-pretty font-medium">
+              <p className="text-lg md:text-xl text-[#9CA3AF] leading-relaxed text-pretty font-medium">
                 MedBot interviews patients by chat or phone, sorts them by
                 clinical urgency, and hands your team a ready queue — not
                 another inbox to sift through.
               </p>
-              <div className="h-px w-20 bg-on-navy/30" />
-              <p className="text-base text-on-navy/60 leading-relaxed text-pretty">
+              <div className="h-px w-20 bg-[#9CA3AF]/30" />
+              <p className="text-base text-[#9CA3AF]/70 leading-relaxed text-pretty">
                 Every patient gets asked the same clinically grounded questions,
                 every time. Your clinicians always make the final call — MedBot
                 just makes sure nothing falls through the cracks.

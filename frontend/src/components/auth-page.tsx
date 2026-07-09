@@ -35,7 +35,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthP
 
             {/* Logo */}
             <div className="flex flex-col items-center pt-4">
-              <div className="w-12 h-12 rounded-xl bg-navy flex items-center justify-center text-white font-extrabold text-lg font-display mb-4">
+              <div className="w-12 h-12 rounded-xl bg-teal flex items-center justify-center text-white font-extrabold text-lg font-display mb-4">
                 M
               </div>
               <h1 className="text-2xl font-bold text-ink font-display">
@@ -60,7 +60,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthP
                     <input
                       type="text"
                       placeholder="Enter your full name"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-navy/20 focus:border-navy/40 transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all"
                     />
                   </div>
                 </div>
@@ -72,7 +72,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthP
                     <input
                       type="tel"
                       placeholder="Enter your phone number"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-navy/20 focus:border-navy/40 transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all"
                     />
                   </div>
                 </div>
@@ -86,7 +86,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthP
                 <input
                   type="email"
                   placeholder="Enter your email address"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-navy/20 focus:border-navy/40 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all"
                 />
               </div>
             </div>
@@ -98,7 +98,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthP
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder={isSignup ? 'Create a password' : 'Enter your password'}
-                  className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-navy/20 focus:border-navy/40 transition-all"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all"
                 />
                 <button
                   type="button"
@@ -112,7 +112,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode }: AuthP
 
             {!isSignup && (
               <div className="flex justify-end">
-                <a href="#" className="text-sm text-navy hover:text-navy-deep transition-colors">
+                <a href="#" className="text-sm text-teal hover:text-teal/80 transition-colors">
                   Forgot password?
                 </a>
               </div>

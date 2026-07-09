@@ -91,7 +91,7 @@ const FeatureCard = ({ icon: Icon, title, desc, highlight }: any) => (
         'relative z-10 size-12 rounded-full flex items-center justify-center mb-4 transition-all duration-300',
         highlight
           ? 'bg-teal text-white shadow-lg shadow-teal/20'
-          : 'bg-white/8 text-on-navy group-hover:bg-teal/20 group-hover:text-teal'
+          : 'bg-white/8 text-[#9CA3AF] group-hover:bg-teal/20 group-hover:text-teal'
       )}
     >
       <Icon className="size-6" />

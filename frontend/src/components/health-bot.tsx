@@ -33,7 +33,7 @@ export const HealthBot = ({ className }: { className?: string }) => (
 
       {/* Antenna */}
       <line x1="160" y1="40" x2="160" y2="18" stroke="#1B2160" strokeWidth="4" strokeLinecap="round" />
-      <circle cx="160" cy="14" r="7" fill="#4C8C5B" className="bot-antenna" />
+      <circle cx="160" cy="14" r="7" fill="#00A8A8" className="bot-antenna" />
 
       {/* Coat body */}
       <rect x="140" y="158" width="40" height="30" rx="8" fill="#1B2160" />
@@ -63,8 +63,8 @@ export const HealthBot = ({ className }: { className?: string }) => (
 
       {/* Stethoscope cross */}
       <rect x="141" y="222" width="38" height="38" rx="8" fill="#fff" stroke="#1B2160" strokeWidth="2.5" />
-      <rect x="156" y="230" width="8" height="22" rx="2" fill="#4C8C5B" />
-      <rect x="149" y="237" width="22" height="8" rx="2" fill="#4C8C5B" />
+      <rect x="156" y="230" width="8" height="22" rx="2" fill="#00A8A8" />
+      <rect x="149" y="237" width="22" height="8" rx="2" fill="#00A8A8" />
 
       {/* Head */}
       <rect x="92" y="40" width="136" height="122" rx="30" fill="#1B2160" />

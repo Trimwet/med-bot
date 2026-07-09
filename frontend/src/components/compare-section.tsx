@@ -91,7 +91,7 @@ const planValues: Record<string, Record<string, boolean | null>> = {
 const CheckIcon = ({ included }: { included: boolean }) => {
   if (included === null) return <Minus className="size-4 text-neutral-300" />
   return included ? (
-    <Check className="size-4 text-green" />
+    <Check className="size-4 text-teal" />
   ) : (
     <X className="size-4 text-neutral-300" />
   )
@@ -105,7 +105,7 @@ export const CompareSection = () => {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="inline-flex px-4 py-1.5 text-xs font-semibold border border-navy/20 rounded-full text-navy uppercase tracking-[0.2em] bg-navy/5 mb-6">
+          <span className="inline-flex px-4 py-1.5 text-xs font-semibold border border-teal/40 rounded-full text-teal uppercase tracking-[0.2em] bg-teal/10 mb-6">
             Compare Plans
           </span>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-ink mb-4 font-display">
@@ -127,7 +127,7 @@ export const CompareSection = () => {
                 key={plan}
                 className={cn(
                   'p-5 text-center font-semibold text-sm font-display',
-                  i === 1 ? 'bg-navy text-white' : 'text-ink'
+                  i === 1 ? 'bg-teal text-white' : 'text-ink'
                 )}
               >
                 {plan}
@@ -139,7 +139,7 @@ export const CompareSection = () => {
           {categories.map((category) => (
             <div key={category}>
               <div className="grid grid-cols-[1fr_repeat(3,120px)] border-b border-line">
-                <div className="p-4 px-5 text-sm font-semibold text-navy uppercase tracking-wider bg-paper-soft/50">
+                <div className="p-4 px-5 text-sm font-semibold text-[#073B4C] uppercase tracking-wider bg-paper-soft/50">
                   {category}
                 </div>
                 {plans.map((plan) => (

@@ -62,7 +62,7 @@ export const PricingSection = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="inline-flex px-4 py-1.5 text-xs font-semibold border border-navy/20 rounded-full text-navy uppercase tracking-[0.2em] bg-navy/5 mb-6">
+          <span className="inline-flex px-4 py-1.5 text-xs font-semibold border border-teal/40 rounded-full text-teal uppercase tracking-[0.2em] bg-teal/10 mb-6">
             Pricing
           </span>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-ink mb-4 font-display">
@@ -81,12 +81,12 @@ export const PricingSection = () => {
               className={cn(
                 'relative flex flex-col p-8 rounded-xl border transition-all duration-300',
                 plan.highlight
-                  ? 'bg-navy text-white border-navy shadow-xl shadow-navy/10 scale-[1.02]'
-                  : 'bg-white border-line hover:border-navy/30'
+                  ? 'bg-[#0A202A] text-white border-[#0A202A] shadow-xl shadow-[#0A202A]/10 scale-[1.02]'
+                  : 'bg-white border-line hover:border-teal/30'
               )}
             >
               {plan.highlight && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-green text-white text-xs font-semibold rounded-full">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-teal text-white text-xs font-semibold rounded-full">
                   Most Popular
                 </span>
               )}
@@ -95,7 +95,7 @@ export const PricingSection = () => {
                 <h3 className={cn('text-xl font-bold mb-1 font-display', plan.highlight ? 'text-white' : 'text-ink')}>
                   {plan.name}
                 </h3>
-                <p className={cn('text-sm', plan.highlight ? 'text-on-navy/70' : 'text-muted')}>
+                <p className={cn('text-sm', plan.highlight ? 'text-[#9CA3AF]' : 'text-muted')}>
                   {plan.desc}
                 </p>
               </div>
@@ -105,7 +105,7 @@ export const PricingSection = () => {
                   {plan.price}
                 </span>
                 {plan.period && (
-                  <span className={cn('text-sm ml-1', plan.highlight ? 'text-on-navy/60' : 'text-muted')}>
+                  <span className={cn('text-sm ml-1', plan.highlight ? 'text-[#9CA3AF]/70' : 'text-muted')}>
                     {plan.period}
                   </span>
                 )}
@@ -115,11 +115,11 @@ export const PricingSection = () => {
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-3">
                     {feature.included ? (
-                      <Check className={cn('size-4 mt-0.5 shrink-0', plan.highlight ? 'text-green' : 'text-green')} />
+                      <Check className={cn('size-4 mt-0.5 shrink-0', plan.highlight ? 'text-teal' : 'text-teal')} />
                     ) : (
-                      <X className={cn('size-4 mt-0.5 shrink-0', plan.highlight ? 'text-on-navy/30' : 'text-neutral-300')} />
+                      <X className={cn('size-4 mt-0.5 shrink-0', plan.highlight ? 'text-[#9CA3AF]/30' : 'text-neutral-300')} />
                     )}
-                    <span className={cn('text-sm', plan.highlight ? (feature.included ? 'text-on-navy/90' : 'text-on-navy/40') : (feature.included ? 'text-ink' : 'text-neutral-300'))}>
+                    <span className={cn('text-sm', plan.highlight ? (feature.included ? 'text-white/80' : 'text-[#9CA3AF]/40') : (feature.included ? 'text-ink' : 'text-neutral-300'))}>
                       {feature.text}
                     </span>
                   </li>
@@ -130,7 +130,7 @@ export const PricingSection = () => {
                 className={cn(
                   'w-full py-3 rounded-lg font-semibold text-sm transition-all duration-200 font-display',
                   plan.highlight
-                    ? 'bg-white text-navy hover:bg-white/90'
+                    ? 'bg-white text-[#0A202A] hover:bg-white/90'
                     : 'bg-teal text-white hover:bg-teal/80'
                 )}
               >

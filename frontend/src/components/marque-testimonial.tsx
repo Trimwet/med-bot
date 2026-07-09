@@ -53,9 +53,9 @@ const testimonials = [
 ]
 
 const TestimonialCard = ({ testimonial, reverse = false }: { testimonial: typeof testimonials[0]; reverse?: boolean }) => (
-  <div className="w-[380px] shrink-0 p-7 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden group">
+  <div className="w-[380px] shrink-0 p-7 rounded-lg bg-teal/5 backdrop-blur-sm border border-teal/10 hover:bg-teal/10 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden group">
     <div className={`absolute top-4 ${reverse ? 'left-4 rotate-180' : 'right-4'}`}>
-      <Quote className="w-10 h-10 fill-white/5 stroke-white/10" />
+      <Quote className="w-10 h-10 fill-teal/5 stroke-teal/10" />
     </div>
 
     <div className={`flex ${reverse ? 'justify-end' : ''}`}>
@@ -64,18 +64,18 @@ const TestimonialCard = ({ testimonial, reverse = false }: { testimonial: typeof
       ))}
     </div>
 
-    <p className="text-on-navy/80 leading-relaxed text-pretty font-medium">
+    <p className="text-[#9CA3AF] leading-relaxed text-pretty font-medium">
       {testimonial.text}
     </p>
 
     <div className="flex items-center gap-4 mt-auto">
-      <div className="size-11 rounded-full bg-navy flex items-center justify-center text-on-navy font-bold text-sm border border-white/10">
+      <div className="size-11 rounded-full bg-teal flex items-center justify-center text-white font-bold text-sm border border-teal/30">
         {testimonial.avatar}
       </div>
       <div className="flex-1">
         <p className="font-semibold text-white text-sm">{testimonial.name}</p>
-        <p className="text-xs text-on-navy/60">{testimonial.role}</p>
-        <p className="text-xs text-on-navy/40">{testimonial.company}</p>
+        <p className="text-xs text-[#9CA3AF]/80">{testimonial.role}</p>
+        <p className="text-xs text-[#9CA3AF]/60">{testimonial.company}</p>
       </div>
     </div>
   </div>
@@ -85,7 +85,7 @@ export const MarqueeTestimonials = () => {
   const doubled = [...testimonials, ...testimonials]
 
   return (
-    <section className="relative w-full overflow-hidden bg-navy-deep py-12">
+    <section className="relative w-full overflow-hidden bg-[#0A202A] py-16">
       <style>{`
         @keyframes marquee-left {
           from { transform: translateX(0); }
@@ -114,14 +114,14 @@ export const MarqueeTestimonials = () => {
         <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 font-display">
           Trusted by Clinicians
         </h2>
-        <p className="text-lg text-on-navy/70 max-w-2xl mx-auto">
+        <p className="text-lg text-[#9CA3AF] max-w-2xl mx-auto">
           Hear from healthcare professionals using MedBot to transform patient intake
         </p>
       </div>
 
       {/* Gradient fades */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-linear-to-r from-navy-deep to-transparent z-10" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-linear-to-l from-navy-deep to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-linear-to-r from-[#0A202A] to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-linear-to-l from-[#0A202A] to-transparent z-10" />
 
       {/* Row 1 - left to right */}
       <div className="overflow-hidden">
