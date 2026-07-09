@@ -36,8 +36,8 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
 
             {/* Logo */}
             <div className="flex flex-col items-center pt-4">
-              <div className="w-12 h-12 rounded-xl bg-teal flex items-center justify-center text-white font-extrabold text-lg font-display mb-4">
-                M
+              <div className="w-18 h-18 rounded-xl bg-teal flex items-center justify-center text-white font-extrabold text-lg font-display mb-4">
+                <img src="/assets/Logo.jpeg" alt="MedBot Logo" />
               </div>
               <h1 className="text-2xl font-bold text-ink font-display">
                 {isSignup ? 'Create your account' : 'Welcome back'}

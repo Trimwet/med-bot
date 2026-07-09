@@ -9,11 +9,12 @@ import { DetailedFooter } from '@/components/footer-detailed'
 import { AuthPage } from '@/components/auth-page'
 import { DisclaimerPage } from '@/components/disclaimer-page'
 import { HealthProfilePage } from '@/components/health-profile-page'
+import { Navbar } from '@/components/navbar'
 
 type Page = 'landing' | 'login' | 'signup' | 'disclaimer' | 'health-profile'
 
 export default function App() {
-  const [page, setPage] = useState<Page>('landing')
+  const [page, setPage] = useState<Page>("landing");
 
   if (page === 'login') {
     return (
@@ -56,8 +57,12 @@ export default function App() {
 
   return (
     <div className="bg-white">
+      <Navbar
+        onLogin={() => setPage("login")}
+        onSignup={() => setPage("signup")}
+      />
       <div id="hero">
-        <HeroAiInfrastructure onLogin={() => setPage('login')} onSignup={() => setPage('signup')} />
+        <HeroAiInfrastructure />
       </div>
       <div id="features">
         <FeatureHero />
@@ -78,5 +83,5 @@ export default function App() {
         <DetailedFooter />
       </div>
     </div>
-  )
+  );
 }

@@ -1,15 +1,13 @@
 import React from "react";
-import { TimelineAnimation } from "@/components/ui/timeline-animation";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import MotionDrawer from "@/components/ui/motion-drawer";
 
 interface NavbarProps {
   onLogin?: () => void;
   onSignup?: () => void;
-  timelineRef: React.RefObject<HTMLDivElement>;
 }
 
-export const Navbar = ({ onLogin, onSignup, timelineRef }: NavbarProps) => {
+export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   if (isMobile) {
@@ -19,9 +17,9 @@ export const Navbar = ({ onLogin, onSignup, timelineRef }: NavbarProps) => {
           <MotionDrawer
             direction="left"
             width={300}
-            backgroundColor={"#1B2160"}
-            clsBtnClassName="bg-navy border-r border-navy-mid text-white"
-            contentClassName="bg-navy border-r border-navy-mid text-white"
+            backgroundColor={"#073B4C"}
+            clsBtnClassName="bg-navy border-r border-navy text-white"
+            contentClassName="bg-navy border-r border-navy text-white"
             btnClassName="bg-navy text-white relative w-fit p-2 left-0 top-0"
           >
             <nav className="space-y-4">
@@ -79,11 +77,7 @@ export const Navbar = ({ onLogin, onSignup, timelineRef }: NavbarProps) => {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-line">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-4">
-        <TimelineAnimation
-          timelineRef={timelineRef}
-          animationNum={1}
-          className="flex items-center gap-5"
-        >
+        <div className="flex items-center gap-5">
           <nav className="hidden md:flex items-center gap-6 text-md text-muted">
             <a href="#features" className="hover:text-ink transition">
               Features
@@ -98,7 +92,7 @@ export const Navbar = ({ onLogin, onSignup, timelineRef }: NavbarProps) => {
               Pricing
             </a>
           </nav>
-        </TimelineAnimation>
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={onLogin}

@@ -211,7 +211,7 @@ const MotionDrawer: React.FC<SideMenuProps> = ({
 
       <AnimatePresence>
         {isOpen && (
-          <div className={`fixed w-full h-full top-0 left-0 z-9999 ${className}`}>
+          <div className={`fixed w-full h-screen top-0 left-0 z-9999 ${className}`}>
             {/* Overlay */}
             <motion.div
               className={`absolute w-full h-full top-0 left-0 ${overlayClassName}`}
@@ -225,7 +225,7 @@ const MotionDrawer: React.FC<SideMenuProps> = ({
 
             {/* Drawer */}
             <motion.div
-              className={`absolute h-full shadow-[8px_1px_21px_0px_rgba(17,17,26,0.1)] ${drawerPositionClasses} ${contentClassName}`}
+              className={`absolute top-0 bottom-0 shadow-[8px_1px_21px_0px_rgba(17,17,26,0.1)] ${drawerPositionClasses} ${contentClassName}`}
               style={{
                 backgroundColor,
                 width: `${width}px`,
