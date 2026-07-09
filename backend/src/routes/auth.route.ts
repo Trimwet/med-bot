@@ -5,10 +5,12 @@ import { authMiddleware } from "@/middleware/auth.middleware";
 import {
   getAuthenticatedUser,
   loginUser,
+  resendOtp,
   signJwtToken,
   signupUser,
   upsertGoogleUser,
   verifyJwtToken,
+  verifyOtp,
 } from "@/services/auth.service";
 import { sendOtpEmail } from "@/services/otp.service";
 
@@ -21,9 +23,41 @@ authRoute.post("/api/auth/signup", async (req, res, next) => {
     const sent = await sendOtpEmail(email, result.otp);
 
     res.json({
-      message: sent ? result.message : "Signup successful. You can sign in now.",
+      message: sent
+        ? result.message
+        : "Signup successful, but we couldn't send the verification email. Please try resending the code.",
       emailSent: sent,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+authRoute.post("/api/auth/verify-otp", async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const result = await verifyOtp({ email, otp });
+    res.json({
+      message: "Email verified successfully",
+      token: result.token,
+      user: result.user,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+authRoute.post("/api/auth/resend-otp", async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const newOtp = await resendOtp(email);
+    const sent = await sendOtpEmail(email, newOtp);
+
+    if (!sent) {
+      throw new AppError("Failed to send OTP email", 500, "OTP_EMAIL_FAILED");
+    }
+
+    res.json({ message: "OTP resent successfully" });
   } catch (err) {
     next(err);
   }

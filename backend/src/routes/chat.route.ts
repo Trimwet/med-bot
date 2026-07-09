@@ -10,18 +10,18 @@ const llm = new OpenAI({ apiKey: env.openaiApiKey });
 export const chatRoute = Router();
 
 chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
+  const { sessionId, message } = req.body;
+
+  if (!sessionId || typeof sessionId !== "string") {
+    res.status(400).json({ error: "VALIDATION_ERROR", message: "sessionId is required" });
+    return;
+  }
+  if (!message || typeof message !== "string" || message.trim().length === 0) {
+    res.status(400).json({ error: "VALIDATION_ERROR", message: "message is required and must be non-empty" });
+    return;
+  }
+
   try {
-    const { sessionId, message } = req.body;
-
-    if (!sessionId || typeof sessionId !== "string") {
-      res.status(400).json({ error: "VALIDATION_ERROR", message: "sessionId is required" });
-      return;
-    }
-    if (!message || typeof message !== "string" || message.trim().length === 0) {
-      res.status(400).json({ error: "VALIDATION_ERROR", message: "message is required and must be non-empty" });
-      return;
-    }
-
     logger.info("chat turn received", { sessionId });
 
     const session = await getOrCreateSession(sessionId);
@@ -53,8 +53,29 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       timestamp: new Date().toISOString(),
     });
 
-    res.json({ reply });
+    res.json({ reply, saved: true });
   } catch (err) {
-    next(err);
+    const fallbackReply =
+      "I’m sorry, I’m having trouble reaching my medical guidance service right now. Your message has still been saved for follow-up.";
+
+    try {
+      await appendMessage(sessionId, {
+        role: "assistant",
+        content: fallbackReply,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (persistErr) {
+      logger.warn("failed to persist fallback assistant reply", {
+        sessionId,
+        error: (persistErr as Error).message,
+      });
+    }
+
+    logger.warn("chat completion failed, returning fallback reply", {
+      sessionId,
+      error: (err as Error).message,
+    });
+
+    res.json({ reply: fallbackReply, saved: true, warning: "llm_unavailable" });
   }
 });

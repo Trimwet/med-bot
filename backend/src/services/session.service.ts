@@ -38,7 +38,8 @@ export async function appendMessage(
     {
       $push: { messages: message },
       $set: { updatedAt: new Date().toISOString() },
-    }
+    },
+    { upsert: true }
   );
 }
 

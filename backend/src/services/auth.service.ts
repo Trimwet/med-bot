@@ -142,7 +142,7 @@ export async function signupUser(input: SignupInput) {
       existingUser.password = hashedPassword;
       existingUser.otp = otp;
       existingUser.otpExpires = otpExpires;
-      existingUser.isVerified = true;
+      existingUser.isVerified = false;
       existingUser.updatedAt = new Date().toISOString();
     } else {
       memoryUsers.push({
@@ -152,13 +152,13 @@ export async function signupUser(input: SignupInput) {
         password: hashedPassword,
         otp,
         otpExpires,
-        isVerified: true,
+        isVerified: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
     }
 
-    return { otp, message: "Signup successful. You can sign in now." };
+    return { otp, message: "Signup successful. OTP sent to email for verification." };
   }
 
   const users = store.users;
@@ -173,7 +173,7 @@ export async function signupUser(input: SignupInput) {
           password: hashedPassword,
           otp,
           otpExpires,
-          isVerified: true,
+          isVerified: false,
           updatedAt: new Date().toISOString(),
         },
       }
@@ -185,13 +185,97 @@ export async function signupUser(input: SignupInput) {
       password: hashedPassword,
       otp,
       otpExpires,
-      isVerified: true,
+      isVerified: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
   }
 
-  return { otp, message: "Signup successful. You can sign in now." };
+  return { otp, message: "Signup successful. OTP sent to email for verification." };
+}
+
+export async function verifyOtp(input: { email: string; otp: string }) {
+  const email = normalizeEmail(input.email);
+  const otp = input.otp?.trim();
+
+  if (!email || !otp) {
+    throw new ValidationError("Email and OTP are required");
+  }
+
+  const user = await getUserByEmail(email);
+  if (!user) {
+    throw new AppError("User not found", 404, "USER_NOT_FOUND");
+  }
+
+  if (user.isVerified) {
+    throw new AppError("User already verified", 409, "ALREADY_VERIFIED");
+  }
+
+  if (!user.otp || !user.otpExpires) {
+    throw new AppError("No OTP pending for this user", 400, "NO_OTP_PENDING");
+  }
+
+  if (user.otp !== otp) {
+    throw new AppError("Invalid OTP", 400, "INVALID_OTP");
+  }
+
+  if (new Date(user.otpExpires) < new Date()) {
+    throw new AppError("OTP has expired", 400, "OTP_EXPIRED");
+  }
+
+  const store = await getUserStore();
+
+  if (store.mode === "memory") {
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.updatedAt = new Date().toISOString();
+  } else {
+    await store.users.updateOne(
+      { _id: user._id },
+      {
+        $set: { isVerified: true, updatedAt: new Date().toISOString() },
+        $unset: { otp: "", otpExpires: "" },
+      }
+    );
+  }
+
+  const token = signJwtToken(user._id!);
+  return {
+    token,
+    user: toPublicUser({ ...user, isVerified: true }),
+  };
+}
+
+export async function resendOtp(email: string) {
+  const normalized = normalizeEmail(email);
+  const user = await getUserByEmail(normalized);
+
+  if (!user) {
+    throw new AppError("User not found", 404, "USER_NOT_FOUND");
+  }
+
+  if (user.isVerified) {
+    throw new AppError("User already verified", 409, "ALREADY_VERIFIED");
+  }
+
+  const otp = generateOtp();
+  const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+  const store = await getUserStore();
+
+  if (store.mode === "memory") {
+    user.otp = otp;
+    user.otpExpires = otpExpires;
+    user.updatedAt = new Date().toISOString();
+  } else {
+    await store.users.updateOne(
+      { _id: user._id },
+      { $set: { otp, otpExpires, updatedAt: new Date().toISOString() } }
+    );
+  }
+
+  return otp;
 }
 
 export async function loginUser(input: LoginInput) {
@@ -207,7 +291,7 @@ export async function loginUser(input: LoginInput) {
     throw new AppError("Invalid email or password", 401, "INVALID_CREDENTIALS");
   }
 
-  if (!user.isVerified && env.nodeEnv === "production") {
+  if (!user.isVerified) {
     throw new AppError("Please verify your email before logging in", 403, "UNVERIFIED_USER");
   }
 
