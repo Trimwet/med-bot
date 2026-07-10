@@ -45,6 +45,17 @@ export interface KnowledgeDocument {
   metadata: KnowledgeChunkMetadata;
   createdAt: string;
 }
+export interface UserProfile {
+  age?: number;
+  gender?: "male" | "female" | "other";
+  heightCm?: number;
+  weightKg?: number;
+  bloodGroup?: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
+  allergies?: string;
+  conditions?: string;
+  medications?: string;
+  emergencyContact?: string;
+}
 
 export interface UserDocument {
   _id?: ObjectId;
@@ -55,6 +66,7 @@ export interface UserDocument {
   isVerified: boolean;
   otp?: string;
   otpExpires?: Date;
+  profile?: UserProfile;
   createdAt?: string;
   updatedAt?: string;
 }

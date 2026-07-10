@@ -127,7 +127,7 @@ authRoute.get("/api/auth/me", authMiddleware, async (req, res, next) => {
 });
 
 authRoute.get("/api/auth/google", (_req, res) => {
-  const redirectUri = `${env.clientUrl}/api/auth/google/callback`;
+  const redirectUri = env.googleCallbackUrl;
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", env.googleClientId);
   authUrl.searchParams.set("redirect_uri", redirectUri);
@@ -147,7 +147,7 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
   }
 
   try {
-    const redirectUri = `${env.clientUrl}/api/auth/google/callback`;
+    const redirectUri = env.googleCallbackUrl;
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -194,7 +194,8 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
     });
 
     const token = signJwtToken(user._id!);
-    res.redirect(`${env.clientUrl}/auth/success?token=${token}`);
+    const hasProfile = user.profile && Object.keys(user.profile).length > 0;
+    res.redirect(`${env.clientUrl}/${hasProfile ? "dashboard" : "health-profile"}?token=${token}`);
   } catch {
     res.redirect(`${env.clientUrl}/login?error=google_auth_failed`);
   }

@@ -26,6 +26,7 @@ const ENV_SPEC: EnvVar[] = [
   { key: "SENDER_EMAIL", required: false, default: "dev@example.com" },
   { key: "GOOGLE_CLIENT_ID", required: false, default: "" },
   { key: "GOOGLE_CLIENT_SECRET", required: false, default: "" },
+  { key: "GOOGLE_CALLBACK_URL", required: false, default: "http://localhost:5000/api/auth/google/callback" },
   { key: "CLIENT_URL", required: false, default: "http://localhost:5173" },
 ];
 
@@ -94,5 +95,6 @@ export const env = {
   senderEmail: raw.SENDER_EMAIL,
   googleClientId: raw.GOOGLE_CLIENT_ID,
   googleClientSecret: raw.GOOGLE_CLIENT_SECRET,
+  googleCallbackUrl: raw.GOOGLE_CALLBACK_URL,
   clientUrl: raw.CLIENT_URL,
 } as const;

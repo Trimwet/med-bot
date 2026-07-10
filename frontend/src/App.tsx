@@ -1,24 +1,36 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { LandingPage } from '@/pages/landing'
 import { AuthPage } from '@/components/auth-page'
 import { DisclaimerPage } from '@/components/disclaimer-page'
 import { HealthProfilePage } from '@/components/health-profile-page'
-
 type Page = 'landing' | 'login' | 'signup' | 'disclaimer' | 'health-profile'
-
 export default function App() {
   const [page, setPage] = useState<Page>("landing");
-
- if (page === 'login') {
-  return (
-    <AuthPage
-      initialMode="login"
-      onBack={() => setPage('landing')}
-      onToggleMode={() => setPage('signup')}
-      onSignupSuccess={() => setPage('landing')}
-    />
-  )
-}
+  useEffect(() => {
+    const path = window.location.pathname;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (path === '/health-profile' && token) {
+      localStorage.setItem('token', token);
+      window.history.replaceState({}, '', '/health-profile');
+      setPage('health-profile');
+    } else if (path === '/dashboard' && token) {
+      localStorage.setItem('token', token);
+      window.history.replaceState({}, '', '/');
+    } else if (path === '/login' && params.get('error')) {
+      setPage('login');
+    }
+  }, []);
+  if (page === 'login') {
+    return (
+      <AuthPage
+        initialMode="login"
+        onBack={() => setPage('landing')}
+        onToggleMode={() => setPage('signup')}
+        onSignupSuccess={() => setPage('landing')}
+      />
+    )
+  }
   if (page === 'signup') {
     return (
       <DisclaimerPage
@@ -27,7 +39,6 @@ export default function App() {
       />
     )
   }
-
   if (page === 'disclaimer') {
     return (
       <AuthPage
@@ -38,7 +49,6 @@ export default function App() {
       />
     )
   }
-
   if (page === 'health-profile') {
     return (
       <HealthProfilePage
@@ -47,7 +57,6 @@ export default function App() {
       />
     )
   }
-
   return (
     <LandingPage
       onLogin={() => setPage('login')}
