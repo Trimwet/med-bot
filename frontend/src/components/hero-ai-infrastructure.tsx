@@ -5,7 +5,6 @@ import { TimelineAnimation } from '@/components/ui/timeline-animation'
 export const HeroAiInfrastructure = () => {
   const timelineRef = useRef<HTMLDivElement>(null)
   return (
-    <>
       <section
         ref={timelineRef}
         className="relative min-h-screen flex flex-col bg-white text-ink w-full"
@@ -96,6 +95,5 @@ export const HeroAiInfrastructure = () => {
         </TimelineAnimation>
       </div>
     </section>
-    </>
   )
 }

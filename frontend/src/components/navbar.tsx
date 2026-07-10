@@ -1,59 +1,31 @@
-import { useMediaQuery } from "@/hooks/use-media-query";
-import MotionDrawer from "@/components/ui/motion-drawer";
+import { useState } from "react"
+import { Menu, X } from "lucide-react"
+import { useMediaQuery } from "@/hooks/use-media-query"
+import MotionDrawer from "@/components/ui/motion-drawer"
 
 interface NavbarProps {
-  onLogin?: () => void;
-  onSignup?: () => void;
+  onLogin?: () => void
+  onSignup?: () => void
 }
 
 export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useMediaQuery("(max-width: 768px)")
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   if (isMobile) {
     return (
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-line">
-        <div className="flex gap-4 justify-between items-center px-6 py-3 sticky">
-          <MotionDrawer
-            direction="left"
-            width={300}
-            backgroundColor={"#073B4C"}
-            clsBtnClassName="bg-navy border-r border-navy text-white"
-            contentClassName="bg-navy border-r border-navy text-white"
-            btnClassName="bg-navy text-white relative w-fit p-2 left-0 top-0"
-          >
-            <nav className="space-y-4">
-              <a
-                href="#features"
-                className="block p-2 hover:bg-white/10 text-white rounded-sm"
-              >
-                Features
-              </a>
-              <a
-                href="#results"
-                className="block p-2 hover:bg-white/10 text-white rounded-sm"
-              >
-                Results
-              </a>
-              <a
-                href="#testimonials"
-                className="block p-2 hover:bg-white/10 text-white rounded-sm"
-              >
-                Testimonials
-              </a>
-              <a
-                href="#pricing"
-                className="block p-2 hover:bg-white/10 text-white rounded-sm"
-              >
-                Pricing
-              </a>
-              <a
-                href="#contact"
-                className="block p-2 hover:bg-white/10 text-white rounded-sm"
-              >
-                Contact
-              </a>
-            </nav>
-          </MotionDrawer>
+      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-line">
+        <div className="flex justify-between items-center px-6 py-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open menu"
+              className="w-10 h-10 flex items-center justify-center rounded-lg text-ink hover:bg-ink/5 transition-colors"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <img src="/assets/Logo.jpeg" alt="MedBot" className="h-8 w-auto" />
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={onLogin}
@@ -69,22 +41,73 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
             </button>
           </div>
         </div>
+        <MotionDrawer
+          direction="left"
+          width={300}
+          isOpen={drawerOpen}
+          onToggle={setDrawerOpen}
+          showToggleButton={false}
+          backgroundColor={"#073B4C"}
+          clsBtnClassName="bg-navy border-r border-navy text-white"
+          contentClassName="bg-navy border-r border-navy text-white"
+        >
+          <button
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Close menu"
+            className="absolute top-5 right-5 p-3 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <nav className="space-y-4 mt-8">
+            <a
+              href="#features"
+              onClick={() => setDrawerOpen(false)}
+              className="block p-2 hover:bg-white/10 text-white rounded-sm"
+            >
+              Features
+            </a>
+            <a
+              href="#results"
+              onClick={() => setDrawerOpen(false)}
+              className="block p-2 hover:bg-white/10 text-white rounded-sm"
+            >
+              Results
+            </a>
+            <a
+              href="#testimonials"
+              onClick={() => setDrawerOpen(false)}
+              className="block p-2 hover:bg-white/10 text-white rounded-sm"
+            >
+              Testimonials
+            </a>
+            <a
+              href="#pricing"
+              onClick={() => setDrawerOpen(false)}
+              className="block p-2 hover:bg-white/10 text-white rounded-sm"
+            >
+              Pricing
+            </a>
+            <a
+              href="#contact"
+              onClick={() => setDrawerOpen(false)}
+              className="block p-2 hover:bg-white/10 text-white rounded-sm"
+            >
+              Contact
+            </a>
+          </nav>
+        </MotionDrawer>
       </div>
-    );
+    )
   }
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-line">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-4">
-        <div className="flex items-center gap-2">
-          <a href="/">
+        <div className="flex items-center gap-5">
+          <a href="/" className="flex items-center gap-2">
             <img src="/assets/Logoico.png" alt="Logo" className="h-10 w-auto" />
-          </a>
-          <a href="/">
             <p className="font-extrabold text-2xl text-[#073B4C]">MedBot</p>
           </a>
-        </div>
-        <div className="flex items-center gap-5">
           <nav className="hidden md:flex items-center gap-6 text-md text-muted">
             <a href="#features" className="hover:text-ink transition">
               Features
@@ -116,7 +139,7 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
         </div>
       </div>
     </header>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar
