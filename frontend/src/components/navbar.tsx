@@ -48,17 +48,20 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
           onToggle={setDrawerOpen}
           showToggleButton={false}
           backgroundColor={"#073B4C"}
-          clsBtnClassName="bg-navy border-r border-navy text-white"
-          contentClassName="bg-navy border-r border-navy text-white"
+          clsBtnClassName="bg-navy border-r border-navy text-white flex items-center justify-center w-10 h-10 rounded-lg text-ink hover:bg-ink/5 transition-colors"
+          contentClassName="bg-navy border-r border-navy text-white flex flex-col items-start justify-start p-6 space-y-4"
         >
-          <button
-            onClick={() => setDrawerOpen(false)}
-            aria-label="Close menu"
-            className="absolute top-5 right-5 p-3 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
-          >
-            <X className="w-5 h-5" />
-          </button>
-          <nav className="space-y-4 mt-8">
+          <div className="flex items-center justify-between w-[250px]">
+            <img src="/assets/Logo.jpeg" alt="Logo" className="h-10 w-auto rounded-lg" />
+            <button
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close menu"
+              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <nav className="space-y-4 mt-4">
             <a
               href="#features"
               onClick={() => setDrawerOpen(false)}
@@ -97,7 +100,7 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
           </nav>
         </MotionDrawer>
       </div>
-    )
+    );
   }
 
   return (
