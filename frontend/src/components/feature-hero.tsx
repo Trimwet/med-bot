@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react'
 import { MessageSquare, Zap, ClipboardList, Brain, Shield } from 'lucide-react'
 import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -72,36 +73,64 @@ export const FeatureHero = () => {
   )
 }
 
-const FeatureCard = ({ icon: Icon, title, desc, highlight }: any) => (
-  <div
-    className={cn(
-      "relative flex flex-col items-start text-left p-6 rounded-xl transition-all duration-300 group overflow-hidden",
-      "bg-[rgba(255,255,255,0.04)] backdrop-blur-md",
-      "border border-[rgba(255,255,255,0.06)]",
-      "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_0_0_1px_rgba(255,255,255,0.04)]",
-      "hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.12)]",
-      highlight &&
-        "md:scale-105 bg-teal/10 border-teal/30 shadow-xl shadow-black/30",
-    )}
-  >
-    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-      <div className="absolute -inset-20 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.06),transparent_60%)]" />
-    </div>
+const FeatureCard = ({ icon: Icon, title, desc, highlight }: any) => {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [isHovered, setIsHovered] = useState(false)
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (!cardRef.current) return
+    const rect = cardRef.current.getBoundingClientRect()
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    })
+  }
+
+  return (
     <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "relative z-10 size-12 rounded-full flex items-center justify-center mb-4 transition-all duration-300",
-        highlight
-          ? "bg-teal text-white shadow-lg shadow-teal/20"
-          : "bg-teal/20 text-teal group-hover:bg-teal/20 group-hover:text-[#9CA3AF]",
+        "relative flex flex-col items-start text-left p-6 rounded-xl transition-all duration-300 group overflow-hidden",
+        "bg-[rgba(255,255,255,0.04)] backdrop-blur-md",
+        "border border-[rgba(255,255,255,0.06)]",
+        "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_0_0_1px_rgba(255,255,255,0.04)]",
+        "hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.12)]",
+        highlight &&
+          "md:scale-105 bg-teal/10 border-teal/30 shadow-xl shadow-black/30",
       )}
     >
-      <Icon className="size-6" />
+      <div
+        className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,255,255,0.15), transparent 40%)`,
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"
+        style={{
+          background: `radial-gradient(250px circle at ${mousePos.x}px ${mousePos.y}px, rgba(0,180,180,0.15), transparent 50%)`,
+        }}
+      />
+      <div
+        className={cn(
+          "relative z-10 size-12 rounded-full flex items-center justify-center mb-4 transition-all duration-300",
+          highlight
+            ? "bg-teal text-white shadow-lg shadow-teal/20"
+            : "bg-teal/20 text-teal group-hover:bg-teal/20 group-hover:text-[#9CA3AF]",
+        )}
+      >
+        <Icon className="size-6" />
+      </div>
+      <h3 className="relative z-10 text-xl font-bold mb-2 text-white tracking-tight">
+        {title}
+      </h3>
+      <p className="relative z-10 text-[#9CA3AF] leading-relaxed text-sm text-pretty group-hover:text-white/80 transition-colors duration-300">
+        {desc}
+      </p>
     </div>
-    <h3 className="relative z-10 text-xl font-bold mb-2 text-white tracking-tight">
-      {title}
-    </h3>
-    <p className="relative z-10 text-[#9CA3AF] leading-relaxed text-sm text-pretty group-hover:text-white/80 transition-colors duration-300">
-      {desc}
-    </p>
-  </div>
-);
+  )
+}

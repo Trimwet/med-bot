@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff, Mail, Lock, User, Phone, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Loader } from '@/components/motion/loader'
 import {
   signup,
   login,
@@ -20,9 +21,11 @@ interface AuthPageProps {
   onBack?: () => void
   onToggleMode?: () => void
   onSignupSuccess?: () => void
+  onLoginSuccess?: () => void
+  onForgotPassword?: () => void
 }
 
-export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignupSuccess }: AuthPageProps) => {
+export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignupSuccess, onLoginSuccess, onForgotPassword }: AuthPageProps) => {
   const [mode, setMode] = useState<AuthMode>(initialMode)
   const [step, setStep] = useState<Step>('form')
   const [showPassword, setShowPassword] = useState(false)
@@ -78,7 +81,11 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
         : await verifyLoginOtp(email, otp)
 
       saveSession(result.token, result.user)
-      onSignupSuccess?.()
+      if (isSignup) {
+        onSignupSuccess?.()
+      } else {
+        onLoginSuccess?.()
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Verification failed. Please try again.')
     } finally {
@@ -156,7 +163,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
                 disabled={loading || otp.length !== 6}
                 className="w-full py-3 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal/80 transition-colors font-display disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Verifying...' : isSignup ? 'Verify Email' : 'Verify & Log In'}
+                {loading ? <Loader variant="helix" size={20} speed={0.6} label="Verifying" className="text-white" /> : isSignup ? 'Verify Email' : 'Verify & Log In'}
               </button>
 
               <button
@@ -281,9 +288,13 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
 
             {!isSignup && (
               <div className="flex justify-end">
-                <a href="#" className="text-sm text-teal hover:text-teal/80 transition-colors">
+                <button
+                  type="button"
+                  onClick={onForgotPassword}
+                  className="text-sm text-teal hover:text-teal/80 transition-colors"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
             )}
 
@@ -321,7 +332,7 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
               disabled={loading}
               className="w-full py-3 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal/80 transition-colors font-display disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Please wait...' : isSignup ? 'Sign Up' : 'Log In'}
+              {loading ? <Loader variant="helix" size={20} speed={0.6} label="Loading" className="text-white" /> : isSignup ? 'Sign Up' : 'Log In'}
             </button>
           </form>
         </div>

@@ -4,13 +4,13 @@ import { TimelineAnimation } from '@/components/ui/timeline-animation'
 
 export const HeroAiInfrastructure = () => {
   const timelineRef = useRef<HTMLDivElement>(null)
+
   return (
-      <section
-        ref={timelineRef}
-        className="relative min-h-screen flex flex-col bg-white text-ink w-full"
-      >
+    <section
+      ref={timelineRef}
+      className="relative min-h-screen flex flex-col bg-white text-ink w-full"
+    >
       <div className="relative z-10 grow flex flex-col lg:flex-row items-center justify-center px-8 pt-24 pb-16 gap-12 max-w-7xl mx-auto w-full">
-        {/* Left content */}
         <div className="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left">
           <TimelineAnimation
             timelineRef={timelineRef}
@@ -20,7 +20,9 @@ export const HeroAiInfrastructure = () => {
             <span className="py-0.5 px-2.5 rounded-full bg-teal text-white font-semibold text-xs">
               New
             </span>
-            <span>Trusted by 999+ growing B2B teams</span>
+            <span>
+              Trusted by 999+ growing B2B teams
+            </span>
           </TimelineAnimation>
 
           <TimelineAnimation
@@ -67,17 +69,14 @@ export const HeroAiInfrastructure = () => {
           </div>
         </div>
 
-        {/* Right image */}
         <TimelineAnimation
           timelineRef={timelineRef}
           animationNum={5.5}
           className="flex-1 flex justify-center lg:justify-end"
         >
           <div className="relative group">
-            {/* Animated paper border layers */}
             <div className="absolute -inset-4 bg-paper-soft rounded-3xl border border-line shadow-lg animate-[float-border_4s_ease-in-out_infinite] will-change-transform"></div>
             <div className="absolute -inset-2 bg-paper rounded-3xl border border-line shadow-xl animate-[float-border_4s_ease-in-out_infinite_0.4s] will-change-transform"></div>
-            {/* Image container */}
             <div className="relative overflow-hidden rounded-2xl border border-line shadow-2xl bg-white">
               <img
                 src="/hero-doctor.jpg"
@@ -87,7 +86,6 @@ export const HeroAiInfrastructure = () => {
                 className="w-full max-w-lg object-cover object-center mix-blend-multiply"
                 style={{ aspectRatio: "4/3" }}
               />
-              {/* Soft edge fade to blend with white background */}
               <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-white/20 pointer-events-none"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 pointer-events-none"></div>
             </div>

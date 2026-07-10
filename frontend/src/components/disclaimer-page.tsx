@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FileText, ChevronLeft, ChevronRight, Info } from 'lucide-react'
+import { FileText, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface DisclaimerPageProps {
   onBack?: () => void
@@ -11,19 +11,6 @@ export const DisclaimerPage = ({ onBack, onAccept }: DisclaimerPageProps) => {
 
   return (
     <div className="min-h-screen bg-[#F4F5FA] flex flex-col">
-      {/* Top bar */}
-      <header className="bg-white border-b border-line px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-teal flex items-center justify-center text-white font-extrabold text-xs">
-            M
-          </div>
-          <span className="text-ink font-bold text-sm font-display">MedBot</span>
-        </div>
-        <button className="w-7 h-7 rounded-full border border-line flex items-center justify-center text-muted hover:text-ink hover:border-ink/30 transition-colors">
-          <Info className="size-3.5" />
-        </button>
-      </header>
-
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg">
@@ -37,16 +24,9 @@ export const DisclaimerPage = ({ onBack, onAccept }: DisclaimerPageProps) => {
               <span>Back</span>
             </button>
             {/* Logo */}
-            <div className="flex flex-col items-center mb-8">
-              <div className="w-14 h-14 rounded-xl bg-teal flex items-center justify-center mb-3">
-                <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8">
-                  <rect x="6" y="8" width="20" height="16" rx="4" fill="white" />
-                  <rect x="10" y="12" width="4" height="4" rx="1" fill="#0A202A" />
-                  <rect x="18" y="12" width="4" height="4" rx="1" fill="#0A202A" />
-                  <path d="M12 18 Q16 21 20 18" stroke="#0A202A" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-                  <rect x="14" y="4" width="4" height="4" rx="2" fill="#0A202A" />
-                  <line x1="16" y1="8" x2="16" y2="10" stroke="#0A202A" strokeWidth="1.5" />
-                </svg>
+            <div className="flex flex-col items-center pt-4">
+              <div className="w-18 h-18 rounded-xl bg-teal flex items-center justify-center text-white font-extrabold text-lg font-display mb-4">
+                <img src="/assets/Logo.jpeg" alt="MedBot Logo" />
               </div>
               <span className="text-xs text-muted font-medium tracking-wide">MedBot AI Assistant</span>
             </div>

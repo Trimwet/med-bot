@@ -12,10 +12,12 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = localStorage.getItem('token')
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
   })
@@ -100,4 +102,23 @@ export function resendLoginOtp(email: string) {
 
 export function getGoogleAuthUrl() {
   return `${API_URL}/api/auth/google`
+}
+
+export interface ProfilePayload {
+  age?: number
+  gender?: string
+  heightCm?: number
+  weightKg?: number
+  bloodGroup?: string
+  allergies?: string
+  conditions?: string
+  medications?: string
+  emergencyContact?: string
+}
+
+export function updateProfile(payload: ProfilePayload) {
+  return request<{ message: string; profile: Record<string, unknown> }>('/api/users/me/profile', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
 }

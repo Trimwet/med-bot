@@ -1,7 +1,8 @@
 import { ObjectId } from "mongodb";
-import { getDb, COLLECTIONS } from "@/db/client";
+import { COLLECTIONS } from "@/db/client";
 import type { UserDocument, UserProfile } from "@/db/schema";
 import { AppError, ValidationError } from "@/lib/errors";
+import { getUserStore, memoryUsers } from "@/services/auth.service";
 
 const GENDERS = ["male", "female", "other"];
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -91,25 +92,43 @@ function validateProfileInput(input: UpdateProfileInput): UserProfile {
   return profile;
 }
 
-export async function getUserProfile(userId: string) {
-  const db = await getDb();
-  const user = await db
-    .collection<UserDocument>(COLLECTIONS.users)
-    .findOne({ _id: new ObjectId(userId) });
+function findUserInMemory(userId: string) {
+  return memoryUsers.find((u) => u._id?.toString() === userId);
+}
 
+export async function getUserProfile(userId: string) {
+  const store = await getUserStore();
+
+  if (store.mode === "memory") {
+    const user = findUserInMemory(userId);
+    if (!user) {
+      throw new AppError("User not found", 404, "USER_NOT_FOUND");
+    }
+    return user.profile ?? {};
+  }
+
+  const user = await store.users!.findOne({ _id: new ObjectId(userId) });
   if (!user) {
     throw new AppError("User not found", 404, "USER_NOT_FOUND");
   }
-
   return user.profile ?? {};
 }
 
 export async function updateUserProfile(userId: string, input: UpdateProfileInput) {
   const profile = validateProfileInput(input);
+  const store = await getUserStore();
 
-  const db = await getDb();
-  const users = db.collection<UserDocument>(COLLECTIONS.users);
+  if (store.mode === "memory") {
+    const user = findUserInMemory(userId);
+    if (!user) {
+      throw new AppError("User not found", 404, "USER_NOT_FOUND");
+    }
+    user.profile = { ...(user.profile || {}), ...profile };
+    user.updatedAt = new Date().toISOString();
+    return user.profile;
+  }
 
+  const users = store.users!;
   const setFields: Record<string, unknown> = { updatedAt: new Date().toISOString() };
   for (const [key, value] of Object.entries(profile)) {
     setFields[`profile.${key}`] = value;

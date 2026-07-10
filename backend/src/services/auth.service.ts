@@ -43,9 +43,9 @@ function toPublicUser(user: UserDocument): PublicUser {
   };
 }
 
-const memoryUsers: UserDocument[] = [];
+export const memoryUsers: UserDocument[] = [];
 
-async function getUserStore() {
+export async function getUserStore() {
   if (!env.mongodbUri) {
     return { mode: "memory" as const, users: null };
   }

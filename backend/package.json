@@ -4,7 +4,7 @@
   "description": "Backend for MediChat - AI-powered medical triage support app",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "nodemon --exec tsx src/index.ts",
     "start": "tsx src/index.ts"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "^22.10.0",
+    "nodemon": "^3.1.14",
     "tsx": "^4.19.0",
     "typescript": "^7.0.1-rc"
   }

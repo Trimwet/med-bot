@@ -1,14 +1,54 @@
-import React from 'react'
-import { motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+import { useInView } from 'motion/react'
+import NumberFlow from '@number-flow/react'
+
+interface AnimatedStatProps {
+  value: number
+  suffix?: string
+  decimals?: number
+  label: string
+  delay?: number
+}
+
+function AnimatedStat({ value, suffix = '', decimals = 0, label, delay = 0 }: AnimatedStatProps) {
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, margin: '-50px' })
+  const [target, setTarget] = useState(0)
+
+  useEffect(() => {
+    if (!isInView) return
+    const timer = setTimeout(() => setTarget(value), delay)
+    return () => clearTimeout(timer)
+  }, [isInView, value, delay])
+
+  return (
+    <div ref={ref}>
+      <div className="text-3xl font-semibold mb-1 tracking-tighter flex items-baseline">
+        <NumberFlow
+          value={target}
+          decimals={decimals}
+          className="text-3xl font-semibold tracking-tighter tabular-nums"
+        />
+        {suffix && <span>{suffix}</span>}
+      </div>
+      <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-widest">
+        {label}
+      </div>
+    </div>
+  )
+}
 
 const stats = [
-  { label: 'Patients triaged', value: '50K+' },
-  { label: 'Avg wait reduction', value: '62%' },
-  { label: 'Uptime', value: '99.9%' },
-  { label: 'Hospital partners', value: '120+' },
+  { value: 50000, suffix: 'K+', decimals: 0, label: 'Patients triaged' },
+  { value: 62, suffix: '%', decimals: 0, label: 'Avg wait reduction' },
+  { value: 99.9, suffix: '%', decimals: 1, label: 'Uptime' },
+  { value: 120, suffix: '+', decimals: 0, label: 'Hospital partners' },
 ]
 
 export const StatsSection = () => {
+  const headerRef = useRef(null)
+  const headerInView = useInView(headerRef, { once: true, margin: '-50px' })
+
   return (
     <section className="pb-16 px-6 bg-[#0A202A] text-white relative overflow-hidden">
       <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(0,168,168,0.06)_0%,transparent_70%)] pointer-events-none"></div>
@@ -24,24 +64,14 @@ export const StatsSection = () => {
             </h2>
             <div className="grid grid-cols-2 gap-x-12 gap-y-12 pt-10">
               {stats.map((stat, i) => (
-                <motion.div
+                <AnimatedStat
                   key={stat.label}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{
-                    duration: 0.3,
-                    delay: i * 0.05,
-                    ease: 'easeOut',
-                  }}
-                >
-                  <div className="text-3xl font-semibold mb-1 tracking-tighter">
-                    {stat.value}
-                  </div>
-                  <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-widest">
-                    {stat.label}
-                  </div>
-                </motion.div>
+                  value={stat.value}
+                  suffix={stat.suffix}
+                  decimals={stat.decimals}
+                  label={stat.label}
+                  delay={i * 150}
+                />
               ))}
             </div>
           </div>

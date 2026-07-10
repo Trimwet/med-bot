@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
-import { User, Heart, Ruler, Weight, Droplets, AlertTriangle, Pill, Phone, ChevronLeft } from 'lucide-react'
+import { User, Heart, Ruler, Weight, Droplets, AlertTriangle, Pill, Phone } from 'lucide-react'
+import { Select } from './ui/select'
+import { updateProfile, ApiError } from '@/lib/api'
 
 interface HealthProfilePageProps {
   onBack?: () => void
@@ -20,36 +22,44 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
     medications: '',
     emergencyContact: '',
   })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }))
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      await updateProfile({
+        age: form.age ? Number(form.age) : undefined,
+        gender: form.gender || undefined,
+        heightCm: form.height ? Number(form.height) : undefined,
+        weightKg: form.weight ? Number(form.weight) : undefined,
+        bloodGroup: form.bloodGroup || undefined,
+        allergies: form.allergies || undefined,
+        conditions: form.conditions || undefined,
+        medications: form.medications || undefined,
+        emergencyContact: form.emergencyContact || undefined,
+      })
+      onContinue?.()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to save profile. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#F4F5FA] flex flex-col">
-      {/* Top bar */}
-      <header className="bg-white border-b border-line px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-teal flex items-center justify-center text-white font-extrabold text-xs">
-            M
-          </div>
-          <span className="text-ink font-bold text-sm font-display">MedBot</span>
-        </div>
-      </header>
-
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-lg">
-          <div className="bg-white rounded-2xl border border-line shadow-sm px-8 py-10 relative">
-            {/* Back button */}
-            <button
-              onClick={onBack}
-              className="absolute top-6 left-6 flex items-center gap-1.5 text-sm text-muted hover:text-ink transition-colors group"
-            >
-              <ChevronLeft className="size-4 group-hover:-translate-x-0.5 transition-transform" />
-              <span>Back</span>
-            </button>
+          <div className="bg-white rounded-2xl border border-line shadow-sm px-8 py-10">
 
             {/* Title */}
-            <div className="text-center mb-8 pt-2">
+            <div className="text-center mb-6">
               <h1 className="text-2xl font-bold text-ink font-display mb-2">
                 Create Your Health Profile
               </h1>
@@ -59,7 +69,7 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
             </div>
 
             {/* Form */}
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {/* Age & Gender row */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -80,16 +90,16 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                     <User className="size-3.5 text-teal" />
                     Gender
                   </label>
-                  <select
+                  <Select
                     value={form.gender}
-                    onChange={(e) => update('gender', e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all appearance-none"
-                  >
-                    <option value="">Select your gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
+                    onValueChange={(val) => update('gender', val)}
+                    placeholder="Select your gender"
+                    options={[
+                      { label: 'Male', value: 'male' },
+                      { label: 'Female', value: 'female' },
+                      { label: 'Other', value: 'other' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -129,16 +139,12 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                   <Droplets className="size-3.5 text-teal" />
                   Blood Group
                 </label>
-                <select
-                  value={form.bloodGroup}
-                  onChange={(e) => update('bloodGroup', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all appearance-none"
-                >
-                  <option value="">Select your blood group</option>
-                  {bloodGroups.map((bg) => (
-                    <option key={bg} value={bg}>{bg}</option>
-                  ))}
-                </select>
+                  <Select
+                    value={form.bloodGroup}
+                    onValueChange={(val) => update('bloodGroup', val)}
+                    placeholder="Select your blood group"
+                    options={bloodGroups.map((bg) => ({ label: bg, value: bg }))}
+                  />
               </div>
 
               {/* Allergies */}
@@ -150,12 +156,12 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                 <textarea
                   placeholder="E.g. Peanuts, Pollen, Dust"
                   maxLength={100}
-                  rows={2}
+                  rows={1}
                   value={form.allergies}
                   onChange={(e) => update('allergies', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all resize-none"
                 />
-                <p className="text-xs text-muted/50 text-right mt-1">{form.allergies.length}/100</p>
+                <p className="text-xs text-muted/50 text-right -mt-1">{form.allergies.length}/100</p>
               </div>
 
               {/* Existing Conditions */}
@@ -167,12 +173,12 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                 <textarea
                   placeholder="E.g. Diabetes, Hypertension, Asthma"
                   maxLength={100}
-                  rows={2}
+                  rows={1}
                   value={form.conditions}
                   onChange={(e) => update('conditions', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all resize-none"
                 />
-                <p className="text-xs text-muted/50 text-right mt-1">{form.conditions.length}/100</p>
+                <p className="text-xs text-muted/50 text-right -mt-1">{form.conditions.length}/100</p>
               </div>
 
               {/* Medications */}
@@ -184,12 +190,12 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                 <textarea
                   placeholder="List any current medications"
                   maxLength={100}
-                  rows={2}
+                  rows={1}
                   value={form.medications}
                   onChange={(e) => update('medications', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all resize-none"
                 />
-                <p className="text-xs text-muted/50 text-right mt-1">{form.medications.length}/100</p>
+                <p className="text-xs text-muted/50 text-right -mt-1">{form.medications.length}/100</p>
               </div>
 
               {/* Emergency Contact */}
@@ -201,28 +207,27 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                 <textarea
                   placeholder="Name and phone number"
                   maxLength={100}
-                  rows={2}
+                  rows={1}
                   value={form.emergencyContact}
                   onChange={(e) => update('emergencyContact', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all resize-none"
                 />
-                <p className="text-xs text-muted/50 text-right mt-1">{form.emergencyContact.length}/100</p>
+                <p className="text-xs text-muted/50 text-right -mt-1">{form.emergencyContact.length}/100</p>
               </div>
 
+              {/* Error */}
+              {error && (
+                <p className="text-sm text-red-500 text-center">{error}</p>
+              )}
+
               {/* Buttons */}
-              <div className="space-y-3 pt-2">
+              <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-lg bg-[#0A202A] text-white font-semibold text-sm hover:bg-[#0A202A]/80 transition-colors font-display"
+                  disabled={saving}
+                  className="w-full py-3 rounded-lg bg-[#0A202A] text-white font-semibold text-sm hover:bg-[#0A202A]/80 transition-colors font-display disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  CONTINUE
-                </button>
-                <button
-                  onClick={onBack}
-                  type="button"
-                  className="w-full py-3 rounded-lg border border-line text-muted font-semibold text-sm hover:text-ink hover:border-ink/30 transition-all font-display"
-                >
-                  BACK
+                  {saving ? 'SAVING...' : 'CONTINUE'}
                 </button>
               </div>
             </form>
