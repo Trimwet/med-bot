@@ -37,3 +37,26 @@ h1, h2, h3, h4, h5, h6 {
 @layer utilities {
   .gpu { transform: translateZ(0); }
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #073B4C;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #054A5E;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #073B4C transparent;
+}
