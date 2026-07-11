@@ -96,8 +96,8 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
 
         {/* Collapse Toggle Divider */}
         <div className="shrink-0 mt-auto">
-          <div className={`flex items-center gap-3 px-4 py-3 ${collapsed ? 'justify-center px-2' : ''}`}>
-            <div className="flex-1 h-px bg-gray-200" />
+          <div className={`flex items-center justify-center py-3 gap-3 ${collapsed ? 'px-2' : ''}`}>
+            <div className="w-px h-6 bg-gray-200" />
             <button
               onClick={() => setCollapsed(!collapsed)}
               className="hidden lg:flex w-8 h-8 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
@@ -105,7 +105,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
             >
               {collapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
             </button>
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="w-px h-6 bg-gray-200" />
           </div>
         </div>
 
