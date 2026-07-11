@@ -94,8 +94,23 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
           ))}
         </nav>
 
+        {/* Collapse Toggle Divider */}
+        <div className="shrink-0 mt-auto">
+          <div className={`flex items-center gap-3 px-4 py-3 ${collapsed ? 'justify-center px-2' : ''}`}>
+            <div className="flex-1 h-px bg-gray-200" />
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden lg:flex w-8 h-8 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {collapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
+            </button>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+        </div>
+
         {/* Bottom Section */}
-        <div className="shrink-0 mt-auto p-4 pb-4 space-y-1">
+        <div className={`shrink-0 ${collapsed ? 'px-2 pb-3' : 'px-4 pb-4'} space-y-1`}>
           <NavLink
             to="/business/support"
             onClick={onClose}
@@ -122,15 +137,6 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
           >
             <LogOut className="w-5 h-5 shrink-0" />
             {!collapsed && 'Logout'}
-          </button>
-
-          {/* Collapse Toggle */}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex items-center justify-center w-10 h-10 mx-auto mt-3 border border-gray-200 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
           </button>
         </div>
       </aside>
