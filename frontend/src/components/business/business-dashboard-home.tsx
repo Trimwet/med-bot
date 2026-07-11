@@ -93,13 +93,13 @@ export const BusinessDashboardHome = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Welcome back, Admin! Here's what's happening today.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <Calendar className="w-4 h-4" />
             <span className="hidden sm:inline">{dateRange}</span>
             <span className="sm:hidden">May 14 - 20</span>
@@ -118,7 +118,7 @@ export const BusinessDashboardHome = () => {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="bg-white rounded-xl border border-gray-200 p-5"
+            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5"
           >
             <div className="flex items-center justify-between mb-3">
               <div className={`w-10 h-10 ${stat.iconBg} rounded-xl flex items-center justify-center`}>
@@ -135,8 +135,8 @@ export const BusinessDashboardHome = () => {
                 {stat.change}
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-            <p className="text-xs text-gray-500 mt-1">{stat.subtitle}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{stat.subtitle}</p>
           </div>
         ))}
       </div>
@@ -144,10 +144,10 @@ export const BusinessDashboardHome = () => {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Daily Assessments */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-gray-900">Daily Assessments</h3>
-            <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">This Week</span>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Daily Assessments</h3>
+            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">This Week</span>
           </div>
           <div className="flex items-end justify-between gap-2 h-40">
             {barData.map((h, i) => (
@@ -156,17 +156,17 @@ export const BusinessDashboardHome = () => {
                   className="w-full bg-[#073B4C] rounded-t-md transition-all"
                   style={{ height: `${h}%` }}
                 />
-                <span className="text-xs text-gray-400">{days[i]}</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">{days[i]}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Weekly Trends */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-gray-900">Weekly Trends</h3>
-            <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Last 8 Weeks ▾</span>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Weekly Trends</h3>
+            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">Last 8 Weeks ▾</span>
           </div>
           <div className="relative h-40">
             <svg className="w-full h-full" viewBox="0 0 300 120" preserveAspectRatio="none">
@@ -203,23 +203,23 @@ export const BusinessDashboardHome = () => {
           </div>
           <div className="flex justify-between mt-2">
             {weeks.map((w) => (
-              <span key={w} className="text-xs text-gray-400">{w}</span>
+              <span key={w} className="text-xs text-gray-400 dark:text-gray-500">{w}</span>
             ))}
           </div>
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">Recent Activity</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h3>
           <button className="text-sm font-semibold text-[#073B4C] hover:underline">
             View All Activity
           </button>
         </div>
 
         {/* Table Header */}
-        <div className="hidden sm:grid grid-cols-[1fr_1fr_1.5fr_0.8fr_auto] gap-4 px-5 py-3 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        <div className="hidden sm:grid grid-cols-[1fr_1fr_1.5fr_0.8fr_auto] gap-4 px-5 py-3 border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
           <span>Time</span>
           <span>Activity</span>
           <span>Details</span>
@@ -228,20 +228,20 @@ export const BusinessDashboardHome = () => {
         </div>
 
         {/* Table Body */}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-gray-700">
           {recentActivity.map((item, i) => (
             <div
               key={i}
-              className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1.5fr_0.8fr_auto] gap-2 sm:gap-4 px-5 py-4 items-center hover:bg-gray-50 transition-colors"
+              className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1.5fr_0.8fr_auto] gap-2 sm:gap-4 px-5 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              <span className="text-sm text-gray-500">{item.time}</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{item.time}</span>
               <div className="flex items-center gap-2">
                 <item.activityIcon className={`w-4 h-4 ${item.activityColor}`} />
-                <span className="text-sm font-medium text-gray-700">{item.activity}</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.activity}</span>
               </div>
-              <span className="text-sm text-gray-600">{item.details}</span>
-              <span className="text-sm text-gray-500">{item.by}</span>
-              <button className="p-1 text-gray-400 hover:text-gray-600 self-start sm:self-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">{item.details}</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{item.by}</span>
+              <button className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 self-start sm:self-center">
                 <MoreVertical className="w-4 h-4" />
               </button>
             </div>
@@ -249,7 +249,7 @@ export const BusinessDashboardHome = () => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-center gap-2 px-5 py-3 border-t border-gray-100 text-xs text-gray-400">
+        <div className="flex items-center justify-center gap-2 px-5 py-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500">
           <RefreshCw className="w-3 h-3" />
           Dashboard data is updated in real-time. Last sync: 1 min ago.
         </div>

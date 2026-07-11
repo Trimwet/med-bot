@@ -43,18 +43,18 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen bg-white border-r border-gray-200 flex flex-col overflow-visible transition-all duration-300 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col overflow-visible transition-all duration-300 lg:translate-x-0 ${
           collapsed ? 'w-[72px]' : 'w-64'
         } ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Brand Header */}
-        <div className={`h-16 flex items-center border-b border-gray-200 shrink-0 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
+        <div className={`h-16 flex items-center border-b border-gray-200 dark:border-gray-700 shrink-0 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
           {!collapsed && (
             <div className="flex items-center gap-2">
               <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto" />
               <div>
-                <p className="font-bold text-gray-900 text-sm">MedBot</p>
-                <p className="text-[10px] text-gray-400">AI Health Admin</p>
+                <p className="font-bold text-gray-900 dark:text-gray-100 text-sm">MedBot</p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500">AI Health Admin</p>
               </div>
             </div>
           )}
@@ -63,7 +63,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
           )}
           <button
             onClick={onClose}
-            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -84,7 +84,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
                 } ${
                   isActive
                     ? 'bg-[#073B4C] text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`
               }
             >
@@ -95,7 +95,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
         </nav>
 
         {/* Bottom Section */}
-        <div className={`shrink-0 mt-auto border-t border-gray-100 ${collapsed ? 'px-2 py-3' : 'px-4 py-3'} space-y-0.5`}>
+        <div className={`shrink-0 mt-auto border-t border-gray-100 dark:border-gray-700 ${collapsed ? 'px-2 py-3' : 'px-4 py-3'} space-y-0.5`}>
           <NavLink
             to="/business/support"
             onClick={onClose}
@@ -106,7 +106,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
               } ${
                 isActive
                   ? 'bg-[#073B4C] text-white'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`
             }
           >
@@ -116,7 +116,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
           <button
             onClick={onClose}
             title={collapsed ? 'Logout' : undefined}
-            className={`flex items-center gap-3 rounded-lg text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors w-full ${
+            className={`flex items-center gap-3 rounded-lg text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors w-full ${
               collapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-3 py-2.5'
             }`}
           >
@@ -128,7 +128,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
         {/* Floating Collapse Toggle at right edge */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:flex absolute bottom-3 right-0 translate-x-1/2 w-6 h-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10 shadow-sm"
+          className="hidden lg:flex absolute bottom-3 right-0 translate-x-1/2 w-6 h-6 items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-10 shadow-sm"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronsRight className="w-3 h-3" /> : <ChevronsLeft className="w-3 h-3" />}

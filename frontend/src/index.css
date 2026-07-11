@@ -2,6 +2,8 @@
 @import "tailwindcss";
 @import "tw-shimmer";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Sora', sans-serif;

@@ -33,13 +33,13 @@ export const BusinessAnalytics = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Insights and trends from assessments and users.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             {ranges.map((r) => (
               <button
                 key={r}
@@ -47,14 +47,14 @@ export const BusinessAnalytics = () => {
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                   activeRange === r
                     ? 'bg-[#073B4C] text-white'
-                    : 'text-gray-500 hover:text-gray-700'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 {r}
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50">
+          <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
             <Calendar className="w-3.5 h-3.5" />
             May 1 - May 31, 2026 ▾
           </button>
@@ -64,21 +64,21 @@ export const BusinessAnalytics = () => {
       {/* Top Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Top Symptoms */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900">Top Symptoms</h3>
-            <span className="text-xs text-gray-400">May 2026</span>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Top Symptoms</h3>
+            <span className="text-xs text-gray-400 dark:text-gray-500">May 2026</span>
           </div>
           <div className="space-y-3">
             {topSymptoms.map((s) => (
               <div key={s.name}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-700">{s.name}</span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{s.name}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
                     {s.count.toLocaleString()} ({s.percent}%)
                   </span>
                 </div>
-                <div className="w-full h-2 bg-gray-100 rounded-full">
+                <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full">
                   <div
                     className={`h-2 rounded-full ${s.color}`}
                     style={{ width: `${s.percent * 3}%` }}
@@ -87,14 +87,14 @@ export const BusinessAnalytics = () => {
               </div>
             ))}
           </div>
-          <p className="text-xs text-gray-400 mt-4 text-center">
-            Total Symptoms Recorded: <span className="font-semibold text-gray-600">4,827</span>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
+            Total Symptoms Recorded: <span className="font-semibold text-gray-600 dark:text-gray-400">4,827</span>
           </p>
         </div>
 
         {/* Age Groups */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">Age Groups</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Age Groups</h3>
           <div className="flex items-center justify-center mb-4">
             <div className="relative w-40 h-40">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
@@ -119,8 +119,8 @@ export const BusinessAnalytics = () => {
                 }, { elements: [] as React.ReactElement[], offset: 0 }).elements}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900">2,456</span>
-                <span className="text-xs text-gray-400">Users</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">2,456</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">Users</span>
               </div>
             </div>
           </div>
@@ -128,7 +128,7 @@ export const BusinessAnalytics = () => {
             {ageGroups.map((g) => (
               <div key={g.label} className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: g.color }}></span>
-                <span className="text-xs text-gray-600">
+                <span className="text-xs text-gray-600 dark:text-gray-400">
                   {g.label} ({g.percent}%)
                 </span>
               </div>
@@ -140,8 +140,8 @@ export const BusinessAnalytics = () => {
       {/* Middle Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Gender Distribution */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">Gender Distribution</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Gender Distribution</h3>
           <div className="flex items-center gap-6">
             <div className="relative w-32 h-32">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
@@ -152,24 +152,24 @@ export const BusinessAnalytics = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-sm bg-[#073B4C]"></span>
-                <span className="text-sm text-gray-700">Male (52.6%)</span>
-                <span className="text-xs text-gray-400">1,291 users</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">Male (52.6%)</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">1,291 users</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-sm bg-teal-400"></span>
-                <span className="text-sm text-gray-700">Female (47.4%)</span>
-                <span className="text-xs text-gray-400">1,165 users</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">Female (47.4%)</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">1,165 users</span>
               </div>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mt-4 text-center">
-            Total Users: <span className="font-semibold text-gray-600">2,456</span>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
+            Total Users: <span className="font-semibold text-gray-600 dark:text-gray-400">2,456</span>
           </p>
         </div>
 
         {/* Emergency Cases Percentage */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">Emergency Cases Percentage</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Emergency Cases Percentage</h3>
           <div className="flex items-center justify-center mb-4">
             <div className="relative w-36 h-36">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
@@ -178,31 +178,31 @@ export const BusinessAnalytics = () => {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-2xl font-bold text-red-500">6.3%</span>
-                <span className="text-xs text-gray-400">Emergency</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">Emergency</span>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>
-              <p className="text-xs text-gray-400 uppercase">Total Emergencies</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 uppercase">Total Emergencies</p>
               <p className="text-lg font-bold text-red-500">156</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 uppercase">Total Assessments</p>
-              <p className="text-lg font-bold text-gray-900">2,456</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 uppercase">Total Assessments</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">2,456</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Monthly Growth */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="font-semibold text-gray-900">Monthly Growth</h3>
-            <p className="text-xs text-gray-500">Overall Assessment Trends (2026)</p>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Monthly Growth</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Overall Assessment Trends (2026)</p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <span className="w-3 h-0.5 bg-[#073B4C] rounded-full"></span>
             Assessments
           </div>
@@ -231,16 +231,16 @@ export const BusinessAnalytics = () => {
         </div>
         <div className="flex justify-between mt-2 px-2">
           {months.map((m) => (
-            <span key={m} className="text-[10px] text-gray-400">{m}</span>
+            <span key={m} className="text-[10px] text-gray-400 dark:text-gray-500">{m}</span>
           ))}
         </div>
       </div>
 
       {/* Disclaimer */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
         <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-gray-500 leading-relaxed">
+          <AlertCircle className="w-4 h-4 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
             Analytics data is updated based on the selected time period. All times are in your local timezone.
             Data refresh happens every 15 minutes.
           </p>
