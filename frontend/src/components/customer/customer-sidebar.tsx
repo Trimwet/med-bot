@@ -1,24 +1,48 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
   ClipboardList,
   FileText,
-  BookOpen,
-  MapPin,
-  CreditCard,
+
   Settings,
   HelpCircle,
   Plus,
   X,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Calendar,
 } from 'lucide-react'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/dashboard/assessment-history', label: 'Assessment History', icon: ClipboardList },
   { to: '/dashboard/health-reports', label: 'Health Reports', icon: FileText },
-  { to: '/dashboard/health-library', label: 'Health Library', icon: BookOpen },
-  { to: '/dashboard/find-nearby-care', label: 'Find Nearby Care', icon: MapPin },
-  { to: '/dashboard/subscription', label: 'Subscription', icon: CreditCard },
+  { to: '/dashboard/settings', label: 'Settings', icon: Settings },
+]
+
+const assessmentHistory = [
+  {
+    date: 'Today',
+    items: [
+      { id: 1, title: 'Abdominal Pain Assessment', time: '10:30 AM', status: 'completed' },
+      { id: 2, title: 'Headache Evaluation', time: '9:15 AM', status: 'completed' },
+    ],
+  },
+  {
+    date: 'Yesterday',
+    items: [
+      { id: 3, title: 'Follow-up: Medication Review', time: '3:45 PM', status: 'completed' },
+      { id: 4, title: 'Annual Check-in Prep', time: '11:00 AM', status: 'completed' },
+    ],
+  },
+  {
+    date: 'Dec 18',
+    items: [
+      { id: 5, title: 'Skin Rash Analysis', time: '2:20 PM', status: 'completed' },
+    ],
+  },
 ]
 
 interface CustomerSidebarProps {
@@ -27,108 +51,182 @@ interface CustomerSidebarProps {
 }
 
 export const CustomerSidebar = ({ isOpen, onClose }: CustomerSidebarProps) => {
+  const [collapsed, setCollapsed] = useState(false)
+  const [historySearch, setHistorySearch] = useState('')
+
+  const filteredHistory = assessmentHistory
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) =>
+        item.title.toLowerCase().includes(historySearch.toLowerCase())
+      ),
+    }))
+    .filter((group) => group.items.length > 0)
+
   return (
     <>
-      {/* Overlay */}
+      {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-ink/20 backdrop-blur-sm z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-64 bg-white border-r border-gray-200 flex flex-col overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed lg:static inset-y-0 left-0 z-50 h-full lg:h-screen shrink-0 bg-white border-r border-line flex flex-col transition-all duration-300 ease-in-out ${
+          collapsed ? 'w-[72px]' : 'w-64'
+        } ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto" />
-              <span className="font-extrabold text-xl text-[#073B4C]">MedBot</span>
-            </div>
+        {/* Brand Header */}
+        <div className={`h-16 flex items-center border-b border-line shrink-0 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
+          {!collapsed && (
+            <a href="/" className="flex items-center gap-2.5">
+              <img src="/assets/Logo.jpeg" alt="" className="h-8 w-auto rounded-md" />
+              <span className="font-display font-extrabold text-lg tracking-tight text-navy">
+                MedBot
+              </span>
+            </a>
+          )}
+          {collapsed && (
+            <img src="/assets/Logo.jpeg" alt="MedBot" className="h-8 w-auto rounded-md" />
+          )}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-muted hover:text-ink hover:bg-ink/5 transition-colors"
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </button>
             <button
               onClick={onClose}
-              className="lg:hidden p-1 rounded-lg text-gray-500 hover:bg-gray-100"
+              className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:text-ink hover:bg-ink/5 transition-colors"
+              aria-label="Close sidebar"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="px-4 mb-4">
-          <button className="w-full flex items-center justify-center gap-2 bg-[#073B4C] text-white py-2.5 rounded-lg font-medium hover:bg-[#0A202A] transition-colors">
+        {/* New Assessment Button */}
+        <div className={`shrink-0 ${collapsed ? 'px-2 py-3' : 'px-4 py-3'}`}>
+          <button
+            className={`flex items-center justify-center gap-2 bg-navy text-white rounded-xl text-sm font-semibold hover:bg-navy-deep transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
+              collapsed ? 'w-10 h-10' : 'w-full py-2.5'
+            }`}
+            aria-label="New Assessment"
+          >
             <Plus className="w-4 h-4" />
-            New Assessment
+            {!collapsed && 'New Assessment'}
           </button>
         </div>
 
-        <nav className="px-3 space-y-1">
+        {/* Main Navigation */}
+        <nav className={`shrink-0 space-y-0.5 ${collapsed ? 'px-2' : 'px-3'}`} aria-label="Dashboard navigation">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === '/dashboard'}
               onClick={onClose}
+              title={collapsed ? item.label : undefined}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                `flex items-center gap-3 rounded-xl text-sm font-medium transition-colors duration-150 ${
+                  collapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-3 py-2.5'
+                } ${
                   isActive
-                    ? 'bg-[#073B4C] text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-navy text-white'
+                    : 'text-muted hover:text-ink hover:bg-ink/5'
                 }`
               }
             >
-              <item.icon className="w-5 h-5" />
-              {item.label}
+              <item.icon className="w-[18px] h-[18px] shrink-0" />
+              {!collapsed && item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="mt-auto p-4 space-y-3">
-          <div className="bg-[#073B4C] rounded-xl p-4 text-white">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-yellow-400 text-lg">★</span>
-              <span className="font-semibold text-sm">Upgrade to Premium</span>
+        {/* Assessment History (only when expanded) */}
+        {!collapsed && (
+          <div className="flex-1 min-h-0 flex flex-col mt-3 border-t border-line">
+            <div className="px-4 pt-3 pb-2">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">Recent Assessments</h3>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted" />
+                <input
+                  type="text"
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                  placeholder="Search..."
+                  className="w-full pl-8 pr-3 py-1.5 bg-paper-soft rounded-lg text-xs text-ink placeholder-muted/60 border border-line focus:outline-none focus:ring-1 focus:ring-teal/30 transition-all"
+                />
+              </div>
             </div>
-            <p className="text-xs text-gray-300 mb-3">
-              Unlock advanced features and priority support.
-            </p>
-            <button className="w-full bg-white text-[#073B4C] py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors">
-              Upgrade Now
-            </button>
+            <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-3">
+              {filteredHistory.map((group) => (
+                <div key={group.date}>
+                  <div className="flex items-center gap-1.5 px-1 mb-1.5">
+                    <Calendar className="w-3 h-3 text-muted/50" />
+                    <span className="text-[11px] font-medium text-muted/60">{group.date}</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    {group.items.map((item) => (
+                      <button
+                        key={item.id}
+                        className="w-full text-left px-2.5 py-2 rounded-lg text-xs text-muted hover:text-ink hover:bg-ink/5 transition-colors group"
+                      >
+                        <div className="font-medium text-ink/80 group-hover:text-ink truncate">{item.title}</div>
+                        <div className="text-muted/50 mt-0.5">{item.time}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+        )}
 
-          <nav className="space-y-1">
-            <NavLink
-              to="/dashboard/settings"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-[#073B4C] text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`
-              }
-            >
-              <Settings className="w-5 h-5" />
-              Settings
-            </NavLink>
-            <NavLink
-              to="/dashboard/help"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-[#073B4C] text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`
-              }
-            >
-              <HelpCircle className="w-5 h-5" />
-              Help Center
-            </NavLink>
-          </nav>
+        {/* Bottom Section */}
+        <div className={`shrink-0 ${collapsed ? 'px-2 pb-3' : 'p-4 pb-4'}`}>
+          {!collapsed ? (
+            <>
+              {/* Help Link */}
+              <NavLink
+                to="/dashboard/help"
+                onClick={onClose}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 ${
+                    isActive
+                      ? 'bg-navy text-white'
+                      : 'text-muted hover:text-ink hover:bg-ink/5'
+                  }`
+                }
+              >
+                <HelpCircle className="w-[18px] h-[18px]" />
+                Help Center
+              </NavLink>
+            </>
+          ) : (
+            <div className="space-y-1">
+              <NavLink
+                to="/dashboard/help"
+                onClick={onClose}
+                title="Help Center"
+                className={({ isActive }) =>
+                  `flex items-center justify-center w-10 h-10 mx-auto rounded-xl text-sm font-medium transition-colors duration-150 ${
+                    isActive
+                      ? 'bg-navy text-white'
+                      : 'text-muted hover:text-ink hover:bg-ink/5'
+                  }`
+                }
+              >
+                <HelpCircle className="w-[18px] h-[18px]" />
+              </NavLink>
+            </div>
+          )}
         </div>
       </aside>
     </>

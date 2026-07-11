@@ -10,15 +10,27 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@assistant-ui/react": "^0.14.26",
+    "@assistant-ui/react-markdown": "^0.14.5",
     "@number-flow/react": "^0.6.1",
+    "@radix-ui/react-use-controllable-state": "^1.2.3",
+    "@streamdown/cjk": "^1.0.3",
+    "@streamdown/code": "^1.1.1",
+    "@streamdown/math": "^1.0.2",
+    "@streamdown/mermaid": "^1.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.23.0",
     "motion": "^12.42.2",
+    "radix-ui": "^1.6.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1",
-    "tailwind-merge": "^3.6.0"
+    "remark-gfm": "^4.0.1",
+    "streamdown": "^2.5.0",
+    "tailwind-merge": "^3.6.0",
+    "tw-shimmer": "^0.4.11",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",

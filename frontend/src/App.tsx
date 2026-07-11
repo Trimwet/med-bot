@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { LandingPage } from '@/pages/landing'
 import { AuthPage } from '@/components/auth-page'
 import { DisclaimerPage } from '@/components/disclaimer-page'
@@ -12,6 +13,17 @@ import { HealthLibrary } from '@/components/customer/health-library'
 
 function AppRoutes() {
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const token = params.get('token')
+    if (token) {
+      localStorage.setItem('token', token)
+      const cleanUrl = location.pathname
+      window.history.replaceState({}, '', cleanUrl)
+    }
+  }, [location])
 
   return (
     <Routes>
@@ -82,7 +94,6 @@ function AppRoutes() {
         <Route path="assessment-history" element={<AssessmentHistory />} />
         <Route path="health-reports" element={<HealthReports />} />
         <Route path="health-library" element={<HealthLibrary />} />
-        <Route path="find-nearby-care" element={<div className="text-gray-600">Find Nearby Care - Coming Soon</div>} />
         <Route path="subscription" element={<div className="text-gray-600">Subscription - Coming Soon</div>} />
         <Route path="settings" element={<div className="text-gray-600">Settings - Coming Soon</div>} />
         <Route path="help" element={<div className="text-gray-600">Help Center - Coming Soon</div>} />

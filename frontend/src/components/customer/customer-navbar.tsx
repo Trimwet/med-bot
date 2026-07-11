@@ -6,37 +6,41 @@ interface CustomerNavbarProps {
 
 export const CustomerNavbar = ({ onMenuClick }: CustomerNavbarProps) => {
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10">
+    <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-line flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-muted hover:text-ink hover:bg-ink/5 transition-colors"
+          aria-label="Open sidebar"
         >
           <Menu className="w-5 h-5" />
         </button>
-        <div className="flex-1 max-w-xl">
+        <div className="flex-1 max-w-xl hidden sm:block">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
             <input
               type="text"
               placeholder="Search medical records or resources..."
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-100 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#073B4C]/30"
+              className="w-full pl-10 pr-4 py-2.5 bg-paper-soft rounded-xl text-sm text-ink placeholder-muted/60 border border-line focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all"
             />
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 sm:gap-4">
-        <button className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors">
+      <div className="flex items-center gap-3">
+        <button
+          className="relative w-10 h-10 flex items-center justify-center rounded-xl text-muted hover:text-ink hover:bg-ink/5 transition-colors"
+          aria-label="Notifications"
+        >
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
         </button>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#073B4C] rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-full bg-navy flex items-center justify-center text-white text-xs font-bold">
             JD
           </div>
-          <span className="text-sm font-medium text-gray-700 hidden sm:block">Dr. John Doe</span>
+          <span className="text-sm font-medium text-ink hidden sm:block">Dr. John Doe</span>
         </div>
       </div>
     </header>
