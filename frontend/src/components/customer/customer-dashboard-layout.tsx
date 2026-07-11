@@ -38,6 +38,8 @@ export const CustomerDashboardLayout = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
+  const isExpanded = !collapsed || mobileOpen
+
   const handleLogout = () => {
     localStorage.removeItem('token')
     setMobileOpen(false)
@@ -67,7 +69,7 @@ export const CustomerDashboardLayout = () => {
         {/* Header */}
         <div className="flex items-center gap-3 px-4 h-14 border-b border-gray-100 shrink-0">
           <img src="/assets/Logo.jpeg" alt="MedBot" className="w-8 h-8 rounded-lg shrink-0" />
-          {!collapsed && (
+          {isExpanded && (
             <span className="text-sm font-semibold text-gray-900 truncate flex-1">MedBot</span>
           )}
           <button
@@ -89,15 +91,15 @@ export const CustomerDashboardLayout = () => {
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
           >
             <Plus className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>New chat</span>}
+            {isExpanded && <span>New chat</span>}
           </button>
           <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
             <Search className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>Search</span>}
+            {isExpanded && <span>Search</span>}
           </button>
           <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
             <BookOpen className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>Chat History</span>}
+            {isExpanded && <span>Chat History</span>}
           </button>
         </div>
 
@@ -121,7 +123,7 @@ export const CustomerDashboardLayout = () => {
                 `}
               >
                 <item.icon className="w-4 h-4 shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
+                {isExpanded && <span>{item.label}</span>}
               </Link>
             )
           })}
@@ -130,7 +132,7 @@ export const CustomerDashboardLayout = () => {
         <div className="border-t border-gray-100 mx-3" />
 
         {/* Conversations */}
-        {!collapsed && (
+        {isExpanded && (
           <div className="flex-1 overflow-y-auto px-3 py-3">
             <p className="px-3 text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">
               Recent
@@ -166,11 +168,11 @@ export const CustomerDashboardLayout = () => {
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
           >
             <Cog className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>Settings</span>}
+            {isExpanded && <span>Settings</span>}
           </Link>
           <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
             <UserCircle className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>Profile</span>}
+            {isExpanded && <span>Profile</span>}
           </button>
 
           <div className="border-t border-gray-100 my-1" />
@@ -180,7 +182,7 @@ export const CustomerDashboardLayout = () => {
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
           >
             <LogOut className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>Log out</span>}
+            {isExpanded && <span>Log out</span>}
           </button>
         </div>
 
@@ -202,7 +204,7 @@ export const CustomerDashboardLayout = () => {
         {/* Mobile top bar */}
         <div className="md:hidden h-14 flex items-center gap-3 px-4 border-b border-gray-200 bg-white shrink-0">
           <button
-            onClick={() => setMobileOpen(true)}
+            onClick={() => { setCollapsed(false); setMobileOpen(true) }}
             className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
             aria-label="Open sidebar"
           >
