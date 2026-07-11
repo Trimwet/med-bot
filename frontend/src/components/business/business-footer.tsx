@@ -2,22 +2,22 @@ import { AlertCircle } from 'lucide-react'
 
 export const BusinessFooter = () => {
   return (
-    <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 sm:px-6 py-6">
+    <footer className="border-t border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] px-4 sm:px-6 py-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-start gap-3">
           <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto mt-0.5" />
           <div>
-            <p className="font-bold text-gray-900 dark:text-gray-100 text-sm">MedBot</p>
+            <p className="font-bold text-gray-900 dark:text-[#e8eaed] text-sm">MedBot</p>
             <div className="flex items-start gap-1.5 mt-1">
-              <AlertCircle className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-md">
+              <AlertCircle className="w-3.5 h-3.5 text-gray-400 dark:text-[#525666] mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-gray-500 dark:text-[#6b7080] leading-relaxed max-w-md">
                 © 2024 MedBot Enterprise Solutions. All rights reserved.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs text-gray-500 dark:text-[#6b7080]">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
             System Status: Operational

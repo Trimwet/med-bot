@@ -45,18 +45,18 @@ export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange 
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col overflow-visible transition-all duration-300 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 h-screen bg-white dark:bg-[#0f1117] border-r border-gray-200 dark:border-[#1e2028] flex flex-col overflow-visible transition-all duration-300 lg:translate-x-0 ${
           collapsed ? 'w-[72px]' : 'w-64'
         } ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Brand Header */}
-        <div className={`h-16 flex items-center border-b border-gray-200 dark:border-gray-700 shrink-0 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
+        <div className={`h-16 flex items-center border-b border-gray-200 dark:border-[#1e2028] shrink-0 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
           {!collapsed && (
             <div className="flex items-center gap-2">
               <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto" />
               <div>
-                <p className="font-bold text-gray-900 dark:text-gray-100 text-sm">MedBot</p>
-                <p className="text-[10px] text-gray-400 dark:text-gray-500">AI Health Admin</p>
+                <p className="font-bold text-gray-900 dark:text-[#e8eaed] text-sm">MedBot</p>
+                <p className="text-[10px] text-gray-400 dark:text-[#525666]">AI Health Admin</p>
               </div>
             </div>
           )}
@@ -65,7 +65,7 @@ export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange 
           )}
           <button
             onClick={onClose}
-            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 dark:text-[#525666] hover:text-gray-600 dark:hover:text-[#a0a4ad] hover:bg-gray-100 dark:hover:bg-[#1a1d25] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -86,7 +86,7 @@ export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange 
                 } ${
                   isActive
                     ? 'bg-[#073B4C] text-white'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    : 'text-gray-600 dark:text-[#6b7080] hover:bg-gray-100 dark:hover:bg-[#1a1d25]'
                 }`
               }
             >
@@ -97,7 +97,7 @@ export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange 
         </nav>
 
         {/* Bottom Section */}
-        <div className={`shrink-0 mt-auto border-t border-gray-100 dark:border-gray-700 ${collapsed ? 'px-2 py-3' : 'px-4 py-3'} space-y-0.5`}>
+        <div className={`shrink-0 mt-auto border-t border-gray-100 dark:border-[#1e2028] ${collapsed ? 'px-2 py-3' : 'px-4 py-3'} space-y-0.5`}>
           <NavLink
             to="/business/support"
             onClick={onClose}
@@ -108,7 +108,7 @@ export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange 
               } ${
                 isActive
                   ? 'bg-[#073B4C] text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'text-gray-600 dark:text-[#6b7080] hover:text-gray-900 dark:hover:text-[#cdd0d5] hover:bg-gray-50 dark:hover:bg-[#1a1d25]'
               }`
             }
           >
@@ -130,7 +130,7 @@ export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange 
         {/* Floating Collapse Toggle at right edge */}
         <button
           onClick={() => onCollapsedChange(!collapsed)}
-          className="hidden lg:flex absolute bottom-3 right-0 translate-x-1/2 w-6 h-6 items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-10 shadow-sm"
+          className="hidden lg:flex absolute bottom-3 right-0 translate-x-1/2 w-6 h-6 items-center justify-center rounded-full border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#0f1117] text-gray-400 dark:text-[#525666] hover:text-gray-600 dark:hover:text-[#a0a4ad] hover:bg-gray-100 dark:hover:bg-[#1a1d25] transition-colors z-10 shadow-sm"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronsRight className="w-3 h-3" /> : <ChevronsLeft className="w-3 h-3" />}

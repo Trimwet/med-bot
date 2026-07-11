@@ -11,7 +11,7 @@ export const BusinessDashboardLayout = () => {
 
   return (
     <DarkModeProvider>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#080a0e] flex flex-col transition-colors">
         <div className="flex flex-1">
           <BusinessSidebar
             isOpen={sidebarOpen}

@@ -29,12 +29,12 @@ export const PatientInsights = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Patient Insights</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">Patient Insights</h1>
+          <p className="text-sm text-gray-500 dark:text-[#6b7080] mt-1">
             Understand patient health patterns and risk factors across the clinical network.
           </p>
         </div>
-        <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+        <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-[#1e2028] rounded-lg text-xs text-gray-600 dark:text-[#6b7080] hover:bg-gray-50 dark:hover:bg-[#1a1d25]">
           <Calendar className="w-3.5 h-3.5" />
           May 14 - May 20, 2026 ▾
         </button>
@@ -43,7 +43,7 @@ export const PatientInsights = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+          <div key={stat.label} className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
             <div className="flex items-center justify-between mb-3">
               <div className={`w-10 h-10 ${stat.iconBg} rounded-xl flex items-center justify-center`}>
                 <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
@@ -53,8 +53,8 @@ export const PatientInsights = () => {
                 {stat.change}
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</p>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 uppercase">{stat.subtitle}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">{stat.value}</p>
+            <p className="text-[10px] text-gray-400 dark:text-[#525666] mt-1 uppercase">{stat.subtitle}</p>
           </div>
         ))}
       </div>
@@ -62,21 +62,21 @@ export const PatientInsights = () => {
       {/* Middle Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Top Symptoms */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Top Symptoms</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Top Symptoms</h3>
             <button className="text-sm font-semibold text-[#073B4C] hover:underline">View All</button>
           </div>
           <div className="space-y-3">
             {topSymptoms.map((s) => (
               <div key={s.name}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{s.name}</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-gray-700 dark:text-[#a0a4ad]">{s.name}</span>
+                  <span className="text-sm text-gray-500 dark:text-[#6b7080]">
                     {s.count.toLocaleString()} ({s.percent}%)
                   </span>
                 </div>
-                <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full">
+                <div className="w-full h-2 bg-gray-100 dark:bg-[#1a1d25] rounded-full">
                   <div className={`h-2 rounded-full ${s.color}`} style={{ width: `${s.percent * 3}%` }} />
                 </div>
               </div>
@@ -85,8 +85,8 @@ export const PatientInsights = () => {
         </div>
 
         {/* Risk Categories */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Risk Categories</h3>
+        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
+          <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed] mb-4">Risk Categories</h3>
           <div className="flex items-center justify-center mb-4">
             <div className="relative w-40 h-40">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
@@ -111,8 +111,8 @@ export const PatientInsights = () => {
                 }, { elements: [] as React.ReactElement[], offset: 0 }).elements}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">3.9k</span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">TOTAL</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">3.9k</span>
+                <span className="text-xs text-gray-400 dark:text-[#525666]">TOTAL</span>
               </div>
             </div>
           </div>
@@ -120,7 +120,7 @@ export const PatientInsights = () => {
             {riskCategories.map((g) => (
               <div key={g.label} className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: g.color }}></span>
-                <span className="text-xs text-gray-600 dark:text-gray-400">
+                <span className="text-xs text-gray-600 dark:text-[#6b7080]">
                   {g.label}: {g.percent}%
                 </span>
               </div>
@@ -130,31 +130,31 @@ export const PatientInsights = () => {
       </div>
 
       {/* Download Reports */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+      <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Download Reports</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Download Reports</h3>
+            <p className="text-sm text-gray-500 dark:text-[#6b7080] mt-1">
               Export patient insights data for clinical analysis and regulatory reporting.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <button className="flex items-center gap-3 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button className="flex items-center gap-3 px-4 py-3 border border-gray-200 dark:border-[#1e2028] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors">
               <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
                 <FileText className="w-4 h-4 text-red-500" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Download PDF Report</p>
-                <p className="text-[10px] text-gray-400 dark:text-gray-500">Q4 2025 Assessment Data, 4.2MB</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">Download PDF Report</p>
+                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Q4 2025 Assessment Data, 4.2MB</p>
               </div>
             </button>
-            <button className="flex items-center gap-3 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button className="flex items-center gap-3 px-4 py-3 border border-gray-200 dark:border-[#1e2028] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors">
               <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
                 <Download className="w-4 h-4 text-green-500" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Download Excel Report</p>
-                <p className="text-[10px] text-gray-400 dark:text-gray-500">Raw data & metrics spreadsheet</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">Download Excel Report</p>
+                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Raw data & metrics spreadsheet</p>
               </div>
             </button>
           </div>
@@ -162,10 +162,10 @@ export const PatientInsights = () => {
       </div>
 
       {/* Disclaimer */}
-      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+      <div className="bg-gray-50 dark:bg-[#080a0e] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4">
         <div className="flex items-start gap-2">
-          <span className="text-gray-400 dark:text-gray-500 mt-0.5">ℹ️</span>
-          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+          <span className="text-gray-400 dark:text-[#525666] mt-0.5">ℹ️</span>
+          <p className="text-xs text-gray-500 dark:text-[#6b7080] leading-relaxed">
             Data is based on completed assessments during the selected time period. Generated real-time.
           </p>
         </div>
