@@ -43,7 +43,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen bg-white border-r border-gray-200 flex flex-col overflow-y-auto transition-all duration-300 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 h-screen bg-white border-r border-gray-200 flex flex-col overflow-visible transition-all duration-300 lg:translate-x-0 ${
           collapsed ? 'w-[72px]' : 'w-64'
         } ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
@@ -94,21 +94,6 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
           ))}
         </nav>
 
-        {/* Collapse Toggle Divider */}
-        <div className="shrink-0 mt-auto">
-          <div className={`flex items-center justify-center py-3 gap-3 ${collapsed ? 'px-2' : ''}`}>
-            <div className="w-px h-6 bg-gray-200" />
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex w-8 h-8 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
-            </button>
-            <div className="w-px h-6 bg-gray-200" />
-          </div>
-        </div>
-
         {/* Bottom Section */}
         <div className={`shrink-0 ${collapsed ? 'px-2 pb-3' : 'px-4 pb-4'} space-y-1`}>
           <NavLink
@@ -139,6 +124,15 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
             {!collapsed && 'Logout'}
           </button>
         </div>
+
+        {/* Floating Collapse Toggle at right edge */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="hidden lg:flex absolute bottom-6 right-0 translate-x-1/2 w-8 h-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10 shadow-sm"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
+        </button>
       </aside>
     </>
   )
