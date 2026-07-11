@@ -7,12 +7,13 @@ import {
   UserCog,
   FileBarChart,
   CreditCard,
-  Settings,
+  Cog,
   HelpCircle,
   LogOut,
   X,
   ChevronsLeft,
   ChevronsRight,
+  UserCheck,
 } from 'lucide-react'
 
 const navItems = [
@@ -20,9 +21,10 @@ const navItems = [
   { to: '/business/dashboard/assessments', label: 'Assessments', icon: ClipboardList },
   { to: '/business/dashboard/patient-insights', label: 'Patients Insights', icon: Users },
   { to: '/business/dashboard/doctors', label: 'Doctors', icon: UserCog },
+  { to: '/business/dashboard/staff', label: 'Staff Management', icon: UserCheck },
   { to: '/business/dashboard/reports', label: 'Reports', icon: FileBarChart },
   { to: '/business/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
-  { to: '/business/dashboard/settings', label: 'Settings', icon: Settings },
+  { to: '/business/dashboard/settings', label: 'Settings', icon: Cog },
 ]
 
 interface BusinessSidebarProps {
