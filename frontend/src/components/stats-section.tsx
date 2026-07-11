@@ -39,7 +39,7 @@ function AnimatedStat({ value, suffix = '', decimals = 0, label, delay = 0 }: An
 }
 
 const stats = [
-  { value: 50000, suffix: 'K+', decimals: 0, label: 'Patients triaged' },
+  { value: 2500, suffix: '+', decimals: 0, label: 'Patients triaged' },
   { value: 62, suffix: '%', decimals: 0, label: 'Avg wait reduction' },
   { value: 99.9, suffix: '%', decimals: 1, label: 'Uptime' },
   { value: 120, suffix: '+', decimals: 0, label: 'Hospital partners' },
