@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -13,7 +12,7 @@ import {
   X,
   ChevronsLeft,
   ChevronsRight,
-  UserCheck,
+  Contact,
 } from 'lucide-react'
 
 const navItems = [
@@ -21,7 +20,7 @@ const navItems = [
   { to: '/business/dashboard/assessments', label: 'Assessments', icon: ClipboardList },
   { to: '/business/dashboard/patient-insights', label: 'Patients Insights', icon: Users },
   { to: '/business/dashboard/doctors', label: 'Doctors', icon: UserCog },
-  { to: '/business/dashboard/staff', label: 'Staff Management', icon: UserCheck },
+  { to: '/business/dashboard/staff', label: 'Staff Management', icon: Contact },
   { to: '/business/dashboard/reports', label: 'Reports', icon: FileBarChart },
   { to: '/business/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
   { to: '/business/dashboard/settings', label: 'Settings', icon: Cog },
@@ -30,10 +29,11 @@ const navItems = [
 interface BusinessSidebarProps {
   isOpen: boolean
   onClose: () => void
+  collapsed: boolean
+  onCollapsedChange: (collapsed: boolean) => void
 }
 
-export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
-  const [collapsed, setCollapsed] = useState(false)
+export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange }: BusinessSidebarProps) => {
 
   return (
     <>
@@ -129,7 +129,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
 
         {/* Floating Collapse Toggle at right edge */}
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => onCollapsedChange(!collapsed)}
           className="hidden lg:flex absolute bottom-3 right-0 translate-x-1/2 w-6 h-6 items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-10 shadow-sm"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
