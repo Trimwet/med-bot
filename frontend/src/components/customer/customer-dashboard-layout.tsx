@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { icon: Home, label: 'Dashboard', href: '/dashboard', active: true },
+  { icon: Home, label: 'Chat', href: '/dashboard', active: true },
   { icon: ClipboardList, label: 'Assessments', href: '#' },
   { icon: FileBarChart, label: 'Reports', href: '#' },
 ]

@@ -14,9 +14,20 @@ import {
   Zap,
   Brain,
   ChevronDown,
+  Search,
+  FileText,
+  ShieldCheck,
 } from 'lucide-react'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
 const MAX_TEXTAREA_HEIGHT = 160
+
+const THINKING_STEPS = [
+  { icon: Search, label: 'Searching medical sources', keyword: 'analyz' },
+  { icon: FileText, label: 'Reviewing clinical guidelines', keyword: 'symptom' },
+  { icon: ShieldCheck, label: 'Assessing severity level', keyword: 'cause' },
+  { icon: Brain, label: 'Formulating response', keyword: 'formulate' },
+]
 
 const THINKING_TEXT = [
   "Let me analyze this carefully.",
@@ -52,6 +63,67 @@ const streamTokens = (text: string, onToken: (chunk: string) => void, onDone: ()
     }
   }, delay)
   return () => clearInterval(timer)
+}
+
+const ThinkingDisplay = ({ visibleThinking }: { visibleThinking: string }) => {
+  return (
+    <div className="w-full">
+      {THINKING_STEPS.map((step, si) => {
+        const textLower = visibleThinking.toLowerCase()
+        const isComplete = textLower.includes(step.keyword)
+        const isPending = si > 0 && !THINKING_STEPS.slice(0, si).some(s => textLower.includes(s.keyword))
+        const status: 'complete' | 'active' | 'pending' = isComplete ? 'complete' : isPending ? 'pending' : 'active'
+        const Icon = step.icon
+
+        return (
+          <div key={si} className={`flex gap-2 text-sm ${
+            status === 'active' ? 'text-gray-800' : status === 'complete' ? 'text-gray-500' : 'text-gray-300'
+          }`}>
+            <div className="relative mt-0.5">
+              <Icon className={`w-4 h-4 ${status === 'active' ? 'animate-pulse' : ''}`} />
+              {si < THINKING_STEPS.length - 1 && (
+                <div className="absolute top-6 bottom-0 left-1/2 -mx-px w-px bg-gray-200" />
+              )}
+            </div>
+            <div className="flex-1 pb-4">
+              <div className="text-xs font-medium">{step.label}</div>
+              {status === 'active' && (
+                <div className="text-[11px] text-gray-500 leading-relaxed whitespace-pre-wrap mt-1">
+                  {visibleThinking}
+                  <span className="inline-block w-1.5 h-3.5 bg-gray-400 ml-0.5 align-text-bottom animate-pulse" />
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+const ReasoningDisplay = ({ reasoning }: { reasoning: string }) => {
+  const steps = reasoning.split('\n\n').filter(Boolean)
+
+  return (
+    <div className="space-y-3">
+      {steps.map((step, si) => {
+        const Icon = THINKING_STEPS[si % THINKING_STEPS.length]?.icon || Brain
+        return (
+          <div key={si} className="flex gap-2 text-sm text-gray-500">
+            <div className="relative mt-0.5">
+              <Icon className="w-4 h-4" />
+              {si < steps.length - 1 && (
+                <div className="absolute top-6 bottom-0 left-1/2 -mx-px w-px bg-gray-200" />
+              )}
+            </div>
+            <div className="flex-1 text-xs leading-relaxed whitespace-pre-wrap">
+              {step}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 export const CustomerDashboardHome = () => {
@@ -179,16 +251,16 @@ export const CustomerDashboardHome = () => {
                 <div key={i} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                   {/* Reasoning for assistant messages */}
                   {msg.sender === 'assistant' && msg.reasoning && (
-                    <details className="w-full mb-2 group">
-                      <summary className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer hover:text-gray-600 transition-colors list-none">
+                    <Collapsible defaultOpen={false} className="w-full mb-2">
+                      <CollapsibleTrigger className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-600 transition-colors group cursor-pointer">
                         <Brain className="w-3.5 h-3.5" />
-                        <span>Thought process</span>
-                        <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
-                      </summary>
-                      <div className="mt-2 text-xs text-gray-500 leading-relaxed whitespace-pre-wrap">
-                        {msg.reasoning}
-                      </div>
-                    </details>
+                        <span>Reasoning</span>
+                        <ChevronDown className="w-3 h-3 transition-transform group-data-[state=open]:rotate-180" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2 pl-1">
+                        <ReasoningDisplay reasoning={msg.reasoning} />
+                      </CollapsibleContent>
+                    </Collapsible>
                   )}
 
                   <div
@@ -289,15 +361,12 @@ export const CustomerDashboardHome = () => {
               {/* Live thinking */}
               {phase === 'thinking' && (
                 <div className="flex flex-col items-start w-full">
-                  <div className="w-full">
-                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                  <div className="w-full pl-1">
+                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
                       <Brain className="w-3.5 h-3.5 animate-pulse" />
-                      <span className="animate-pulse">Thinking...</span>
+                      <span className="font-medium">Thinking…</span>
                     </div>
-                    <div className="text-xs text-gray-500 leading-relaxed whitespace-pre-wrap">
-                      {visibleThinking}
-                      <span className="inline-block w-1.5 h-4 bg-gray-400 ml-0.5 align-text-bottom animate-pulse" />
-                    </div>
+                    <ThinkingDisplay visibleThinking={visibleThinking} />
                   </div>
                 </div>
               )}
