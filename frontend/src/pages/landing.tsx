@@ -10,14 +10,15 @@ import { Navbar } from '@/components/navbar'
 interface LandingPageProps {
   onLogin: () => void
   onSignup: () => void
+  onPartners?: () => void
 }
 
-export const LandingPage = ({ onLogin, onSignup }: LandingPageProps) => {
+export const LandingPage = ({ onLogin, onSignup, onPartners }: LandingPageProps) => {
   return (
     <div className="bg-white">
       <Navbar onLogin={onLogin} onSignup={onSignup} />
       <div id="hero">
-        <HeroAiInfrastructure />
+        <HeroAiInfrastructure onPartners={onPartners} />
       </div>
       <div id="features">
         <FeatureHero />

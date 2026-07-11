@@ -10,6 +10,15 @@ import { CustomerDashboardHome } from '@/components/customer/customer-dashboard-
 import { AssessmentHistory } from '@/components/customer/assessment-history'
 import { HealthReports } from '@/components/customer/health-reports'
 import { HealthLibrary } from '@/components/customer/health-library'
+import { BusinessLogin } from '@/components/business/business-login'
+import { BusinessSignup } from '@/components/business/business-signup'
+import { BusinessDashboardLayout } from '@/components/business/business-dashboard-layout'
+import { BusinessDashboardHome } from '@/components/business/business-dashboard-home'
+import { BusinessAnalytics } from '@/components/business/business-analytics'
+import { PatientInsights } from '@/components/business/patient-insights'
+import { BusinessReports } from '@/components/business/business-reports'
+import { BusinessSubscription } from '@/components/business/business-subscription'
+import { BusinessSettings } from '@/components/business/business-settings'
 
 function AppRoutes() {
   const navigate = useNavigate()
@@ -34,6 +43,7 @@ function AppRoutes() {
           <LandingPage
             onLogin={() => navigate('/login')}
             onSignup={() => navigate('/signup')}
+            onPartners={() => navigate('/business/login')}
           />
         }
       />
@@ -97,6 +107,40 @@ function AppRoutes() {
         <Route path="subscription" element={<div className="text-gray-600">Subscription - Coming Soon</div>} />
         <Route path="settings" element={<div className="text-gray-600">Settings - Coming Soon</div>} />
         <Route path="help" element={<div className="text-gray-600">Help Center - Coming Soon</div>} />
+      </Route>
+
+      {/* Business Partner Routes */}
+      <Route
+        path="/business/login"
+        element={
+          <BusinessLogin
+            onBack={() => navigate('/')}
+            onSignup={() => navigate('/business/signup')}
+            onLoginSuccess={() => navigate('/business/dashboard')}
+            onForgotPassword={() => navigate('/forgot-password')}
+          />
+        }
+      />
+      <Route
+        path="/business/signup"
+        element={
+          <BusinessSignup
+            onBack={() => navigate('/')}
+            onLogin={() => navigate('/business/login')}
+            onSignupSuccess={() => navigate('/business/login')}
+          />
+        }
+      />
+
+      {/* Business Dashboard */}
+      <Route path="/business/dashboard" element={<BusinessDashboardLayout />}>
+        <Route index element={<BusinessDashboardHome />} />
+        <Route path="assessments" element={<BusinessAnalytics />} />
+        <Route path="patient-insights" element={<PatientInsights />} />
+        <Route path="reports" element={<BusinessReports />} />
+        <Route path="subscriptions" element={<BusinessSubscription />} />
+        <Route path="settings" element={<BusinessSettings />} />
+        <Route path="doctors" element={<div className="text-gray-600">Doctors - Coming Soon</div>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

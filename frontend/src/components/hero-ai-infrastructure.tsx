@@ -2,7 +2,11 @@ import { useRef } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { TimelineAnimation } from '@/components/ui/timeline-animation'
 
-export const HeroAiInfrastructure = () => {
+interface HeroAiInfrastructureProps {
+  onPartners?: () => void
+}
+
+export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) => {
   const timelineRef = useRef<HTMLDivElement>(null)
 
   return (
@@ -20,9 +24,7 @@ export const HeroAiInfrastructure = () => {
             <span className="py-0.5 px-2.5 rounded-full bg-teal text-white font-semibold text-xs">
               New
             </span>
-            <span>
-              Trusted by 999+ growing B2B teams
-            </span>
+            <span>Trusted by 999+ growing B2B teams</span>
           </TimelineAnimation>
 
           <TimelineAnimation
@@ -62,9 +64,10 @@ export const HeroAiInfrastructure = () => {
               timelineRef={timelineRef}
               as="button"
               animationNum={7}
+              onClick={onPartners}
               className="cursor-pointer relative bg-transparent hover:bg-ink/5 transition px-8 py-3 rounded-sm font-semibold border border-ink/20 text-ink font-display"
             >
-              Learn More
+              For HealthCare Partners
             </TimelineAnimation>
           </div>
         </div>
@@ -93,5 +96,5 @@ export const HeroAiInfrastructure = () => {
         </TimelineAnimation>
       </div>
     </section>
-  )
+  );
 }

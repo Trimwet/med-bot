@@ -136,7 +136,7 @@ export const CustomerSidebar = ({ isOpen, onClose }: CustomerSidebarProps) => {
                   collapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-3 py-2.5'
                 } ${
                   isActive
-                    ? 'bg-navy text-white'
+                    ? 'bg-navy text-white border-r-2 border-navy'
                     : 'text-muted hover:text-ink hover:bg-ink/5'
                 }`
               }
