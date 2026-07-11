@@ -8,7 +8,7 @@ import {
   FileBarChart,
   CreditCard,
   Settings,
-  HeadphonesIcon,
+  HelpCircle,
   LogOut,
   X,
   ChevronsLeft,
@@ -88,39 +88,39 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
                 }`
               }
             >
-              <item.icon className="w-5 h-5 shrink-0" />
+              <item.icon className="w-4 h-4 shrink-0" />
               {!collapsed && item.label}
             </NavLink>
           ))}
         </nav>
 
         {/* Bottom Section */}
-        <div className={`shrink-0 ${collapsed ? 'px-2 pb-3' : 'px-4 pb-4'} space-y-1`}>
+        <div className={`shrink-0 mt-auto border-t border-gray-100 ${collapsed ? 'px-2 py-3' : 'px-4 py-3'} space-y-0.5`}>
           <NavLink
             to="/business/support"
             onClick={onClose}
-            title={collapsed ? 'Support Portal' : undefined}
+            title={collapsed ? 'Support' : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
+              `flex items-center gap-3 rounded-lg text-sm transition-colors ${
                 collapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-3 py-2.5'
               } ${
                 isActive
                   ? 'bg-[#073B4C] text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`
             }
           >
-            <HeadphonesIcon className="w-5 h-5 shrink-0" />
-            {!collapsed && 'Support Portal'}
+            <HelpCircle className="w-[18px] h-[18px] shrink-0" />
+            {!collapsed && 'Support'}
           </NavLink>
           <button
             onClick={onClose}
             title={collapsed ? 'Logout' : undefined}
-            className={`flex items-center gap-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors w-full ${
+            className={`flex items-center gap-3 rounded-lg text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors w-full ${
               collapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-3 py-2.5'
             }`}
           >
-            <LogOut className="w-5 h-5 shrink-0" />
+            <LogOut className="w-[18px] h-[18px] shrink-0" />
             {!collapsed && 'Logout'}
           </button>
         </div>
@@ -128,7 +128,7 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
         {/* Floating Collapse Toggle at right edge */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:flex absolute bottom-6 right-0 translate-x-1/2 w-6 h-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10 shadow-sm"
+          className="hidden lg:flex absolute bottom-3 right-0 translate-x-1/2 w-6 h-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10 shadow-sm"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronsRight className="w-3 h-3" /> : <ChevronsLeft className="w-3 h-3" />}
