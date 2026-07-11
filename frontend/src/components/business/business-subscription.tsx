@@ -1,4 +1,5 @@
 import { Check, Info, Download, AlertCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const freeFeatures = [
   'AI Symptom Assessment',
@@ -28,6 +29,7 @@ const invoices = [
 ]
 
 export const BusinessSubscription = () => {
+  const navigate = useNavigate()
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -82,7 +84,10 @@ export const BusinessSubscription = () => {
               </div>
             ))}
           </div>
-          <button className="w-full py-2.5 bg-[#073B4C] text-white rounded-lg text-sm font-semibold hover:bg-[#0A202A] transition-colors">
+          <button
+            onClick={() => navigate('/business/dashboard/payment')}
+            className="w-full py-2.5 bg-[#073B4C] text-white rounded-lg text-sm font-semibold hover:bg-[#0A202A] transition-colors"
+          >
             Upgrade to Premium
           </button>
         </div>
@@ -99,7 +104,10 @@ export const BusinessSubscription = () => {
               <p className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">Enjoying MedBot? Upgrade to Premium for advanced features and priority support.</p>
             </div>
           </div>
-          <button className="px-4 py-2 bg-[#073B4C] text-white rounded-lg text-sm font-semibold hover:bg-[#0A202A] transition-colors flex-shrink-0">
+          <button
+            onClick={() => navigate('/business/dashboard/payment')}
+            className="px-4 py-2 bg-[#073B4C] text-white rounded-lg text-sm font-semibold hover:bg-[#0A202A] transition-colors flex-shrink-0"
+          >
             Upgrade Now
           </button>
         </div>

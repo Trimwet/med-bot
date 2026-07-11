@@ -20,6 +20,7 @@ import { BusinessReports } from '@/components/business/business-reports'
 import { BusinessSubscription } from '@/components/business/business-subscription'
 import { BusinessSettings } from '@/components/business/business-settings'
 import { StaffManagement } from '@/components/business/staff-management'
+import { BusinessPayment } from '@/components/business/business-payment'
 
 function AppRoutes() {
   const navigate = useNavigate()
@@ -142,7 +143,7 @@ function AppRoutes() {
         <Route path="subscriptions" element={<BusinessSubscription />} />
         <Route path="settings" element={<BusinessSettings />} />
         <Route path="staff" element={<StaffManagement />} />
-        <Route path="doctors" element={<div className="text-gray-600">Doctors - Coming Soon</div>} />
+        <Route path="payment" element={<BusinessPayment />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
