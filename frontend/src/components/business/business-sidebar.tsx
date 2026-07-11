@@ -128,10 +128,10 @@ export const BusinessSidebar = ({ isOpen, onClose }: BusinessSidebarProps) => {
         {/* Floating Collapse Toggle at right edge */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:flex absolute bottom-6 right-0 translate-x-1/2 w-8 h-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10 shadow-sm"
+          className="hidden lg:flex absolute bottom-6 right-0 translate-x-1/2 w-6 h-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10 shadow-sm"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {collapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
+          {collapsed ? <ChevronsRight className="w-3 h-3" /> : <ChevronsLeft className="w-3 h-3" />}
         </button>
       </aside>
     </>
