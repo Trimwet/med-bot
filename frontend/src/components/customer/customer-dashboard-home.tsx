@@ -311,10 +311,6 @@ export const CustomerDashboardHome = () => {
       <div className="flex items-center justify-between px-3 sm:px-6 h-14 border-b border-gray-100 shrink-0 bg-white">
         <div className="min-w-0 flex items-center gap-2">
           <h1 className="text-sm font-semibold text-gray-900 truncate">New Assessment</h1>
-          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium text-[#073B4C] bg-[#073B4C]/5 px-2 py-0.5 rounded-full shrink-0">
-            <Zap className="w-3 h-3" />
-            Instant Triage
-          </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button
