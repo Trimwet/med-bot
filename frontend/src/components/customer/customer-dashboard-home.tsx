@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, type KeyboardEvent } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import {
   ArrowUp,
   Paperclip,
@@ -17,6 +17,7 @@ import {
   Search,
   FileText,
   ShieldCheck,
+  CircleDot,
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
@@ -50,6 +51,13 @@ type Message = {
   feedback?: 'up' | 'down' | null
 }
 
+type UsageStats = {
+  messagesSent: number
+  messagesReceived: number
+  inputTokens: number
+  outputTokens: number
+}
+
 const streamTokens = (text: string, onToken: (chunk: string) => void, onDone: () => void, delay = 30) => {
   const chunks = text.match(/.{1,5}/g) || [text]
   let i = 0
@@ -63,6 +71,85 @@ const streamTokens = (text: string, onToken: (chunk: string) => void, onDone: ()
     }
   }, delay)
   return () => clearInterval(timer)
+}
+
+const formatNumber = (n: number) => new Intl.NumberFormat('en-US', { notation: 'compact' }).format(n)
+
+const SessionUsage = ({ stats }: { stats: UsageStats }) => {
+  const [open, setOpen] = useState(false)
+  const inputPct = Math.min((stats.inputTokens / 128_000) * 100, 100)
+  const outputPct = Math.min((stats.outputTokens / 128_000) * 100, 100)
+  const totalTokens = stats.inputTokens + stats.outputTokens
+  const totalPct = Math.min((totalTokens / 128_000) * 100, 100)
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-gray-500 hover:bg-gray-50 transition-colors group">
+        <div className="flex items-center gap-2">
+          <CircleDot className="w-3 h-3 text-gray-400" />
+          <span>Session usage</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-gray-400">{formatNumber(totalTokens)} tokens</span>
+          <ChevronDown className="w-3 h-3 transition-transform group-data-[state=open]:rotate-180" />
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-1 px-3 pb-2 space-y-3">
+        {/* Overall progress */}
+        <div>
+          <div className="flex items-center justify-between text-[11px] mb-1">
+            <span className="text-gray-500">Overall usage</span>
+            <span className="font-mono text-gray-400">{totalPct.toFixed(1)}%</span>
+          </div>
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#073B4C] rounded-full transition-all duration-500"
+              style={{ width: `${totalPct}%` }}
+            />
+          </div>
+          <div className="text-[10px] text-gray-400 mt-0.5 font-mono">
+            {formatNumber(totalTokens)} / 128K tokens
+          </div>
+        </div>
+
+        {/* Breakdown */}
+        <div className="space-y-2">
+          <div>
+            <div className="flex items-center justify-between text-[11px] mb-1">
+              <span className="text-gray-500">Input tokens</span>
+              <span className="font-mono text-gray-400">{formatNumber(stats.inputTokens)}</span>
+            </div>
+            <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#00A8A8] rounded-full transition-all duration-500"
+                style={{ width: `${inputPct}%` }}
+              />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center justify-between text-[11px] mb-1">
+              <span className="text-gray-500">Output tokens</span>
+              <span className="font-mono text-gray-400">{formatNumber(stats.outputTokens)}</span>
+            </div>
+            <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#4C8C5B] rounded-full transition-all duration-500"
+                style={{ width: `${outputPct}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Message counts */}
+        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-gray-100">
+          <span className="text-gray-500">Messages</span>
+          <span className="font-mono text-gray-400">
+            {stats.messagesSent} sent · {stats.messagesReceived} received
+          </span>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  )
 }
 
 const ThinkingDisplay = ({ visibleThinking }: { visibleThinking: string }) => {
@@ -133,6 +220,12 @@ export const CustomerDashboardHome = () => {
   const [visibleThinking, setVisibleThinking] = useState('')
   const [visibleResponse, setVisibleResponse] = useState('')
   const [phase, setPhase] = useState<'idle' | 'thinking' | 'responding'>('idle')
+  const [usage, setUsage] = useState<UsageStats>({
+    messagesSent: 0,
+    messagesReceived: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+  })
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -149,12 +242,20 @@ export const CustomerDashboardHome = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, visibleThinking, visibleResponse, phase])
 
+  const estimateTokens = (text: string) => Math.ceil(text.length / 4)
+
   const handleSend = useCallback(() => {
     if (!input.trim() || phase !== 'idle') return
     const text = input.trim()
     setMessages((prev) => [...prev, { sender: 'user', text }])
     setInput('')
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
+
+    setUsage((prev) => ({
+      ...prev,
+      messagesSent: prev.messagesSent + 1,
+      inputTokens: prev.inputTokens + estimateTokens(text) + estimateTokens(THINKING_TEXT),
+    }))
 
     setPhase('thinking')
     setVisibleThinking('')
@@ -173,6 +274,11 @@ export const CustomerDashboardHome = () => {
               ...prev,
               { sender: 'assistant', text: RESPONSE_TEXT, reasoning: THINKING_TEXT },
             ])
+            setUsage((prev) => ({
+              ...prev,
+              messagesReceived: prev.messagesReceived + 1,
+              outputTokens: prev.outputTokens + estimateTokens(RESPONSE_TEXT),
+            }))
             setVisibleThinking('')
             setVisibleResponse('')
             setPhase('idle')
@@ -184,7 +290,7 @@ export const CustomerDashboardHome = () => {
     )
   }, [input, phase])
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -386,6 +492,13 @@ export const CustomerDashboardHome = () => {
           </div>
         )}
       </div>
+
+      {/* Session Usage — fixed above composer */}
+      {(usage.messagesSent > 0 || usage.messagesReceived > 0) && (
+        <div className="bg-white border-t border-gray-100 px-3 sm:px-6 shrink-0">
+          <SessionUsage stats={usage} />
+        </div>
+      )}
 
       {/* Composer */}
       <div

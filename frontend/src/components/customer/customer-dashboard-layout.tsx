@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Plus,
   Search,
@@ -9,6 +9,8 @@ import {
   Home,
   ClipboardList,
   FileBarChart,
+  Library,
+  LogOut,
   ChevronsLeft,
   ChevronsRight,
   Menu,
@@ -16,9 +18,10 @@ import {
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { icon: Home, label: 'Chat', href: '/dashboard', active: true },
-  { icon: ClipboardList, label: 'Assessments', href: '#' },
-  { icon: FileBarChart, label: 'Reports', href: '#' },
+  { icon: Home, label: 'Chat', href: '/dashboard' },
+  { icon: ClipboardList, label: 'Assessments', href: '/dashboard/assessment-history' },
+  { icon: FileBarChart, label: 'Reports', href: '/dashboard/health-reports' },
+  { icon: Library, label: 'Health Library', href: '/dashboard/health-library' },
 ]
 
 const CONVERSATIONS = [
@@ -32,6 +35,14 @@ export const CustomerDashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [selectedChat, setSelectedChat] = useState<string | null>(null)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    setMobileOpen(false)
+    navigate('/login')
+  }
 
   return (
     <div className="h-screen flex bg-gray-50 overflow-hidden">
@@ -70,7 +81,13 @@ export const CustomerDashboardLayout = () => {
 
         {/* Actions */}
         <div className="px-3 py-3 space-y-1 shrink-0">
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
+          <button
+            onClick={() => {
+              navigate('/dashboard')
+              setMobileOpen(false)
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+          >
             <Plus className="w-4 h-4 shrink-0" />
             {!collapsed && <span>New chat</span>}
           </button>
@@ -80,7 +97,7 @@ export const CustomerDashboardLayout = () => {
           </button>
           <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
             <BookOpen className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>History</span>}
+            {!collapsed && <span>Chat History</span>}
           </button>
         </div>
 
@@ -88,23 +105,26 @@ export const CustomerDashboardLayout = () => {
 
         {/* Navigation */}
         <div className="px-3 py-3 space-y-1 shrink-0">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={`
-                flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors
-                ${item.active
-                  ? 'bg-[#073B4C]/5 text-[#073B4C] font-medium'
-                  : 'text-gray-600 hover:bg-gray-100'
-                }
-              `}
-            >
-              <item.icon className="w-4 h-4 shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </a>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const isActive = location.pathname === item.href
+            return (
+              <Link
+                key={item.label}
+                to={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`
+                  flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors
+                  ${isActive
+                    ? 'bg-[#073B4C]/5 text-[#073B4C] font-medium'
+                    : 'text-gray-600 hover:bg-gray-100'
+                  }
+                `}
+              >
+                <item.icon className="w-4 h-4 shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+            )
+          })}
         </div>
 
         <div className="border-t border-gray-100 mx-3" />
@@ -140,13 +160,27 @@ export const CustomerDashboardLayout = () => {
 
         {/* Footer */}
         <div className="border-t border-gray-100 px-3 py-3 space-y-1 shrink-0">
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
+          <Link
+            to="/dashboard/settings"
+            onClick={() => setMobileOpen(false)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+          >
             <Cog className="w-4 h-4 shrink-0" />
             {!collapsed && <span>Settings</span>}
-          </button>
+          </Link>
           <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
             <UserCircle className="w-4 h-4 shrink-0" />
             {!collapsed && <span>Profile</span>}
+          </button>
+
+          <div className="border-t border-gray-100 my-1" />
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!collapsed && <span>Log out</span>}
           </button>
         </div>
 
