@@ -6,7 +6,7 @@ interface BusinessNavbarProps {
 
 export const BusinessNavbar = ({ onMenuClick }: BusinessNavbarProps) => {
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10">
+    <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
