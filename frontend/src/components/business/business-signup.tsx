@@ -8,10 +8,6 @@ import {
   Users,
   FileBarChart,
   ShieldCheck,
-  Activity,
-  AlertTriangle,
-  Share2,
-  Gauge,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -46,12 +42,48 @@ const features = [
   { icon: ShieldCheck, label: 'Secure &\nCompliant' },
 ]
 
-const STAT_TILES = [
-  { icon: Activity, label: 'Total', value: '2,450', color: 'text-[#073B4C]', bg: 'bg-[#073B4C]/5' },
-  { icon: AlertTriangle, label: 'Urgent', value: '320', color: 'text-red-600', bg: 'bg-red-50' },
-  { icon: Share2, label: 'Referrals', value: '1,120', color: 'text-purple-600', bg: 'bg-purple-50' },
-  { icon: Gauge, label: 'Active', value: '85%', color: 'text-teal-600', bg: 'bg-teal-50' },
+type KpiTone = 'neutral' | 'urgent' | 'positive'
+
+interface KpiTile {
+  label: string
+  value: string
+  changeLabel: string
+  tone: KpiTone
+  sparkline: number[]
+}
+
+const KPI_TILES: KpiTile[] = [
+  { label: 'Total', value: '2,450', changeLabel: '↑ 8% vs last month', tone: 'neutral', sparkline: [18, 22, 20, 26, 24, 30, 28, 34] },
+  { label: 'Urgent', value: '320', changeLabel: '↑ 12% vs last month', tone: 'urgent', sparkline: [10, 13, 12, 17, 15, 19, 18, 23] },
+  { label: 'Referrals', value: '1,120', changeLabel: '↑ 3% vs last month', tone: 'neutral', sparkline: [28, 27, 30, 29, 32, 31, 33, 34] },
+  { label: 'Active', value: '85%', changeLabel: '↑ 5% vs last month', tone: 'positive', sparkline: [68, 71, 73, 75, 77, 80, 82, 85] },
 ]
+
+const KPI_TONE_COLOR: Record<KpiTone, string> = {
+  neutral: '#9ca3af',
+  urgent: '#c2483f',
+  positive: '#16a34a',
+}
+
+const KPI_TONE_TEXT: Record<KpiTone, string> = {
+  neutral: 'text-gray-400',
+  urgent: 'text-[#c2483f]',
+  positive: 'text-emerald-600',
+}
+
+// Builds an SVG polyline point string for a compact sparkline.
+const buildSparklinePoints = (data: number[], width: number, height: number) => {
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const range = max - min || 1
+  return data
+    .map((d, i) => {
+      const x = (i / (data.length - 1)) * width
+      const y = height - ((d - min) / range) * height
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    .join(' ')
+}
 
 const CHART_BARS = [40, 60, 30, 70, 50, 80, 45, 65, 55, 75, 40, 60]
 
@@ -105,24 +137,38 @@ export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSig
               Create your organization account to access powerful analytics, patient insights, and symptom trend reports.
             </p>
 
-            {/* Stats Card */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold text-gray-900">Live Overview</span>
-                <span className="flex items-center gap-1.5 text-[10px] font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+            {/* Stats Card - Live Overview */}
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 mb-6">
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-sm font-semibold text-gray-900 tracking-tight">Live Overview</span>
+                <span className="flex items-center gap-1.5 text-[10px] font-medium text-gray-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
                   This month
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {STAT_TILES.map((tile) => (
-                  <div key={tile.label} className={`rounded-lg p-2.5 ${tile.bg}`}>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <tile.icon className={`w-3 h-3 ${tile.color}`} strokeWidth={2} />
-                      <p className="text-[9px] font-medium text-gray-500 uppercase tracking-wide">{tile.label}</p>
+              <div className="grid grid-cols-2 gap-x-5 gap-y-5 mb-6">
+                {KPI_TILES.map((kpi) => (
+                  <div key={kpi.label}>
+                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">
+                      {kpi.label}
+                    </p>
+                    <div className="flex items-end justify-between gap-2">
+                      <p className="text-xl font-bold text-gray-800 tracking-tight tabular-nums">{kpi.value}</p>
+                      <svg width="46" height="18" viewBox="0 0 46 18" className="shrink-0">
+                        <polyline
+                          points={buildSparklinePoints(kpi.sparkline, 46, 18)}
+                          fill="none"
+                          stroke={KPI_TONE_COLOR[kpi.tone]}
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
                     </div>
-                    <p className={`text-base font-bold ${tile.color}`}>{tile.value}</p>
+                    <p className={cn('text-[10px] font-medium mt-1', KPI_TONE_TEXT[kpi.tone])}>
+                      {kpi.changeLabel}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -130,15 +176,12 @@ export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSig
               <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-2">
                 Weekly assessment volume
               </p>
-              <div className="flex items-end gap-1 h-16 border-b border-gray-100 pb-0.5">
+              <div className="flex items-end gap-1.5 h-16 border-t border-gray-100 pt-2">
                 {CHART_BARS.map((h, i) => (
                   <div
                     key={i}
-                    className={cn(
-                      'flex-1 rounded-t-sm transition-all',
-                      i % 3 === 0 ? 'bg-[#073B4C]' : 'bg-[#073B4C]/25'
-                    )}
-                    style={{ height: `${h}%` }}
+                    className="flex-1 rounded-t-[3px] bg-[#0B3A5C]"
+                    style={{ height: `${h}%`, opacity: 0.3 + (h / 100) * 0.7 }}
                   />
                 ))}
               </div>

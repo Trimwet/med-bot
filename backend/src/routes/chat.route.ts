@@ -2,9 +2,10 @@ import { Router } from "express";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import { logger } from "@/lib/logger";
 import { getOrCreateSession, appendMessage, updateSessionGraphState } from "@/services/session.service";
-import { findNodeById } from "@/services/vectorSearch.service";
-import { findEntryNode, traverseGraph, type ActivationConfidence } from "@/services/knowledgeGraph.service";
 import { evaluateClinicalRule } from "@/services/clinicalRule.service";
+import { vectorSearch, getProtocolQuestions } from "../../agents/triage/tools/vectorSearch";
+import { clinicalRule } from "../../agents/triage/tools/clinicalRule";
+import { scheduleFollowup } from "../../agents/triage/tools/scheduleFollowup";
 import type { ClinicalInput } from "@/db/schema";
 import OpenAI from "openai";
 import { env } from "@/config/env";
@@ -100,30 +101,6 @@ Phrase the verdict in a helpful, clear way. Explain what the patient should do n
   }
 }
 
-async function askClarifyingQuestion(
-  confidenceLabel: string,
-  protocolNode: { title: string; metadata: { triageQuestions?: string[] } },
-): Promise<string> {
-  const questions = protocolNode.metadata.triageQuestions ?? [];
-  const prompt = `You are Eve, a medical triage assistant. The system has moderate confidence that the patient's complaint matches "${protocolNode.title}".
-
-Ask a brief clarifying question to confirm. Use one of these if relevant:
-${questions.map((q) => `- ${q}`).join("\n")}
-
-Ask only ONE short question. Do not diagnose.`;
-
-  try {
-    const completion = await deepseek.chat.completions.create({
-      model: env.deepseekChatModel,
-      temperature: 0.3,
-      messages: [{ role: "user", content: prompt }],
-    });
-    return completion.choices[0]?.message?.content ?? questions[0] ?? "Can you tell me more about your symptoms?";
-  } catch {
-    return questions[0] ?? "Can you tell me more about your symptoms?";
-  }
-}
-
 export const chatRoute = Router();
 
 chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
@@ -166,19 +143,14 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       return;
     }
 
-    // ── Graph Traversal ───────────────────────────────────────────
+    // ── Graph Traversal (via Eve agent tool) ──────────────────────
     let activeNodeId = session.activeNodeId;
-    let traversalResult;
-    let confidence: ActivationConfidence;
+    const traversalResult = await vectorSearch({
+      patientMessage: message,
+      activeNodeId,
+    });
 
-    if (activeNodeId) {
-      traversalResult = await traverseGraph(activeNodeId, message);
-    } else {
-      traversalResult = await findEntryNode(message);
-    }
-
-    activeNodeId = traversalResult.newNodeId;
-    confidence = traversalResult.confidence;
+    activeNodeId = traversalResult.nodeId;
 
     if (!activeNodeId) {
       const fallback = "I'm not sure I understand your symptoms. Could you describe them differently, or if you're worried, please visit a clinic or call 112.";
@@ -187,51 +159,53 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       return;
     }
 
-    const protocolNode = await findNodeById(activeNodeId);
-    if (!protocolNode) {
-      throw new Error(`Node ${activeNodeId} not found after traversal`);
-    }
+    const protocolQuestions = await getProtocolQuestions(activeNodeId);
 
     // Save the active node
     await updateSessionGraphState(sessionId, userId, {
       activeNodeId,
       lastFiringScore: traversalResult.score,
-      protocolVersion: protocolNode.protocolVersion,
     });
 
     // ── Confidence Routing ────────────────────────────────────────
-    if (confidence === "low") {
+    if (traversalResult.confidence === "low") {
       const reply = "I'm having trouble matching your symptoms to a known pattern. Could you rephrase or describe what you're feeling in more detail? If this is urgent, please call 112.";
       await appendMessage(sessionId, userId, { role: "assistant", content: reply, timestamp: new Date().toISOString() });
       res.json({ reply, saved: true });
       return;
     }
 
-    if (confidence === "moderate") {
-      const question = await askClarifyingQuestion("moderate", protocolNode);
+    if (traversalResult.confidence === "moderate") {
+      const question = protocolQuestions[0] ?? "Can you tell me more about your symptoms?";
       await appendMessage(sessionId, userId, { role: "assistant", content: question, timestamp: new Date().toISOString() });
       res.json({ reply: question, saved: true, clarifying: true });
       return;
     }
 
     // ── High confidence: extract, evaluate, respond ───────────────
-    const extracted = await extractStructuredData(message, protocolNode);
-
-    const redFlags = protocolNode.metadata.redFlags ?? [];
-    const matched = extracted
-      ? redFlags.filter((rf) => extracted.reportedSymptoms.some((s) => s.toLowerCase().includes(rf.toLowerCase())))
-      : [];
+    const extracted = await extractStructuredData(message, {
+      title: traversalResult.title,
+      content: traversalResult.title,
+      metadata: { triageQuestions: protocolQuestions, redFlags: [] },
+    });
 
     const clinicalInput: ClinicalInput = {
       severityScale: extracted?.severityScore ?? 5,
       durationHours: extracted?.durationHours ?? 24,
       associatedSymptoms: extracted?.reportedSymptoms ?? [],
-      redFlags: matched,
+      redFlags: extracted?.reportedSymptoms ?? [],
     };
 
-    const clinicalResult = await evaluateClinicalRule(clinicalInput, activeNodeId);
+    // Evaluate via the agent tool
+    const clinicalResult = await clinicalRule({
+      severityScale: clinicalInput.severityScale,
+      durationHours: clinicalInput.durationHours,
+      associatedSymptoms: clinicalInput.associatedSymptoms,
+      redFlags: clinicalInput.redFlags,
+      nodeId: activeNodeId,
+    });
 
-    const reply = await phraseResponse(clinicalResult.severity, clinicalResult.guidanceText ?? clinicalResult.nextStep, protocolNode, message);
+    const reply = await phraseResponse(clinicalResult.severity, clinicalResult.guidanceText ?? clinicalResult.nextStep, { title: traversalResult.title, content: traversalResult.title }, message);
 
     await appendMessage(sessionId, userId, { role: "assistant", content: reply, timestamp: new Date().toISOString() });
 
@@ -246,6 +220,16 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       },
       ...(shouldClose ? { status: "closed" } : {}),
     });
+
+    // Schedule follow-up for non-emergency closed sessions (async, non-blocking)
+    if (shouldClose) {
+      scheduleFollowup({
+        sessionId,
+        patientPhone: "",
+        delayHours: 24,
+        messageTemplate: "post_triage_checkin",
+      }).catch((err) => logger.warn("followup schedule failed", { sessionId, error: (err as Error).message }));
+    }
 
     res.json({
       reply,
