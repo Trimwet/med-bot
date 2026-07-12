@@ -2,7 +2,6 @@ import { Router } from "express";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import { logger } from "@/lib/logger";
 import { getOrCreateSession, appendMessage, updateSessionGraphState } from "@/services/session.service";
-import { evaluateClinicalRule } from "@/services/clinicalRule.service";
 import { vectorSearch, getProtocolQuestions } from "../../agents/triage/tools/vectorSearch";
 import { clinicalRule } from "../../agents/triage/tools/clinicalRule";
 import { scheduleFollowup } from "../../agents/triage/tools/scheduleFollowup";
@@ -221,11 +220,11 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       ...(shouldClose ? { status: "closed" } : {}),
     });
 
-    // Schedule follow-up for non-emergency closed sessions (async, non-blocking)
+    // Schedule follow-up for closed sessions (async, non-blocking)
     if (shouldClose) {
       scheduleFollowup({
         sessionId,
-        patientPhone: "",
+        userId,
         delayHours: 24,
         messageTemplate: "post_triage_checkin",
       }).catch((err) => logger.warn("followup schedule failed", { sessionId, error: (err as Error).message }));
