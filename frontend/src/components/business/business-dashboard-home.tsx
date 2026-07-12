@@ -2,8 +2,6 @@ import { useState } from 'react'
 import {
   Calendar,
   Download,
-  TrendingUp,
-  TrendingDown,
   AlertTriangle,
   UserPlus,
   ClipboardList,
@@ -24,8 +22,9 @@ import {
 } from 'recharts'
 import { ChartCard } from '@/components/ui/chart-card'
 import { useChartTheme, CustomTooltip } from '@/components/ui/chart-theme'
+import { KpiCards } from '@/components/business/kpi-cards'
 
-const stats = [
+const kpiData = [
   {
     label: 'Total Assessments',
     value: '2,456',
@@ -33,8 +32,6 @@ const stats = [
     change: '+12%',
     trend: 'up' as const,
     icon: ClipboardList,
-    iconBg: 'bg-blue-50',
-    iconColor: 'text-blue-500',
   },
   {
     label: 'Emergency Cases',
@@ -43,8 +40,6 @@ const stats = [
     change: '-8%',
     trend: 'down' as const,
     icon: AlertTriangle,
-    iconBg: 'bg-red-50',
-    iconColor: 'text-red-500',
   },
   {
     label: 'Doctor Referrals',
@@ -53,8 +48,6 @@ const stats = [
     change: '+15%',
     trend: 'up' as const,
     icon: UserCog,
-    iconBg: 'bg-purple-50',
-    iconColor: 'text-purple-500',
   },
 ]
 
@@ -143,33 +136,8 @@ export const BusinessDashboardHome = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 ${stat.iconBg} rounded-xl flex items-center justify-center`}>
-                <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
-              </div>
-              <div className={`flex items-center gap-1 text-xs font-semibold ${
-                stat.trend === 'up' ? 'text-green-600' : 'text-red-500'
-              }`}>
-                {stat.trend === 'up' ? (
-                  <TrendingUp className="w-3.5 h-3.5" />
-                ) : (
-                  <TrendingDown className="w-3.5 h-3.5" />
-                )}
-                {stat.change}
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">{stat.value}</p>
-            <p className="text-xs text-gray-500 dark:text-[#6b7080] mt-1">{stat.subtitle}</p>
-          </div>
-        ))}
-      </div>
+      {/* KPI Cards */}
+      <KpiCards cards={kpiData} />
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
