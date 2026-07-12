@@ -41,7 +41,7 @@ export function KpiCards({ cards }: KpiCardsProps) {
             className={cn(
               'group relative rounded-xl p-6',
               'bg-white border border-gray-200',
-              'dark:bg-[#111111] dark:border-white/[0.06]',
+              'dark:bg-[#0f1117] dark:border-[#1e2028]',
               'transition-colors duration-150',
               'hover:dark:border-white/[0.1]'
             )}

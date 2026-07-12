@@ -27,7 +27,7 @@ const riskCategories = [
 const cardStyle = cn(
   'rounded-xl p-6',
   'bg-white border border-gray-200',
-  'dark:bg-[#111111] dark:border-white/[0.06]',
+  'dark:bg-[#0f1117] dark:border-[#1e2028]',
 )
 
 const sectionTitle = 'text-sm font-semibold tracking-tight text-gray-900 dark:text-white'
@@ -43,7 +43,7 @@ export const PatientInsights = () => {
             Understand patient health patterns and risk factors across the clinical network.
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-[#111111] px-3 py-2 text-xs font-medium text-gray-600 dark:text-[#a1a1aa] transition-colors hover:border-gray-300 dark:hover:border-white/[0.12]">
+        <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] px-3 py-2 text-xs font-medium text-gray-600 dark:text-[#6b7080] transition-colors hover:border-gray-300 dark:hover:border-[#2a2d35]">
           <Calendar className="h-3.5 w-3.5" />
           May 14 - May 20, 2026 ▾
         </button>
@@ -56,7 +56,7 @@ export const PatientInsights = () => {
           return (
             <div key={stat.label} className={cardStyle}>
               <div className="flex items-center justify-between mb-5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 dark:bg-white/[0.04]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 dark:bg-[#1a1d25]">
                   <Icon className="h-4 w-4 text-gray-400 dark:text-[#6b7280]" strokeWidth={1.5} />
                 </div>
                 <TrendBadge change={stat.change} trend={stat.trend} />
@@ -94,9 +94,9 @@ export const PatientInsights = () => {
                     {s.count.toLocaleString()} <span className="text-gray-400 dark:text-[#52525b]">({s.percent}%)</span>
                   </span>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-white/[0.06]">
+                <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-[#1a1d25]">
                   <div
-                    className="h-full rounded-full bg-gray-900 dark:bg-white/[0.25]"
+                    className="h-full rounded-full bg-gray-900 dark:bg-[#3f3f46]"
                     style={{ width: `${s.percent * 3}%` }}
                   />
                 </div>

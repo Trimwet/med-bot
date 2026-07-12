@@ -1,14 +1,41 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Calendar, AlertCircle } from 'lucide-react'
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
+import { cn } from '@/lib/utils'
+import { useChartTheme, CustomTooltip } from '@/components/ui/chart-theme'
+import { TrendBadge } from '@/components/business/kpi-cards'
 
 type TimeRange = 'Daily' | 'Weekly' | 'Monthly' | 'Yearly'
 
+const monthlyGrowth = [
+  { month: 'Jan', value: 800 },
+  { month: 'Feb', value: 1100 },
+  { month: 'Mar', value: 1400 },
+  { month: 'Apr', value: 1700 },
+  { month: 'May', value: 2000 },
+  { month: 'Jun', value: 2200 },
+  { month: 'Jul', value: 2500 },
+  { month: 'Aug', value: 2800 },
+  { month: 'Sep', value: 3000 },
+  { month: 'Oct', value: 3200 },
+  { month: 'Nov', value: 3400 },
+  { month: 'Dec', value: 3600 },
+]
+
 const topSymptoms = [
-  { name: 'Headache', count: 1245, percent: 25.8, color: 'bg-[#073B4C]' },
-  { name: 'Fever', count: 1032, percent: 21.3, color: 'bg-teal-500' },
-  { name: 'Cough', count: 876, percent: 18.1, color: 'bg-[#073B4C]' },
-  { name: 'Body Pain', count: 654, percent: 13.6, color: 'bg-teal-500' },
-  { name: 'Sore Throat', count: 543, percent: 11.3, color: 'bg-gray-300' },
+  { name: 'Headache', count: 1245, percent: 25.8 },
+  { name: 'Fever', count: 1032, percent: 21.3 },
+  { name: 'Cough', count: 876, percent: 18.1 },
+  { name: 'Body Pain', count: 654, percent: 13.6 },
+  { name: 'Sore Throat', count: 543, percent: 11.3 },
 ]
 
 const ageGroups = [
@@ -19,22 +46,26 @@ const ageGroups = [
   { label: '60+', percent: 10.4, color: '#9CA3AF' },
 ]
 
-const monthlyGrowth = [800, 1100, 1400, 1700, 2000, 2200, 2500, 2800, 3000, 3200, 3400, 3600]
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const cardStyle = cn(
+  'rounded-xl p-6',
+  'bg-white border border-gray-200',
+  'dark:bg-[#0f1117] dark:border-[#1e2028]',
+)
+
+const sectionTitle = 'text-sm font-semibold tracking-tight text-gray-900 dark:text-white'
 
 export const BusinessAnalytics = () => {
   const [activeRange, setActiveRange] = useState<TimeRange>('Monthly')
   const ranges: TimeRange[] = ['Daily', 'Weekly', 'Monthly', 'Yearly']
-
-  const maxGrowth = Math.max(...monthlyGrowth)
+  const theme = useChartTheme()
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">Analytics</h1>
-          <p className="text-sm text-gray-500 dark:text-[#6b7080] mt-1">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Analytics</h1>
+          <p className="text-sm text-gray-500 dark:text-[#71717a] mt-1">
             Insights and trends from assessments and users.
           </p>
         </div>
@@ -44,18 +75,19 @@ export const BusinessAnalytics = () => {
               <button
                 key={r}
                 onClick={() => setActiveRange(r)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
                   activeRange === r
                     ? 'bg-[#073B4C] text-white'
                     : 'text-gray-500 dark:text-[#6b7080] hover:text-gray-700 dark:hover:text-[#a0a4ad]'
-                }`}
+                )}
               >
                 {r}
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-[#1e2028] rounded-lg text-xs text-gray-600 dark:text-[#6b7080] hover:bg-gray-50 dark:hover:bg-[#1a1d25]">
-            <Calendar className="w-3.5 h-3.5" />
+          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] px-3 py-2 text-xs font-medium text-gray-600 dark:text-[#6b7080] transition-colors hover:border-gray-300 dark:hover:border-[#2a2d35]">
+            <Calendar className="h-3.5 w-3.5" />
             May 1 - May 31, 2026 ▾
           </button>
         </div>
@@ -64,38 +96,38 @@ export const BusinessAnalytics = () => {
       {/* Top Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Top Symptoms */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Top Symptoms</h3>
+        <div className={cardStyle}>
+          <div className="flex items-center justify-between mb-5">
+            <h3 className={sectionTitle}>Top Symptoms</h3>
             <span className="text-xs text-gray-400 dark:text-[#525666]">May 2026</span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {topSymptoms.map((s) => (
               <div key={s.name}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-700 dark:text-[#a0a4ad]">{s.name}</span>
-                  <span className="text-sm text-gray-500 dark:text-[#6b7080]">
-                    {s.count.toLocaleString()} ({s.percent}%)
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm text-gray-700 dark:text-[#d4d4d8]">{s.name}</span>
+                  <span className="text-xs tabular-nums text-gray-500 dark:text-[#71717a]">
+                    {s.count.toLocaleString()} <span className="text-gray-400 dark:text-[#525666]">({s.percent}%)</span>
                   </span>
                 </div>
-                <div className="w-full h-2 bg-gray-100 dark:bg-[#1a1d25] rounded-full">
+                <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-[#1a1d25]">
                   <div
-                    className={`h-2 rounded-full ${s.color}`}
+                    className="h-full rounded-full bg-gray-900 dark:bg-[#3f3f46]"
                     style={{ width: `${s.percent * 3}%` }}
                   />
                 </div>
               </div>
             ))}
           </div>
-          <p className="text-xs text-gray-400 dark:text-[#525666] mt-4 text-center">
-            Total Symptoms Recorded: <span className="font-semibold text-gray-600 dark:text-[#6b7080]">4,827</span>
+          <p className="text-xs text-gray-400 dark:text-[#525666] mt-5 text-center">
+            Total Symptoms Recorded: <span className="font-semibold text-gray-600 dark:text-[#71717a]">4,827</span>
           </p>
         </div>
 
         {/* Age Groups */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed] mb-4">Age Groups</h3>
-          <div className="flex items-center justify-center mb-4">
+        <div className={cardStyle}>
+          <h3 className={sectionTitle}>Age Groups</h3>
+          <div className="flex items-center justify-center my-6">
             <div className="relative w-40 h-40">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                 {ageGroups.reduce((acc, g, i) => {
@@ -119,17 +151,17 @@ export const BusinessAnalytics = () => {
                 }, { elements: [] as React.ReactElement[], offset: 0 }).elements}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">2,456</span>
-                <span className="text-xs text-gray-400 dark:text-[#525666]">Users</span>
+                <span className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">2,456</span>
+                <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-[#52525b]">Users</span>
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             {ageGroups.map((g) => (
-              <div key={g.label} className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: g.color }}></span>
-                <span className="text-xs text-gray-600 dark:text-[#6b7080]">
-                  {g.label} ({g.percent}%)
+              <div key={g.label} className="flex items-center gap-2.5">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: g.color }} />
+                <span className="text-xs text-gray-600 dark:text-[#a1a1aa]">
+                  {g.label} <span className="text-gray-400 dark:text-[#52525b]">({g.percent}%)</span>
                 </span>
               </div>
             ))}
@@ -140,9 +172,9 @@ export const BusinessAnalytics = () => {
       {/* Middle Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Gender Distribution */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed] mb-4">Gender Distribution</h3>
-          <div className="flex items-center gap-6">
+        <div className={cardStyle}>
+          <h3 className={sectionTitle}>Gender Distribution</h3>
+          <div className="flex items-center gap-6 mt-5">
             <div className="relative w-32 h-32">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#073B4C" strokeWidth="14" strokeDasharray="151.75 251.327" />
@@ -150,97 +182,95 @@ export const BusinessAnalytics = () => {
               </svg>
             </div>
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-sm bg-[#073B4C]"></span>
-                <span className="text-sm text-gray-700 dark:text-[#a0a4ad]">Male (52.6%)</span>
-                <span className="text-xs text-gray-400 dark:text-[#525666]">1,291 users</span>
+              <div className="flex items-center gap-2.5">
+                <span className="h-2.5 w-2.5 rounded-sm bg-[#073B4C]" />
+                <span className="text-sm text-gray-700 dark:text-[#d4d4d8]">Male</span>
+                <span className="text-xs text-gray-400 dark:text-[#52525b]">52.6% · 1,291</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-sm bg-teal-400"></span>
-                <span className="text-sm text-gray-700 dark:text-[#a0a4ad]">Female (47.4%)</span>
-                <span className="text-xs text-gray-400 dark:text-[#525666]">1,165 users</span>
+              <div className="flex items-center gap-2.5">
+                <span className="h-2.5 w-2.5 rounded-sm bg-[#00A8A8]" />
+                <span className="text-sm text-gray-700 dark:text-[#d4d4d8]">Female</span>
+                <span className="text-xs text-gray-400 dark:text-[#52525b]">47.4% · 1,165</span>
               </div>
             </div>
           </div>
-          <p className="text-xs text-gray-400 dark:text-[#525666] mt-4 text-center">
-            Total Users: <span className="font-semibold text-gray-600 dark:text-[#6b7080]">2,456</span>
+          <p className="text-xs text-gray-400 dark:text-[#525666] mt-5 text-center">
+            Total Users: <span className="font-semibold text-gray-600 dark:text-[#71717a]">2,456</span>
           </p>
         </div>
 
-        {/* Emergency Cases Percentage */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed] mb-4">Emergency Cases Percentage</h3>
-          <div className="flex items-center justify-center mb-4">
+        {/* Emergency Cases */}
+        <div className={cardStyle}>
+          <h3 className={sectionTitle}>Emergency Cases</h3>
+          <div className="flex items-center justify-center my-6">
             <div className="relative w-36 h-36">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#FEE2E2" strokeWidth="10" />
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#1a1d25" strokeWidth="10" />
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#EF4444" strokeWidth="10" strokeDasharray="15.79 251.327" />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-red-500">6.3%</span>
-                <span className="text-xs text-gray-400 dark:text-[#525666]">Emergency</span>
+                <span className="text-2xl font-semibold tracking-tight text-red-500">6.3%</span>
+                <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-[#52525b]">Emergency</span>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>
-              <p className="text-xs text-gray-400 dark:text-[#525666] uppercase">Total Emergencies</p>
-              <p className="text-lg font-bold text-red-500">156</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-[#52525b]">Emergencies</p>
+              <p className="text-lg font-semibold tracking-tight text-red-500 mt-1">156</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 dark:text-[#525666] uppercase">Total Assessments</p>
-              <p className="text-lg font-bold text-gray-900 dark:text-[#e8eaed]">2,456</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-[#52525b]">Total Assessments</p>
+              <p className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white mt-1">2,456</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Monthly Growth */}
-      <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-        <div className="flex items-center justify-between mb-4">
+      {/* Monthly Growth — Recharts */}
+      <div className={cardStyle}>
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Monthly Growth</h3>
-            <p className="text-xs text-gray-500 dark:text-[#6b7080]">Overall Assessment Trends (2026)</p>
+            <h3 className={sectionTitle}>Monthly Growth</h3>
+            <p className="text-xs text-gray-500 dark:text-[#71717a] mt-0.5">Overall Assessment Trends (2026)</p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-[#6b7080]">
-            <span className="w-3 h-0.5 bg-[#073B4C] rounded-full"></span>
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-[#71717a]">
+            <span className="h-0.5 w-3 rounded-full bg-[#073B4C]" />
             Assessments
           </div>
         </div>
-        <div className="relative h-48">
-          <svg className="w-full h-full" viewBox="0 0 600 180" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#00A8A8" stopOpacity="0.2" />
-                <stop offset="100%" stopColor="#00A8A8" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <path
-              d={`M0,${180 - (monthlyGrowth[0] / maxGrowth) * 160} ${monthlyGrowth.map((v, i) => `L${(i / (monthlyGrowth.length - 1)) * 600},${180 - (v / maxGrowth) * 160}`).join(' ')} L600,180 L0,180 Z`}
-              fill="url(#areaGrad)"
-            />
-            <polyline
-              points={monthlyGrowth.map((v, i) => `${(i / (monthlyGrowth.length - 1)) * 600},${180 - (v / maxGrowth) * 160}`).join(' ')}
-              fill="none"
-              stroke="#00A8A8"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <div className="flex justify-between mt-2 px-2">
-          {months.map((m) => (
-            <span key={m} className="text-[10px] text-gray-400 dark:text-[#525666]">{m}</span>
-          ))}
+        <div className="h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={monthlyGrowth}>
+              <defs>
+                <linearGradient id="growthGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={theme.gradientTop} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={theme.gradientTop} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid {...theme.grid} vertical={false} />
+              <XAxis dataKey="month" tick={theme.axis} axisLine={false} tickLine={false} />
+              <YAxis tick={theme.axis} axisLine={false} tickLine={false} width={40} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: theme.cursor, strokeWidth: 1 }} />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke={theme.areaStroke}
+                strokeWidth={2}
+                fill="url(#growthGradient)"
+                dot={{ fill: theme.dotFill, stroke: theme.dotStroke, strokeWidth: 2, r: 3 }}
+                activeDot={{ fill: theme.activeDotFill, stroke: theme.activeDotStroke, strokeWidth: 2, r: 5 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       {/* Disclaimer */}
-      <div className="bg-gray-50 dark:bg-[#080a0e] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-gray-400 dark:text-[#525666] mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-gray-500 dark:text-[#6b7080] leading-relaxed">
+      <div className="rounded-xl border border-gray-200 dark:border-[#1e2028] bg-gray-50 dark:bg-[#080a0e] p-4">
+        <div className="flex items-start gap-2.5">
+          <AlertCircle className="h-4 w-4 text-gray-400 dark:text-[#525666] mt-0.5 shrink-0" strokeWidth={1.5} />
+          <p className="text-xs text-gray-500 dark:text-[#71717a] leading-relaxed">
             Analytics data is updated based on the selected time period. All times are in your local timezone.
             Data refresh happens every 15 minutes.
           </p>
