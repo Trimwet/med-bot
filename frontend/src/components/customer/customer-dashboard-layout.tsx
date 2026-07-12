@@ -97,7 +97,13 @@ export const CustomerDashboardLayout = () => {
             <Search className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Search</span>}
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
+          <button
+            onClick={() => {
+              navigate('/dashboard/chat-history')
+              setMobileOpen(false)
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+          >
             <BookOpen className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Chat History</span>}
           </button>
