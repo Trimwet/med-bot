@@ -18,6 +18,11 @@
   --color-line: #E4E5EF;
   --color-on-navy: #DADCF0;
   --color-green: #4C8C5B;
+  --color-chart-1: #073B4C;
+  --color-chart-2: #00A8A8;
+  --color-chart-3: #4C8C5B;
+  --color-chart-4: #F59E0B;
+  --color-chart-5: #E11D48;
 }
 
 html {

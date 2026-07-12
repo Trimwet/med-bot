@@ -11,6 +11,19 @@ import {
   MoreVertical,
   RefreshCw,
 } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from 'recharts'
+import { ChartCard } from '@/components/ui/chart-card'
+import { CustomTooltip } from '@/components/ui/chart-utils'
 
 const stats = [
   {
@@ -80,10 +93,29 @@ const recentActivity = [
   },
 ]
 
-const weeklyData = [30, 45, 35, 50, 40, 55, 60]
-const barData = [40, 65, 50, 70, 55, 80, 65]
-const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-const weeks = ['Wk 1', 'Wk 3', 'Wk 5', 'Wk 8']
+const assessmentsData = [
+  { day: 'Mon', value: 40 },
+  { day: 'Tue', value: 65 },
+  { day: 'Wed', value: 50 },
+  { day: 'Thu', value: 70 },
+  { day: 'Fri', value: 55 },
+  { day: 'Sat', value: 80 },
+  { day: 'Sun', value: 65 },
+]
+
+const weeklyTrendData = [
+  { label: 'Wk 1', value: 30 },
+  { label: 'Wk 2', value: 45 },
+  { label: 'Wk 3', value: 35 },
+  { label: 'Wk 4', value: 50 },
+  { label: 'Wk 5', value: 40 },
+  { label: 'Wk 6', value: 55 },
+  { label: 'Wk 7', value: 60 },
+  { label: 'Wk 8', value: 65 },
+]
+
+const gridStyle = { stroke: '#E4E5EF', strokeDasharray: '3 3' }
+const axisStyle = { fontSize: 12, fill: '#6A6E85' }
 
 export const BusinessDashboardHome = () => {
   const [dateRange] = useState('May 14 - May 20, 2026')
@@ -144,69 +176,57 @@ export const BusinessDashboardHome = () => {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Daily Assessments */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Daily Assessments</h3>
-            <span className="text-xs text-gray-500 dark:text-[#6b7080] bg-gray-100 dark:bg-[#1a1d25] px-3 py-1 rounded-full">This Week</span>
-          </div>
-          <div className="flex items-end justify-between gap-2 h-40">
-            {barData.map((h, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <div
-                  className="w-full bg-[#073B4C] rounded-t-md transition-all"
-                  style={{ height: `${h}%` }}
+        <ChartCard title="Daily Assessments" action={
+          <span className="text-xs text-gray-500 dark:text-[#6b7080] bg-gray-100 dark:bg-[#1a1d25] px-3 py-1 rounded-full">This Week</span>
+        }>
+          <div className="h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={assessmentsData} barCategoryGap="20%" barGap={4}>
+                <CartesianGrid {...gridStyle} vertical={false} />
+                <XAxis dataKey="day" tick={axisStyle} axisLine={false} tickLine={false} />
+                <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={30} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#E4E5EF30' }} />
+                <Bar
+                  dataKey="value"
+                  fill="#073B4C"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={36}
                 />
-                <span className="text-xs text-gray-400 dark:text-[#525666]">{days[i]}</span>
-              </div>
-            ))}
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-        </div>
+        </ChartCard>
 
         {/* Weekly Trends */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Weekly Trends</h3>
-            <span className="text-xs text-gray-500 dark:text-[#6b7080] bg-gray-100 dark:bg-[#1a1d25] px-3 py-1 rounded-full">Last 8 Weeks ▾</span>
-          </div>
-          <div className="relative h-40">
-            <svg className="w-full h-full" viewBox="0 0 300 120" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#073B4C" stopOpacity="0.15" />
-                  <stop offset="100%" stopColor="#073B4C" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path
-                d={`M0,${120 - weeklyData[0] * 1.8} ${weeklyData.map((v, i) => `L${(i / (weeklyData.length - 1)) * 300},${120 - v * 1.8}`).join(' ')} L300,120 L0,120 Z`}
-                fill="url(#gradient)"
-              />
-              <polyline
-                points={weeklyData.map((v, i) => `${(i / (weeklyData.length - 1)) * 300},${120 - v * 1.8}`).join(' ')}
-                fill="none"
-                stroke="#073B4C"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              {weeklyData.map((v, i) => (
-                <circle
-                  key={i}
-                  cx={(i / (weeklyData.length - 1)) * 300}
-                  cy={120 - v * 1.8}
-                  r="4"
-                  fill="white"
+        <ChartCard title="Weekly Trends" action={
+          <span className="text-xs text-gray-500 dark:text-[#6b7080] bg-gray-100 dark:bg-[#1a1d25] px-3 py-1 rounded-full">Last 8 Weeks ▾</span>
+        }>
+          <div className="h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={weeklyTrendData}>
+                <defs>
+                  <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#073B4C" stopOpacity={0.12} />
+                    <stop offset="100%" stopColor="#073B4C" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid {...gridStyle} vertical={false} />
+                <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
+                <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={30} />
+                <Tooltip content={<CustomTooltip />} cursor={false} />
+                <Area
+                  type="monotone"
+                  dataKey="value"
                   stroke="#073B4C"
-                  strokeWidth="2"
+                  strokeWidth={2.5}
+                  fill="url(#trendGradient)"
+                  dot={{ fill: '#FFFFFF', stroke: '#073B4C', strokeWidth: 2, r: 4 }}
+                  activeDot={{ fill: '#073B4C', stroke: '#FFFFFF', strokeWidth: 2, r: 5 }}
                 />
-              ))}
-            </svg>
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <div className="flex justify-between mt-2">
-            {weeks.map((w) => (
-              <span key={w} className="text-xs text-gray-400 dark:text-[#525666]">{w}</span>
-            ))}
-          </div>
-        </div>
+        </ChartCard>
       </div>
 
       {/* Recent Activity */}
