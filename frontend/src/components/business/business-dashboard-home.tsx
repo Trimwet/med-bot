@@ -23,7 +23,7 @@ import {
   Area,
 } from 'recharts'
 import { ChartCard } from '@/components/ui/chart-card'
-import { CustomTooltip } from '@/components/ui/chart-utils'
+import { useChartTheme, CustomTooltip } from '@/components/ui/chart-theme'
 
 const stats = [
   {
@@ -114,11 +114,9 @@ const weeklyTrendData = [
   { label: 'Wk 8', value: 65 },
 ]
 
-const gridStyle = { stroke: '#E4E5EF', strokeDasharray: '3 3' }
-const axisStyle = { fontSize: 12, fill: '#6A6E85' }
-
 export const BusinessDashboardHome = () => {
   const [dateRange] = useState('May 14 - May 20, 2026')
+  const theme = useChartTheme()
 
   return (
     <div className="space-y-6">
@@ -182,13 +180,13 @@ export const BusinessDashboardHome = () => {
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={assessmentsData} barCategoryGap="20%" barGap={4}>
-                <CartesianGrid {...gridStyle} vertical={false} />
-                <XAxis dataKey="day" tick={axisStyle} axisLine={false} tickLine={false} />
-                <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={30} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#E4E5EF30' }} />
+                <CartesianGrid {...theme.grid} vertical={false} />
+                <XAxis dataKey="day" tick={theme.axis} axisLine={false} tickLine={false} />
+                <YAxis tick={theme.axis} axisLine={false} tickLine={false} width={30} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.cursor }} />
                 <Bar
                   dataKey="value"
-                  fill="#073B4C"
+                  fill={theme.bar}
                   radius={[4, 4, 0, 0]}
                   maxBarSize={36}
                 />
@@ -206,22 +204,22 @@ export const BusinessDashboardHome = () => {
               <AreaChart data={weeklyTrendData}>
                 <defs>
                   <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#073B4C" stopOpacity={0.12} />
-                    <stop offset="100%" stopColor="#073B4C" stopOpacity={0} />
+                    <stop offset="0%" stopColor={theme.gradientTop} stopOpacity={0.15} />
+                    <stop offset="100%" stopColor={theme.gradientTop} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid {...gridStyle} vertical={false} />
-                <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
-                <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={30} />
+                <CartesianGrid {...theme.grid} vertical={false} />
+                <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
+                <YAxis tick={theme.axis} axisLine={false} tickLine={false} width={30} />
                 <Tooltip content={<CustomTooltip />} cursor={false} />
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#073B4C"
+                  stroke={theme.areaStroke}
                   strokeWidth={2.5}
                   fill="url(#trendGradient)"
-                  dot={{ fill: '#FFFFFF', stroke: '#073B4C', strokeWidth: 2, r: 4 }}
-                  activeDot={{ fill: '#073B4C', stroke: '#FFFFFF', strokeWidth: 2, r: 5 }}
+                  dot={{ fill: theme.dotFill, stroke: theme.dotStroke, strokeWidth: 2, r: 4 }}
+                  activeDot={{ fill: theme.activeDotFill, stroke: theme.activeDotStroke, strokeWidth: 2, r: 5 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
