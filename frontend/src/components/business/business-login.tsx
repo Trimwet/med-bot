@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff, ArrowRight, Globe, ChevronLeft } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, Globe, ChevronLeft, BarChart3, HeartPulse, ShieldCheck } from 'lucide-react'
 
 interface BusinessLoginProps {
   onBack?: () => void
@@ -9,9 +9,9 @@ interface BusinessLoginProps {
 }
 
 const features = [
-  { icon: '📊', label: 'Data-Driven Insights' },
-  { icon: '❤️', label: 'Improve Outcomes' },
-  { icon: '🔒', label: 'Secure & Reliable' },
+  { icon: BarChart3, label: 'Data-Driven Insights' },
+  { icon: HeartPulse, label: 'Improve Outcomes' },
+  { icon: ShieldCheck, label: 'Secure & Reliable' },
 ]
 
 export const BusinessLogin = ({ onBack, onSignup, onLoginSuccess, onForgotPassword }: BusinessLoginProps) => {
@@ -80,8 +80,8 @@ export const BusinessLogin = ({ onBack, onSignup, onLoginSuccess, onForgotPasswo
           <div className="grid grid-cols-3 gap-3 w-full">
             {features.map((f) => (
               <div key={f.label} className="text-center">
-                <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-lg mx-auto mb-1.5 border border-gray-100">
-                  {f.icon}
+                <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center mx-auto mb-1.5 border border-gray-100">
+                  <f.icon className="w-4.5 h-4.5 text-[#073B4C]" strokeWidth={1.75} />
                 </div>
                 <p className="text-[10px] text-gray-600 leading-tight">{f.label}</p>
               </div>

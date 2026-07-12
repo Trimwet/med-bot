@@ -11,7 +11,6 @@ import { AssessmentHistory } from '@/components/customer/assessment-history'
 import { HealthReports } from '@/components/customer/health-reports'
 import { HealthLibrary } from '@/components/customer/health-library'
 import { CustomerSettings } from '@/components/customer/customer-settings'
-import { ChatHistory } from '@/components/customer/chat-history'
 import { BusinessLogin } from '@/components/business/business-login'
 import { BusinessSignup } from '@/components/business/business-signup'
 import { BusinessDashboardLayout } from '@/components/business/business-dashboard-layout'
@@ -109,7 +108,8 @@ function AppRoutes() {
         <Route path="health-reports" element={<HealthReports />} />
         <Route path="health-library" element={<HealthLibrary />} />
         <Route path="subscription" element={<div className="text-gray-600">Subscription - Coming Soon</div>} />
-        <Route path="chat-history" element={<ChatHistory />} />
+        {/* chat-history merged into Chat Assessments (assessment-history) */}
+        <Route path="chat-history" element={<Navigate to="/dashboard/assessment-history" replace />} />
         <Route path="settings" element={<CustomerSettings />} />
         <Route path="help" element={<div className="text-gray-600">Help Center - Coming Soon</div>} />
       </Route>

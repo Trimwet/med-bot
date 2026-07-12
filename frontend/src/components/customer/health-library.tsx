@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, Clock, AlertCircle } from 'lucide-react'
+import { Search, Clock, AlertCircle, BookOpen } from 'lucide-react'
 
 type Category = 'All' | 'Common Illnesses' | 'Prevention' | 'First Aid' | 'Healthy Living' | 'Mental Health'
 
@@ -8,127 +8,66 @@ interface Article {
   description: string
   readTime: string
   image: string
-  category: string
+  category: Exclude<Category, 'All'>
 }
 
-const categories: Category[] = ['All', 'Common Illnesses', 'Prevention', 'First Aid', 'Healthy Living', 'Mental Health']
+const CATEGORIES: Category[] = ['All', 'Common Illnesses', 'Prevention', 'First Aid', 'Healthy Living', 'Mental Health']
 
-const commonIllnesses: Article[] = [
-  {
-    title: 'Common Cold',
-    description: 'Learn about causes, symptoms, and...',
-    readTime: '5 min read',
-    image: '/hero-doctor.jpg',
-    category: 'Common Illnesses',
-  },
-  {
-    title: 'Flu (Influenza)',
-    description: 'Understand the flu, symptoms, and when to...',
-    readTime: '6 min read',
-    image: '/hero-doctor.jpg',
-    category: 'Common Illnesses',
-  },
-  {
-    title: 'Fever',
-    description: 'Types of fever, causes, and home care tips.',
-    readTime: '4 min read',
-    image: '/hero-doctor.jpg',
-    category: 'Common Illnesses',
-  },
-  {
-    title: 'Headache',
-    description: 'Types, causes, and effective relief methods.',
-    readTime: '4 min read',
-    image: '/hero-doctor.jpg',
-    category: 'Common Illnesses',
-  },
-]
-
-const prevention: Article[] = [
-  {
-    title: 'Hand Hygiene',
-    description: 'Simple steps to keep your hands clean and safe.',
-    readTime: '4 min read',
-    image: '/hero-doctor.jpg',
-    category: 'Prevention',
-  },
-  {
-    title: 'Vaccinations',
-    description: 'Stay protected with recommended vaccines.',
-    readTime: '5 min read',
-    image: '/hero-doctor.jpg',
-    category: 'Prevention',
-  },
-  {
-    title: 'Nutrition Basics',
-    description: 'Eat right, feel right. Basics of balanced...',
-    readTime: '5 min read',
-    image: '/hero-doctor.jpg',
-    category: 'Prevention',
-  },
-  {
-    title: 'Healthy Habits',
-    description: 'Daily habits for a stronger and healthier you.',
-    readTime: '6 min read',
-    image: '/hero-doctor.jpg',
-    category: 'Prevention',
-  },
+const ARTICLES: Article[] = [
+  { title: 'Common Cold', description: 'Learn about causes, symptoms, and home care.', readTime: '5 min read', image: '/hero-doctor.jpg', category: 'Common Illnesses' },
+  { title: 'Flu (Influenza)', description: 'Understand the flu, symptoms, and when to see a doctor.', readTime: '6 min read', image: '/hero-doctor.jpg', category: 'Common Illnesses' },
+  { title: 'Fever', description: 'Types of fever, causes, and home care tips.', readTime: '4 min read', image: '/hero-doctor.jpg', category: 'Common Illnesses' },
+  { title: 'Headache', description: 'Types, causes, and effective relief methods.', readTime: '4 min read', image: '/hero-doctor.jpg', category: 'Common Illnesses' },
+  { title: 'Hand Hygiene', description: 'Simple steps to keep your hands clean and safe.', readTime: '4 min read', image: '/hero-doctor.jpg', category: 'Prevention' },
+  { title: 'Vaccinations', description: 'Stay protected with recommended vaccines.', readTime: '5 min read', image: '/hero-doctor.jpg', category: 'Prevention' },
+  { title: 'Nutrition Basics', description: 'Eat right, feel right — the basics of balanced eating.', readTime: '5 min read', image: '/hero-doctor.jpg', category: 'Prevention' },
+  { title: 'Healthy Habits', description: 'Daily habits for a stronger and healthier you.', readTime: '6 min read', image: '/hero-doctor.jpg', category: 'Prevention' },
+  { title: 'Treating Minor Cuts', description: 'Step-by-step first aid for cuts and scrapes.', readTime: '3 min read', image: '/hero-doctor.jpg', category: 'First Aid' },
+  { title: 'Managing Stress', description: 'Practical techniques to reduce everyday stress.', readTime: '5 min read', image: '/hero-doctor.jpg', category: 'Mental Health' },
 ]
 
 export const HealthLibrary = () => {
   const [activeCategory, setActiveCategory] = useState<Category>('All')
   const [search, setSearch] = useState('')
 
-  const filterArticles = (articles: Article[]) => {
-    if (activeCategory !== 'All' && activeCategory !== articles[0]?.category) return []
-    if (!search) return articles
-    return articles.filter(
-      (a) =>
-        a.title.toLowerCase().includes(search.toLowerCase()) ||
-        a.description.toLowerCase().includes(search.toLowerCase())
-    )
-  }
-
-  const filteredCommon = filterArticles(commonIllnesses)
-  const filteredPrevention = filterArticles(prevention)
-
-  const showCommon = filteredCommon.length > 0
-  const showPrevention = filteredPrevention.length > 0
+  const filtered = ARTICLES.filter((a) => {
+    const matchesCategory = activeCategory === 'All' || a.category === activeCategory
+    const matchesSearch =
+      a.title.toLowerCase().includes(search.toLowerCase()) ||
+      a.description.toLowerCase().includes(search.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
 
   return (
-    <div className="max-w-5xl">
+    <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Health Library</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Trusted health information to help you and your family stay informed.
-        </p>
+      <div className="h-14 flex items-center justify-between px-3 sm:px-6 border-b border-gray-100 shrink-0">
+        <div className="flex items-center gap-2">
+          <h1 className="text-sm font-semibold text-gray-900">Health Library</h1>
+          <span className="text-xs text-gray-400">({filtered.length})</span>
+        </div>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search articles, topics, conditions..."
-          className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#073B4C]/30"
-        />
-      </div>
+      {/* Search + Categories */}
+      <div className="px-3 sm:px-6 py-3 border-b border-gray-100 shrink-0 space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search articles, topics, conditions..."
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C] transition-colors"
+          />
+        </div>
 
-      {/* Categories */}
-      <div className="mb-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-3">Categories</h2>
-        <div className="flex overflow-x-auto gap-2 pb-1 -mx-1 px-1">
-          {categories.map((cat) => (
+        <div className="flex gap-1.5 overflow-x-auto">
+          {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                activeCategory === cat
-                  ? 'bg-[#073B4C] text-white'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${
+                activeCategory === cat ? 'bg-[#073B4C] text-white' : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
               {cat}
@@ -137,34 +76,37 @@ export const HealthLibrary = () => {
         </div>
       </div>
 
-      {/* Common Illnesses */}
-      {showCommon && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Common Illnesses</h2>
-            <button className="text-sm font-semibold text-[#073B4C] hover:underline">
-              View all ›
-            </button>
+      {/* Articles */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-6 py-4">
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full py-12">
+            <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+              <BookOpen className="w-5 h-5 text-gray-400" />
+            </div>
+            <p className="text-sm font-medium text-gray-900 mb-1">No articles found</p>
+            <p className="text-xs text-gray-500">Try a different search term or category</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {filteredCommon.map((article) => (
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {filtered.map((article) => (
               <div
                 key={article.title}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer"
               >
-                <img
-                  src={article.image}
-                  alt={article.title}
-                  className="w-full h-32 object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 text-sm mb-1">
-                    {article.title}
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-2 leading-relaxed">
-                    {article.description}
+                <div className="h-28 bg-gray-100 overflow-hidden">
+                  <img
+                    src={article.image}
+                    alt={article.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  />
+                </div>
+                <div className="p-3.5">
+                  <p className="text-[10px] font-medium text-[#073B4C] uppercase tracking-wider mb-1">
+                    {article.category}
                   </p>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">{article.title}</h3>
+                  <p className="text-xs text-gray-500 line-clamp-2 mb-2 leading-relaxed">{article.description}</p>
+                  <div className="flex items-center gap-1 text-[11px] text-gray-400">
                     <Clock className="w-3 h-3" />
                     {article.readTime}
                   </div>
@@ -172,55 +114,14 @@ export const HealthLibrary = () => {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Prevention */}
-      {showPrevention && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Prevention</h2>
-            <button className="text-sm font-semibold text-[#073B4C] hover:underline">
-              View all ›
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {filteredPrevention.map((article) => (
-              <div
-                key={article.title}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-              >
-                <img
-                  src={article.image}
-                  alt={article.title}
-                  className="w-full h-32 object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 text-sm mb-1">
-                    {article.title}
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-2 leading-relaxed">
-                    {article.description}
-                  </p>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                    <Clock className="w-3 h-3" />
-                    {article.readTime}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Disclaimer */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mt-4">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Information provided is for general knowledge only and not a substitute for
-            professional medical advice. Always consult a healthcare professional for
-            medical concerns.
+        {/* Disclaimer */}
+        <div className="flex items-start gap-2 mt-6 px-3.5 py-3 bg-gray-50 rounded-xl">
+          <AlertCircle className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+          <p className="text-[11px] text-gray-500 leading-relaxed">
+            Information provided is for general knowledge only and not a substitute for professional
+            medical advice. Always consult a healthcare professional for medical concerns.
           </p>
         </div>
       </div>

@@ -1,20 +1,92 @@
-// Shared TypeScript types for Mongo documents.
-
 import type { ObjectId } from "mongodb";
 
 export type TriageSeverity = "self_care" | "consult" | "emergency";
+export type SessionStatus = "in_progress" | "closed";
+export type FollowupStatus = "pending" | "sent" | "failed";
 
 export interface SessionMessage {
   role: "user" | "assistant" | "system";
   content: string;
-  timestamp: string; // ISO 8601
+  timestamp: string;
+}
+
+export interface KnowledgeEdge {
+  toNodeId: string;
+  triggerEmbedding: number[];
+  label: string;
+}
+
+export interface KnowledgeDocument {
+  _id?: ObjectId;
+  nodeId: string;
+  protocolId: string;
+  protocolVersion: string;
+  title: string;
+  content: string;
+  embedding: number[];
+  activationThreshold: number;
+  edges: KnowledgeEdge[];
+  metadata: {
+    triageQuestions?: string[];
+    severityScale?: Record<string, string>;
+    redFlags?: string[];
+    sourceFile: string;
+  };
+  updatedAt: string;
+  updatedBy: string;
+}
+
+export interface ClinicalRuleDocument {
+  _id?: ObjectId;
+  nodeId: string;
+  protocolId: string;
+  protocolVersion: string;
+  emergencyThreshold: number;
+  seeDoctorThreshold: number;
+  watchPeriodHours: number;
+  redFlags: string[];
+  selfCareGuidance: string;
+  updatedAt: string;
+  updatedBy: string;
+}
+
+export interface TenantDocument {
+  _id?: ObjectId;
+  name: string;
+  tier: "growth" | "enterprise";
+  tokenBalance: number;
+  subscriptionStartDate: string;
+  subscriptionEndDate: string;
+  whitelabelConfig: {
+    logoUrl?: string;
+    primaryColor?: string;
+  };
+  createdAt: string;
+}
+
+export interface PatientDocument {
+  _id?: ObjectId;
+  patientId: string;
+  tenantId: string;
+  phone: string;
+  name: string;
+  consentGivenAt?: string;
+  dataRetentionPolicy?: string;
+  createdAt: string;
 }
 
 export interface SessionDocument {
   _id?: ObjectId;
   sessionId: string;
-  /** The account that owns this conversation. Never trust a session ID alone. */
   userId: string;
+  tenantId?: string;
+  patientId?: string;
+  channel: "web" | "whatsapp" | "mobile";
+  activeNodeId?: string;
+  lastFiringScore?: number;
+  protocolVersion?: string;
+  verdict?: TriageSeverity;
+  status: SessionStatus;
   userProfile: {
     ageRange?: string;
     location?: string;
@@ -26,27 +98,48 @@ export interface SessionDocument {
     severityScore?: number;
     severity?: TriageSeverity;
   };
+  extractedAnswers?: {
+    severityScore: number;
+    durationHours: number;
+    reportedSymptoms: string[];
+  };
   messages: SessionMessage[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface KnowledgeChunkMetadata {
-  protocolName: string; // e.g. "Chest Pain Protocol"
-  step: string; // e.g. "Step 1"
-  triageQuestions?: string[];
-  severityScale?: Record<string, string>;
-  redFlags?: string[];
-  sourceFile: string;
-}
-
-export interface KnowledgeDocument {
+export interface SessionSummaryDocument {
   _id?: ObjectId;
-  text: string; // the markdown chunk
-  embedding: number[]; // vector embedding
-  metadata: KnowledgeChunkMetadata;
+  sessionId: string;
+  patientId: string;
+  tenantId?: string;
+  summaryText: string;
+  embedding: number[];
   createdAt: string;
 }
+
+export interface TokenLedgerDocument {
+  _id?: ObjectId;
+  tenantId: string;
+  sessionId: string;
+  promptTokens: number;
+  completionTokens: number;
+  multiplierApplied: number;
+  costNgn: number;
+  timestamp: string;
+}
+
+export interface FollowupJobDocument {
+  _id?: ObjectId;
+  sessionId: string;
+  tenantId: string;
+  patientId: string;
+  scheduledFor: string;
+  sentAt?: string;
+  dedupeKey: string;
+  status: FollowupStatus;
+}
+
 export interface UserProfile {
   age?: number;
   gender?: "male" | "female" | "other";
@@ -71,4 +164,19 @@ export interface UserDocument {
   profile?: UserProfile;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface ClinicalInput {
+  severityScale: number;
+  durationHours: number;
+  associatedSymptoms: string[];
+  redFlags: string[];
+}
+
+export interface ClinicalResult {
+  score: number;
+  severity: TriageSeverity;
+  matchedRedFlags: string[];
+  nextStep: string;
+  guidanceText?: string;
 }

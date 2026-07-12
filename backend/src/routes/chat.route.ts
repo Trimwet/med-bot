@@ -1,11 +1,16 @@
 import { Router } from "express";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import { logger } from "@/lib/logger";
-import { getOrCreateSession, appendMessage, updateSessionState } from "@/services/session.service";
+import { getOrCreateSession, appendMessage, updateSessionGraphState } from "@/services/session.service";
+import { findNodeById } from "@/services/vectorSearch.service";
+import { findEntryNode, traverseGraph, type ActivationConfidence } from "@/services/knowledgeGraph.service";
+import { evaluateClinicalRule } from "@/services/clinicalRule.service";
+import type { ClinicalInput } from "@/db/schema";
 import OpenAI from "openai";
 import { env } from "@/config/env";
 
 const MAX_MESSAGE_LENGTH = 4_000;
+
 const EMERGENCY_PATTERNS = [
   /chest pain/i,
   /difficulty breathing|can't breathe|cannot breathe|shortness of breath/i,
@@ -14,10 +19,110 @@ const EMERGENCY_PATTERNS = [
   /stroke|face droop|slurred speech/i,
   /severe bleeding|coughing blood|vomiting blood/i,
 ];
+
 const EMERGENCY_REPLY =
   "Your symptoms may need urgent attention. Please call 112 in Nigeria now or go to the nearest emergency department. Do not rely on this chat for emergency care.";
 
-const llm = new OpenAI({ apiKey: env.openaiApiKey });
+const FAILURE_REPLY =
+  "I'm sorry, I'm having trouble reaching my medical guidance service right now. If your symptoms are urgent, please go to the nearest hospital or call 112.";
+
+const deepseek = new OpenAI({
+  apiKey: env.deepseekApiKey,
+  baseURL: env.deepseekBaseUrl,
+});
+
+async function extractStructuredData(
+  patientMessage: string,
+  protocolNode: { title: string; content: string; metadata: { triageQuestions?: string[]; redFlags?: string[] } }
+): Promise<{ severityScore: number; durationHours: number; reportedSymptoms: string[] } | null> {
+  const questions = protocolNode.metadata.triageQuestions?.join("\n") ?? "";
+  const redFlags = protocolNode.metadata.redFlags?.join(", ") ?? "";
+
+  const prompt = `You are a medical data extractor. Given a patient message and a clinical protocol, extract the following fields as JSON. Return ONLY valid JSON with no markdown or explanation.
+
+Protocol: ${protocolNode.title}
+Protocol context: ${protocolNode.content.slice(0, 300)}
+Triage questions: ${questions}
+Known red flags: ${redFlags}
+
+Patient message: "${patientMessage}"
+
+Extract:
+- "severityScore": number 1-10 (the patient's reported pain/severity scale, or estimate from description. Default 5 if unclear.)
+- "durationHours": number (how long symptoms have lasted in hours. Default 24 if unclear.)
+- "reportedSymptoms": string[] (list of symptoms mentioned by the patient, including any red flags)
+
+Return {"severityScore": number, "durationHours": number, "reportedSymptoms": string[]}`;
+
+  try {
+    const completion = await deepseek.chat.completions.create({
+      model: env.deepseekChatModel,
+      temperature: 0.1,
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+    });
+    const raw = completion.choices[0]?.message?.content;
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    logger.warn("structured extraction failed", { error: (err as Error).message });
+    return null;
+  }
+}
+
+async function phraseResponse(
+  verdict: string,
+  guidanceText: string,
+  protocolNode: { title: string; content: string },
+  patientMessage: string,
+): Promise<string> {
+  const prompt = `You are Eve, a calm, professional medical triage assistant serving Nigerian patients. You speak in plain language, no jargon, no emojis.
+
+You have received a clinical verdict that you must relay to the patient. You CANNOT change, soften, or override this verdict.
+
+Verdict: ${verdict}
+Guidance: ${guidanceText}
+Protocol: ${protocolNode.title}
+
+Patient said: "${patientMessage}"
+
+Phrase the verdict in a helpful, clear way. Explain what the patient should do next based on the guidance. Keep it concise (2-4 sentences). End with a reminder that this is not a substitute for professional medical care.`;
+
+  try {
+    const completion = await deepseek.chat.completions.create({
+      model: env.deepseekChatModel,
+      temperature: 0.3,
+      messages: [{ role: "user", content: prompt }],
+    });
+    return completion.choices[0]?.message?.content ?? guidanceText;
+  } catch {
+    return guidanceText;
+  }
+}
+
+async function askClarifyingQuestion(
+  confidenceLabel: string,
+  protocolNode: { title: string; metadata: { triageQuestions?: string[] } },
+): Promise<string> {
+  const questions = protocolNode.metadata.triageQuestions ?? [];
+  const prompt = `You are Eve, a medical triage assistant. The system has moderate confidence that the patient's complaint matches "${protocolNode.title}".
+
+Ask a brief clarifying question to confirm. Use one of these if relevant:
+${questions.map((q) => `- ${q}`).join("\n")}
+
+Ask only ONE short question. Do not diagnose.`;
+
+  try {
+    const completion = await deepseek.chat.completions.create({
+      model: env.deepseekChatModel,
+      temperature: 0.3,
+      messages: [{ role: "user", content: prompt }],
+    });
+    return completion.choices[0]?.message?.content ?? questions[0] ?? "Can you tell me more about your symptoms?";
+  } catch {
+    return questions[0] ?? "Can you tell me more about your symptoms?";
+  }
+}
 
 export const chatRoute = Router();
 
@@ -29,7 +134,7 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
     return;
   }
   if (!message || typeof message !== "string" || message.trim().length === 0) {
-    res.status(400).json({ error: "VALIDATION_ERROR", message: "message is required and must be non-empty" });
+    res.status(400).json({ error: "VALIDATION_ERROR", message: "message is required" });
     return;
   }
   if (message.length > MAX_MESSAGE_LENGTH) {
@@ -42,68 +147,128 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
 
     const userId = (req as any).user?.id;
     if (!userId) {
-      res.status(401).json({ error: "UNAUTHORIZED", message: "A user token is required for chat" });
+      res.status(401).json({ error: "UNAUTHORIZED", message: "A user token is required" });
       return;
     }
+
     const session = await getOrCreateSession(sessionId, userId);
 
     const userMsg = { role: "user" as const, content: message, timestamp: new Date().toISOString() };
     await appendMessage(sessionId, userId, userMsg);
 
-    if (EMERGENCY_PATTERNS.some((pattern) => pattern.test(message))) {
-      await appendMessage(sessionId, userId, { role: "assistant", content: EMERGENCY_REPLY, timestamp: new Date().toISOString() });
+    // ── Safety Floor ──────────────────────────────────────────────
+    if (EMERGENCY_PATTERNS.some((p) => p.test(message))) {
+      await appendMessage(sessionId, userId, {
+        role: "assistant", content: EMERGENCY_REPLY, timestamp: new Date().toISOString(),
+      });
+      await updateSessionGraphState(sessionId, userId, { verdict: "emergency", status: "closed" });
       res.json({ reply: EMERGENCY_REPLY, saved: true, urgency: "emergency" });
       return;
     }
 
-    const recentHistory = session.messages.slice(-12);
+    // ── Graph Traversal ───────────────────────────────────────────
+    let activeNodeId = session.activeNodeId;
+    let traversalResult;
+    let confidence: ActivationConfidence;
 
-    const completion = await llm.chat.completions.create({
-      model: env.llmModel,
-      temperature: 0.2,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are Eve, a cautious AI health-information assistant for Nigeria. Do not diagnose, prescribe, or claim certainty. Ask focused follow-up questions when information is insufficient. If symptoms could be urgent, tell the user to call 112 or seek emergency care immediately. Never downplay chest pain, breathing difficulty, stroke signs, severe bleeding, loss of consciousness, or self-harm. End with a brief statement that this is not a substitute for professional medical care.",
-        },
-        ...recentHistory.map((m) => ({ role: m.role, content: m.content })),
-        { role: "user", content: message },
-      ],
-    });
-
-    const reply = completion.choices[0]?.message?.content ?? "I'm sorry, I couldn't process that.";
-
-    await appendMessage(sessionId, userId, {
-      role: "assistant",
-      content: reply,
-      timestamp: new Date().toISOString(),
-    });
-
-    res.json({ reply, saved: true });
-  } catch (err) {
-    const fallbackReply =
-      "I’m sorry, I’m having trouble reaching my medical guidance service right now. Your message has still been saved for follow-up.";
-
-    try {
-      const userId = (req as any).user?.id;
-      if (userId) await appendMessage(sessionId, userId, {
-        role: "assistant",
-        content: fallbackReply,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (persistErr) {
-      logger.warn("failed to persist fallback assistant reply", {
-        sessionId,
-        error: (persistErr as Error).message,
-      });
+    if (activeNodeId) {
+      traversalResult = await traverseGraph(activeNodeId, message);
+    } else {
+      traversalResult = await findEntryNode(message);
     }
 
-    logger.warn("chat completion failed, returning fallback reply", {
+    activeNodeId = traversalResult.newNodeId;
+    confidence = traversalResult.confidence;
+
+    if (!activeNodeId) {
+      const fallback = "I'm not sure I understand your symptoms. Could you describe them differently, or if you're worried, please visit a clinic or call 112.";
+      await appendMessage(sessionId, userId, { role: "assistant", content: fallback, timestamp: new Date().toISOString() });
+      res.json({ reply: fallback, saved: true });
+      return;
+    }
+
+    const protocolNode = await findNodeById(activeNodeId);
+    if (!protocolNode) {
+      throw new Error(`Node ${activeNodeId} not found after traversal`);
+    }
+
+    // Save the active node
+    await updateSessionGraphState(sessionId, userId, {
+      activeNodeId,
+      lastFiringScore: traversalResult.score,
+      protocolVersion: protocolNode.protocolVersion,
+    });
+
+    // ── Confidence Routing ────────────────────────────────────────
+    if (confidence === "low") {
+      const reply = "I'm having trouble matching your symptoms to a known pattern. Could you rephrase or describe what you're feeling in more detail? If this is urgent, please call 112.";
+      await appendMessage(sessionId, userId, { role: "assistant", content: reply, timestamp: new Date().toISOString() });
+      res.json({ reply, saved: true });
+      return;
+    }
+
+    if (confidence === "moderate") {
+      const question = await askClarifyingQuestion("moderate", protocolNode);
+      await appendMessage(sessionId, userId, { role: "assistant", content: question, timestamp: new Date().toISOString() });
+      res.json({ reply: question, saved: true, clarifying: true });
+      return;
+    }
+
+    // ── High confidence: extract, evaluate, respond ───────────────
+    const extracted = await extractStructuredData(message, protocolNode);
+
+    const redFlags = protocolNode.metadata.redFlags ?? [];
+    const matched = extracted
+      ? redFlags.filter((rf) => extracted.reportedSymptoms.some((s) => s.toLowerCase().includes(rf.toLowerCase())))
+      : [];
+
+    const clinicalInput: ClinicalInput = {
+      severityScale: extracted?.severityScore ?? 5,
+      durationHours: extracted?.durationHours ?? 24,
+      associatedSymptoms: extracted?.reportedSymptoms ?? [],
+      redFlags: matched,
+    };
+
+    const clinicalResult = await evaluateClinicalRule(clinicalInput, activeNodeId);
+
+    const reply = await phraseResponse(clinicalResult.severity, clinicalResult.guidanceText ?? clinicalResult.nextStep, protocolNode, message);
+
+    await appendMessage(sessionId, userId, { role: "assistant", content: reply, timestamp: new Date().toISOString() });
+
+    const shouldClose = clinicalResult.severity === "emergency";
+    await updateSessionGraphState(sessionId, userId, {
+      verdict: clinicalResult.severity,
+      lastFiringScore: clinicalResult.score,
+      extractedAnswers: {
+        severityScore: clinicalInput.severityScale,
+        durationHours: clinicalInput.durationHours,
+        reportedSymptoms: clinicalInput.associatedSymptoms,
+      },
+      ...(shouldClose ? { status: "closed" } : {}),
+    });
+
+    res.json({
+      reply,
+      saved: true,
+      verdict: clinicalResult.severity,
+      matchedRedFlags: clinicalResult.matchedRedFlags.length > 0 ? clinicalResult.matchedRedFlags : undefined,
+      score: clinicalResult.score,
+    });
+
+  } catch (err) {
+    try {
+      const uid = (req as any).user?.id;
+      if (uid) {
+        await appendMessage(sessionId, uid, {
+          role: "assistant", content: FAILURE_REPLY, timestamp: new Date().toISOString(),
+        });
+      }
+    } catch { /* ignore persistence errors in fallback */ }
+
+    logger.warn("chat route failed, returning fallback", {
       sessionId,
       error: (err as Error).message,
     });
-
-    res.json({ reply: fallbackReply, saved: true, warning: "llm_unavailable" });
+    res.json({ reply: FAILURE_REPLY, saved: true, warning: "service_unavailable" });
   }
 });

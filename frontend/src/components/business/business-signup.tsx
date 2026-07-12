@@ -1,5 +1,18 @@
 import { useState } from 'react'
-import { Eye, EyeOff, ChevronDown, ChevronLeft } from 'lucide-react'
+import {
+  Eye,
+  EyeOff,
+  ChevronDown,
+  ChevronLeft,
+  BarChart3,
+  Users,
+  FileBarChart,
+  ShieldCheck,
+  Activity,
+  AlertTriangle,
+  Share2,
+  Gauge,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface BusinessSignupProps {
@@ -9,15 +22,38 @@ interface BusinessSignupProps {
 }
 
 const orgTypes = ['Hospital', 'Clinic', 'HMO', 'NGO', 'Corporate']
-const countries = ['United States', 'United Kingdom', 'Canada', 'Germany', 'India', 'Nigeria']
+
+// Nigeria first since this is MedBot's primary market, then nearby
+// African markets, then the rest alphabetically.
+const countries = [
+  'Nigeria',
+  'Ghana',
+  'Kenya',
+  'South Africa',
+  'Canada',
+  'Germany',
+  'India',
+  'United Kingdom',
+  'United States',
+]
+
 const orgSizes = ['1-10', '11-50', '51-200', '201-500', '500+']
 
 const features = [
-  { icon: '📊', label: 'Advanced\nAnalytics' },
-  { icon: '👥', label: 'Patient\nInsights' },
-  { icon: '📋', label: 'Automated\nReports' },
-  { icon: '🔒', label: 'Secure &\nCompliant' },
+  { icon: BarChart3, label: 'Advanced\nAnalytics' },
+  { icon: Users, label: 'Patient\nInsights' },
+  { icon: FileBarChart, label: 'Automated\nReports' },
+  { icon: ShieldCheck, label: 'Secure &\nCompliant' },
 ]
+
+const STAT_TILES = [
+  { icon: Activity, label: 'Total', value: '2,450', color: 'text-[#073B4C]', bg: 'bg-[#073B4C]/5' },
+  { icon: AlertTriangle, label: 'Urgent', value: '320', color: 'text-red-600', bg: 'bg-red-50' },
+  { icon: Share2, label: 'Referrals', value: '1,120', color: 'text-purple-600', bg: 'bg-purple-50' },
+  { icon: Gauge, label: 'Active', value: '85%', color: 'text-teal-600', bg: 'bg-teal-50' },
+]
+
+const CHART_BARS = [40, 60, 30, 70, 50, 80, 45, 65, 55, 75, 40, 60]
 
 export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSignupProps) => {
   const [form, setForm] = useState({
@@ -70,37 +106,37 @@ export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSig
             </p>
 
             {/* Stats Card */}
-            <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-semibold text-gray-900">Live Overview</span>
+                <span className="flex items-center gap-1.5 text-[10px] font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                  This month
+                </span>
               </div>
-              <div className="grid grid-cols-4 gap-2 mb-4">
-                <div className="text-center">
-                  <p className="text-[10px] text-gray-400 uppercase">Total</p>
-                  <p className="font-bold text-gray-900">2,450</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[10px] text-gray-400 uppercase">Urgent</p>
-                  <p className="font-bold text-red-500">320</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[10px] text-gray-400 uppercase">Referrals</p>
-                  <p className="font-bold text-gray-900">1,120</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[10px] text-gray-400 uppercase">Active</p>
-                  <p className="font-bold text-teal-600">85%</p>
-                </div>
+
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {STAT_TILES.map((tile) => (
+                  <div key={tile.label} className={`rounded-lg p-2.5 ${tile.bg}`}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <tile.icon className={`w-3 h-3 ${tile.color}`} strokeWidth={2} />
+                      <p className="text-[9px] font-medium text-gray-500 uppercase tracking-wide">{tile.label}</p>
+                    </div>
+                    <p className={`text-base font-bold ${tile.color}`}>{tile.value}</p>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-end gap-1 h-16">
-                {[40, 60, 30, 70, 50, 80, 45, 65, 55, 75, 40, 60].map((h, i) => (
+
+              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-2">
+                Weekly assessment volume
+              </p>
+              <div className="flex items-end gap-1 h-16 border-b border-gray-100 pb-0.5">
+                {CHART_BARS.map((h, i) => (
                   <div
                     key={i}
                     className={cn(
-                      'flex-1 rounded-sm',
-                      i % 3 === 0 ? 'bg-[#073B4C]' : 'bg-teal-200'
+                      'flex-1 rounded-t-sm transition-all',
+                      i % 3 === 0 ? 'bg-[#073B4C]' : 'bg-[#073B4C]/25'
                     )}
                     style={{ height: `${h}%` }}
                   />
@@ -113,8 +149,8 @@ export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSig
           <div className="grid grid-cols-4 gap-2 mb-6">
             {features.map((f) => (
               <div key={f.label} className="text-center">
-                <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-lg mx-auto mb-1.5">
-                  {f.icon}
+                <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center mx-auto mb-1.5">
+                  <f.icon className="w-4.5 h-4.5 text-[#073B4C]" strokeWidth={1.75} />
                 </div>
                 <p className="text-[10px] text-gray-600 whitespace-pre-line leading-tight">{f.label}</p>
               </div>
@@ -196,13 +232,15 @@ export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSig
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 </button>
                 {openDropdown === 'country' && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
                     {countries.map((c) => (
                       <button
                         key={c}
                         type="button"
                         onClick={() => handleChange('country', c)}
-                        className="w-full px-4 py-2 text-sm text-left hover:bg-gray-50"
+                        className={`w-full px-4 py-2 text-sm text-left hover:bg-gray-50 ${
+                          c === 'Nigeria' ? 'font-semibold text-[#073B4C]' : ''
+                        }`}
                       >
                         {c}
                       </button>

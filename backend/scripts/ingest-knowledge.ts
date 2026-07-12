@@ -3,58 +3,84 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import matter from "gray-matter";
 import { getDb, COLLECTIONS, closeDb } from "@/db/client";
-import { embedText } from "@/services/embeddings.service";
+import { embedText, embedBatch } from "@/services/embeddings.service";
 import type { KnowledgeDocument } from "@/db/schema";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const KNOWLEDGE_DIR = join(__dirname, "..", "knowledge");
 
+interface Frontmatter {
+  nodeId: string;
+  protocolId: string;
+  protocolVersion: string;
+  title: string;
+  activationThreshold: number;
+  triageQuestions?: string[];
+  severityScale?: Record<string, string>;
+  redFlags?: string[];
+  edges?: { toNodeId: string; label: string }[];
+  updatedBy: string;
+}
+
 async function ingestFile(fileName: string) {
   const filePath = join(KNOWLEDGE_DIR, fileName);
   const raw = await readFile(filePath, "utf-8");
   const { data, content } = matter(raw);
+  const fm = data as unknown as Frontmatter;
 
-  const embedding = await embedText(content);
+  const nodeEmbedding = await embedText(content.trim());
+
+  const edges = (fm.edges ?? []).map((e) => ({ ...e, triggerEmbedding: [] as number[] }));
+
+  const edgeTexts = edges.map((e) => e.label);
+  if (edgeTexts.length > 0) {
+    const edgeEmbeddings = await embedBatch(edgeTexts);
+    for (let i = 0; i < edges.length; i++) {
+      edges[i].triggerEmbedding = edgeEmbeddings[i];
+    }
+  }
 
   const doc: KnowledgeDocument = {
-    text: content.trim(),
-    embedding,
+    nodeId: fm.nodeId,
+    protocolId: fm.protocolId,
+    protocolVersion: fm.protocolVersion,
+    title: fm.title,
+    content: content.trim(),
+    embedding: nodeEmbedding,
+    activationThreshold: fm.activationThreshold,
+    edges,
     metadata: {
-      protocolName: data.protocolName,
-      step: data.step,
-      triageQuestions: data.triageQuestions ?? [],
-      severityScale: data.severityScale ?? {},
-      redFlags: data.redFlags ?? [],
+      triageQuestions: fm.triageQuestions ?? [],
+      severityScale: fm.severityScale ?? {},
+      redFlags: fm.redFlags ?? [],
       sourceFile: fileName,
     },
-    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    updatedBy: fm.updatedBy,
   };
 
   const db = await getDb();
   const collection = db.collection<KnowledgeDocument>(COLLECTIONS.knowledge);
 
   await collection.updateOne(
-    { "metadata.sourceFile": fileName },
+    { nodeId: fm.nodeId },
     { $set: doc },
     { upsert: true }
   );
 
-  console.log(`Ingested ${fileName} -> ${data.protocolName} (${data.step})`);
+  console.log(`Ingested ${fileName} -> ${fm.title} (${fm.nodeId}) [${edges.length} edges]`);
 }
 
 async function main() {
   const files = (await readdir(KNOWLEDGE_DIR)).filter((f) => f.endsWith(".md"));
-
   if (files.length === 0) {
     console.log(`No markdown files found in ${KNOWLEDGE_DIR}`);
     return;
   }
-
   for (const file of files) {
     await ingestFile(file);
   }
-
   await closeDb();
 }
 

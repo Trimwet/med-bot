@@ -3,7 +3,6 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Plus,
   Search,
-  BookOpen,
   Cog,
   UserCircle,
   Home,
@@ -19,7 +18,7 @@ import {
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Chat', href: '/dashboard' },
-  { icon: ClipboardList, label: 'Assessments', href: '/dashboard/assessment-history' },
+  { icon: ClipboardList, label: 'Chat Assessments', href: '/dashboard/assessment-history' },
   { icon: FileBarChart, label: 'Reports', href: '/dashboard/health-reports' },
   { icon: Library, label: 'Health Library', href: '/dashboard/health-library' },
 ]
@@ -96,16 +95,6 @@ export const CustomerDashboardLayout = () => {
           <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
             <Search className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Search</span>}
-          </button>
-          <button
-            onClick={() => {
-              navigate('/dashboard/chat-history')
-              setMobileOpen(false)
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
-          >
-            <BookOpen className="w-4 h-4 shrink-0" />
-            {isExpanded && <span>Chat History</span>}
           </button>
         </div>
 
