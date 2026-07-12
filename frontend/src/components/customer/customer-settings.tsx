@@ -5,14 +5,10 @@ import {
   Shield,
   Bell,
   Palette,
-  Globe,
   ChevronRight,
   ChevronLeft,
   Check,
   Camera,
-  Mail,
-  Phone,
-  MapPin,
   AlertTriangle,
 } from 'lucide-react'
 
@@ -28,7 +24,6 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'privacy', label: 'Privacy', icon: Shield },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'appearance', label: 'Appearance', icon: Palette },
-  { id: 'language', label: 'Language & region', icon: Globe },
 ]
 
 interface InfoRowProps {
@@ -326,31 +321,12 @@ function AppearanceSection() {
   )
 }
 
-function LanguageSection() {
-  const [language, setLanguage] = useState('en')
-  const [timezone, setTimezone] = useState('ET')
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Language & region</h2>
-        <p className="text-sm text-gray-500">Set your language and regional preferences.</p>
-      </div>
-
-      <InfoRow label="Language" value={language === 'en' ? 'English' : language} onEdit={() => {}} />
-      <InfoRow label="Time zone" value={timezone === 'ET' ? '(GMT-05:00) Eastern Time' : timezone} onEdit={() => {}} />
-      <InfoRow label="Date format" value="MM/DD/YYYY" onEdit={() => {}} />
-    </div>
-  )
-}
-
 const SECTIONS: Record<string, React.ComponentType> = {
   profile: ProfileSection,
   security: SecuritySection,
   privacy: PrivacySection,
   notifications: NotificationsSection,
   appearance: AppearanceSection,
-  language: LanguageSection,
 }
 
 const SECTION_TITLES: Record<string, string> = Object.fromEntries(
