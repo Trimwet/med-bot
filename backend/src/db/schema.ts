@@ -162,6 +162,7 @@ export interface UserDocument {
   otp?: string;
   otpExpires?: Date;
   profile?: UserProfile;
+  consentGivenAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }

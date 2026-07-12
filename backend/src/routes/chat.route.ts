@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import { logger } from "@/lib/logger";
 import { getOrCreateSession, appendMessage, updateSessionGraphState } from "@/services/session.service";
+import { hasConsented } from "@/services/consent.service";
 import { vectorSearch, getProtocolQuestions } from "../../agents/triage/tools/vectorSearch";
 import { clinicalRule } from "../../agents/triage/tools/clinicalRule";
 import { scheduleFollowup } from "../../agents/triage/tools/scheduleFollowup";
@@ -139,6 +140,15 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       });
       await updateSessionGraphState(sessionId, userId, { verdict: "emergency", status: "closed" });
       res.json({ reply: EMERGENCY_REPLY, saved: true, urgency: "emergency" });
+      return;
+    }
+
+    // ── Consent Check ─────────────────────────────────────────────
+    const consented = await hasConsented(userId);
+    if (!consented) {
+      const consentMsg = "Before I can ask about your symptoms, I need your consent to collect and process your health data in accordance with the Nigeria Data Protection Regulation (NDPR).\n\nYou can grant consent by sending a POST to **/api/consent** (or tapping \"I Agree\" in your account settings). Your data will only be used for triage purposes and will never be shared without your explicit permission.\n\nUntil you consent, I cannot proceed with the triage.";
+      await appendMessage(sessionId, userId, { role: "assistant", content: consentMsg, timestamp: new Date().toISOString() });
+      res.json({ reply: consentMsg, saved: true, consentRequired: true });
       return;
     }
 
