@@ -14,7 +14,7 @@ interface KpiCardsProps {
   cards: KpiCard[]
 }
 
-function TrendBadge({ change, trend }: { change: string; trend: 'up' | 'down' }) {
+export function TrendBadge({ change, trend }: { change: string; trend: 'up' | 'down' }) {
   const isPositive = trend === 'up'
   return (
     <span

@@ -1,27 +1,36 @@
-import React from 'react'
-import { Calendar, Users, ClipboardList, AlertTriangle, FileText, TrendingUp, Download } from 'lucide-react'
+import { Calendar, Users, ClipboardList, AlertTriangle, FileText, Download } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { TrendBadge } from '@/components/business/kpi-cards'
 
 const stats = [
-  { label: 'Total Patients', value: '2,456', change: '+12%', trend: 'up' as const, icon: Users, iconBg: 'bg-blue-50', iconColor: 'text-blue-500', subtitle: '168 new patients' },
-  { label: 'Total Assessments', value: '3,912', change: '+18%', trend: 'up' as const, icon: ClipboardList, iconBg: 'bg-green-50', iconColor: 'text-green-500', subtitle: '1,209 completed' },
-  { label: 'High Risk Cases', value: '156', change: '+7%', trend: 'up' as const, icon: AlertTriangle, iconBg: 'bg-red-50', iconColor: 'text-red-500', subtitle: 'CRITICAL ATTENTION REQUIRED' },
-  { label: 'Reports Generated', value: '248', change: '+9%', trend: 'up' as const, icon: FileText, iconBg: 'bg-purple-50', iconColor: 'text-purple-500', subtitle: '168 generated' },
+  { label: 'Total Patients', value: '2,456', change: '+12%', trend: 'up' as const, icon: Users, subtitle: '168 new patients' },
+  { label: 'Total Assessments', value: '3,912', change: '+18%', trend: 'up' as const, icon: ClipboardList, subtitle: '1,209 completed' },
+  { label: 'High Risk Cases', value: '156', change: '+7%', trend: 'up' as const, icon: AlertTriangle, subtitle: 'CRITICAL ATTENTION REQUIRED' },
+  { label: 'Reports Generated', value: '248', change: '+9%', trend: 'up' as const, icon: FileText, subtitle: '168 generated' },
 ]
 
 const topSymptoms = [
-  { name: 'Headache', count: 1245, percent: 31.8, color: 'bg-[#073B4C]' },
-  { name: 'Fever', count: 1032, percent: 26.4, color: 'bg-teal-500' },
-  { name: 'Cough', count: 876, percent: 22.4, color: 'bg-[#073B4C]' },
-  { name: 'Body Pain', count: 654, percent: 16.7, color: 'bg-teal-500' },
-  { name: 'Sore Throat', count: 543, percent: 13.9, color: 'bg-gray-300' },
+  { name: 'Headache', count: 1245, percent: 31.8 },
+  { name: 'Fever', count: 1032, percent: 26.4 },
+  { name: 'Cough', count: 876, percent: 22.4 },
+  { name: 'Body Pain', count: 654, percent: 16.7 },
+  { name: 'Sore Throat', count: 543, percent: 13.9 },
 ]
 
 const riskCategories = [
   { label: 'Low', percent: 62.4, color: '#00A8A8' },
-  { label: 'Medi', percent: 27.3, color: '#F59E0B' },
+  { label: 'Medium', percent: 27.3, color: '#F59E0B' },
   { label: 'High', percent: 7.1, color: '#EF4444' },
-  { label: 'Crit', percent: 3.2, color: '#DC2626' },
+  { label: 'Critical', percent: 3.2, color: '#DC2626' },
 ]
+
+const cardStyle = cn(
+  'rounded-xl p-6',
+  'bg-white border border-gray-200',
+  'dark:bg-[#111111] dark:border-white/[0.06]',
+)
+
+const sectionTitle = 'text-sm font-semibold tracking-tight text-gray-900 dark:text-white'
 
 export const PatientInsights = () => {
   return (
@@ -29,55 +38,67 @@ export const PatientInsights = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">Patient Insights</h1>
-          <p className="text-sm text-gray-500 dark:text-[#6b7080] mt-1">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Patient Insights</h1>
+          <p className="text-sm text-gray-500 dark:text-[#71717a] mt-1">
             Understand patient health patterns and risk factors across the clinical network.
           </p>
         </div>
-        <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-[#1e2028] rounded-lg text-xs text-gray-600 dark:text-[#6b7080] hover:bg-gray-50 dark:hover:bg-[#1a1d25]">
-          <Calendar className="w-3.5 h-3.5" />
+        <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-[#111111] px-3 py-2 text-xs font-medium text-gray-600 dark:text-[#a1a1aa] transition-colors hover:border-gray-300 dark:hover:border-white/[0.12]">
+          <Calendar className="h-3.5 w-3.5" />
           May 14 - May 20, 2026 ▾
         </button>
       </div>
 
-      {/* Stats */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 ${stat.iconBg} rounded-xl flex items-center justify-center`}>
-                <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <div key={stat.label} className={cardStyle}>
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 dark:bg-white/[0.04]">
+                  <Icon className="h-4 w-4 text-gray-400 dark:text-[#6b7280]" strokeWidth={1.5} />
+                </div>
+                <TrendBadge change={stat.change} trend={stat.trend} />
               </div>
-              <div className="flex items-center gap-1 text-xs font-semibold text-green-600">
-                <TrendingUp className="w-3.5 h-3.5" />
-                {stat.change}
-              </div>
+              <p className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white tabular-nums">
+                {stat.value}
+              </p>
+              <p className="mt-1.5 text-sm font-medium text-gray-600 dark:text-[#a1a1aa]">
+                {stat.label}
+              </p>
+              <p className="mt-1 text-xs text-gray-400 dark:text-[#52525b]">
+                {stat.subtitle}
+              </p>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">{stat.value}</p>
-            <p className="text-[10px] text-gray-400 dark:text-[#525666] mt-1 uppercase">{stat.subtitle}</p>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Middle Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Top Symptoms */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Top Symptoms</h3>
-            <button className="text-sm font-semibold text-[#073B4C] hover:underline">View All</button>
+        <div className={cardStyle}>
+          <div className="flex items-center justify-between mb-5">
+            <h3 className={sectionTitle}>Top Symptoms</h3>
+            <button className="text-xs font-medium text-gray-500 dark:text-[#71717a] hover:text-gray-700 dark:hover:text-[#a1a1aa] transition-colors">
+              View All
+            </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {topSymptoms.map((s) => (
               <div key={s.name}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-700 dark:text-[#a0a4ad]">{s.name}</span>
-                  <span className="text-sm text-gray-500 dark:text-[#6b7080]">
-                    {s.count.toLocaleString()} ({s.percent}%)
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm text-gray-700 dark:text-[#d4d4d8]">{s.name}</span>
+                  <span className="text-xs tabular-nums text-gray-500 dark:text-[#71717a]">
+                    {s.count.toLocaleString()} <span className="text-gray-400 dark:text-[#52525b]">({s.percent}%)</span>
                   </span>
                 </div>
-                <div className="w-full h-2 bg-gray-100 dark:bg-[#1a1d25] rounded-full">
-                  <div className={`h-2 rounded-full ${s.color}`} style={{ width: `${s.percent * 3}%` }} />
+                <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-white/[0.06]">
+                  <div
+                    className="h-full rounded-full bg-gray-900 dark:bg-white/[0.25]"
+                    style={{ width: `${s.percent * 3}%` }}
+                  />
                 </div>
               </div>
             ))}
@@ -85,9 +106,9 @@ export const PatientInsights = () => {
         </div>
 
         {/* Risk Categories */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed] mb-4">Risk Categories</h3>
-          <div className="flex items-center justify-center mb-4">
+        <div className={cardStyle}>
+          <h3 className={sectionTitle}>Risk Categories</h3>
+          <div className="flex items-center justify-center my-6">
             <div className="relative w-40 h-40">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                 {riskCategories.reduce((acc, g, i) => {
@@ -111,17 +132,17 @@ export const PatientInsights = () => {
                 }, { elements: [] as React.ReactElement[], offset: 0 }).elements}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">3.9k</span>
-                <span className="text-xs text-gray-400 dark:text-[#525666]">TOTAL</span>
+                <span className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">3.9k</span>
+                <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-[#52525b]">Total</span>
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             {riskCategories.map((g) => (
-              <div key={g.label} className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: g.color }}></span>
-                <span className="text-xs text-gray-600 dark:text-[#6b7080]">
-                  {g.label}: {g.percent}%
+              <div key={g.label} className="flex items-center gap-2.5">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: g.color }} />
+                <span className="text-xs text-gray-600 dark:text-[#a1a1aa]">
+                  {g.label} <span className="text-gray-400 dark:text-[#52525b]">{g.percent}%</span>
                 </span>
               </div>
             ))}
@@ -130,31 +151,31 @@ export const PatientInsights = () => {
       </div>
 
       {/* Download Reports */}
-      <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
+      <div className={cardStyle}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Download Reports</h3>
-            <p className="text-sm text-gray-500 dark:text-[#6b7080] mt-1">
+            <h3 className={sectionTitle}>Download Reports</h3>
+            <p className="text-sm text-gray-500 dark:text-[#71717a] mt-1">
               Export patient insights data for clinical analysis and regulatory reporting.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <button className="flex items-center gap-3 px-4 py-3 border border-gray-200 dark:border-[#1e2028] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors">
-              <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
-                <FileText className="w-4 h-4 text-red-500" />
+            <button className="inline-flex items-center gap-3 rounded-lg border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-[#111111] px-4 py-3 transition-colors hover:border-gray-300 dark:hover:border-white/[0.12]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-white/[0.04]">
+                <FileText className="h-4 w-4 text-gray-500 dark:text-[#71717a]" strokeWidth={1.5} />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">Download PDF Report</p>
-                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Q4 2025 Assessment Data, 4.2MB</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-[#d4d4d8]">PDF Report</p>
+                <p className="text-[11px] text-gray-400 dark:text-[#52525b]">Q4 2025, 4.2MB</p>
               </div>
             </button>
-            <button className="flex items-center gap-3 px-4 py-3 border border-gray-200 dark:border-[#1e2028] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors">
-              <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                <Download className="w-4 h-4 text-green-500" />
+            <button className="inline-flex items-center gap-3 rounded-lg border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-[#111111] px-4 py-3 transition-colors hover:border-gray-300 dark:hover:border-white/[0.12]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-white/[0.04]">
+                <Download className="h-4 w-4 text-gray-500 dark:text-[#71717a]" strokeWidth={1.5} />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">Download Excel Report</p>
-                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Raw data & metrics spreadsheet</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-[#d4d4d8]">Excel Report</p>
+                <p className="text-[11px] text-gray-400 dark:text-[#52525b]">Raw data & metrics</p>
               </div>
             </button>
           </div>
@@ -162,13 +183,10 @@ export const PatientInsights = () => {
       </div>
 
       {/* Disclaimer */}
-      <div className="bg-gray-50 dark:bg-[#080a0e] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4">
-        <div className="flex items-start gap-2">
-          <span className="text-gray-400 dark:text-[#525666] mt-0.5">ℹ️</span>
-          <p className="text-xs text-gray-500 dark:text-[#6b7080] leading-relaxed">
-            Data is based on completed assessments during the selected time period. Generated real-time.
-          </p>
-        </div>
+      <div className="rounded-xl border border-gray-200 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02] p-4">
+        <p className="text-xs text-gray-500 dark:text-[#71717a] leading-relaxed">
+          Data is based on completed assessments during the selected time period. Generated real-time.
+        </p>
       </div>
     </div>
   )
