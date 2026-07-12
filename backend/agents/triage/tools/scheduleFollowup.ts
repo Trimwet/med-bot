@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger";
 import { env } from "@/config/env";
 import { getDb, COLLECTIONS } from "@/db/client";
 import type { UserDocument } from "@/db/schema";
+import { ObjectId } from "mongodb";
 
 export interface ScheduleFollowupInput {
   sessionId: string;
@@ -58,15 +59,23 @@ This is an automated follow-up message. Please do not reply directly.`,
 
 async function getUserEmail(userId: string): Promise<string | null> {
   const db = await getDb();
-  const user = await db.collection<UserDocument>(COLLECTIONS.users).findOne(
-    { _id: undefined as any },
+  const users = db.collection<UserDocument>(COLLECTIONS.users);
+
+  // Try by ObjectId first (most common case — MongoDB _id)
+  if (ObjectId.isValid(userId)) {
+    const byId = await users.findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { email: 1 } }
+    );
+    if (byId?.email) return byId.email;
+  }
+
+  // Fallback: try by email field directly
+  const byEmail = await users.findOne(
+    { email: userId },
     { projection: { email: 1 } }
   );
-  const allUsers = await db.collection(COLLECTIONS.users).find({}).project({ email: 1 }).toArray();
-  const found = allUsers.find(
-    (u) => (u as any)._id?.toString() === userId || (u as any).email === userId
-  );
-  return (found as any)?.email ?? null;
+  return byEmail?.email ?? null;
 }
 
 async function sendBrevoEmail(toEmail: string, subject: string, htmlBody: string): Promise<boolean> {

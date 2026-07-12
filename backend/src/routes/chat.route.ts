@@ -258,10 +258,16 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       }
     } catch { /* ignore persistence errors in fallback */ }
 
-    logger.warn("chat route failed, returning fallback", {
-      sessionId,
-      error: (err as Error).message,
+    const errorMsg = (err as Error).message;
+    logger.warn("chat route failed, returning fallback", { sessionId, error: errorMsg });
+
+    // In dev, include the error detail so you can debug without checking logs
+    const isDev = env.nodeEnv === "development";
+    res.json({
+      reply: FAILURE_REPLY,
+      saved: true,
+      warning: "service_unavailable",
+      ...(isDev && { debug: errorMsg }),
     });
-    res.json({ reply: FAILURE_REPLY, saved: true, warning: "service_unavailable" });
   }
 });

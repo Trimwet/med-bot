@@ -10,8 +10,8 @@ export interface TraversalResult {
   label: string;
 }
 
-const HIGH_THRESHOLD = 0.85;
-const MODERATE_THRESHOLD = 0.65;
+const HIGH_THRESHOLD = 0.7;
+const MODERATE_THRESHOLD = 0.4;
 
 function classifyConfidence(score: number): ActivationConfidence {
   if (score >= HIGH_THRESHOLD) return "high";
