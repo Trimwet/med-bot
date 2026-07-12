@@ -1,6 +1,11 @@
 import { MongoClient, type Db } from "mongodb";
 import { env } from "@/config/env";
 import { logger } from "@/lib/logger";
+import dns from "dns";
+
+// Use Google DNS for SRV record resolution (Atlas free tier doesn't use
+// all DNS providers, and some Windows networks block SRV lookups).
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 let client: MongoClient | null = null;
 let db: Db | null = null;

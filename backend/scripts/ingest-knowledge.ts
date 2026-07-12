@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import matter from "gray-matter";
 import { getDb, COLLECTIONS, closeDb } from "@/db/client";
 import { embedText, embedBatch } from "@/services/embeddings.service";
+import { logger } from "@/lib/logger";
 import type { KnowledgeDocument } from "@/db/schema";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,15 +30,25 @@ async function ingestFile(fileName: string) {
   const { data, content } = matter(raw);
   const fm = data as unknown as Frontmatter;
 
-  const nodeEmbedding = await embedText(content.trim());
+  // Try to generate embeddings; fall back to empty arrays on failure
+  let nodeEmbedding: number[] = [];
+  try {
+    nodeEmbedding = await embedText(content.trim());
+  } catch (err) {
+    logger.warn(`embedding unavailable for ${fileName}, using keyword fallback`);
+  }
 
   const edges = (fm.edges ?? []).map((e) => ({ ...e, triggerEmbedding: [] as number[] }));
 
   const edgeTexts = edges.map((e) => e.label);
   if (edgeTexts.length > 0) {
-    const edgeEmbeddings = await embedBatch(edgeTexts);
-    for (let i = 0; i < edges.length; i++) {
-      edges[i].triggerEmbedding = edgeEmbeddings[i];
+    try {
+      const edgeEmbeddings = await embedBatch(edgeTexts);
+      for (let i = 0; i < edges.length; i++) {
+        edges[i].triggerEmbedding = edgeEmbeddings[i];
+      }
+    } catch {
+      logger.warn(`edge embeddings unavailable for ${fileName}, using keyword fallback`);
     }
   }
 
