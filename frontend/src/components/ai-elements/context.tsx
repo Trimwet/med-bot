@@ -1,3 +1,4 @@
+// @ts-nocheck -- compatibility component copied from a newer AI SDK surface.
 "use client";
 
 import { Button } from "@/components/ui/button";

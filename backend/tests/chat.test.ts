@@ -7,7 +7,9 @@ async function startTestServer() {
   process.env.OPENAI_API_KEY = "invalid-key";
   process.env.CORE_SECRET = "test-secret";
   process.env.NODE_ENV = "test";
-  process.env.MONGODB_URI = "mongodb+srv://piusdivine18_db_user:divine1234@med-bot.jz1rvmm.mongodb.net/medbot?appName=Med-bot";
+  // Tests must receive an isolated database URI through the environment.
+  // Never commit credentials or connect tests to a shared database.
+  process.env.MONGODB_URI ||= "";
 
   const [{ app }] = await Promise.all([import("@/app")]);
   const server = createServer(app);

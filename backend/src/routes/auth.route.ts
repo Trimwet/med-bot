@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { env } from "@/config/env";
 import { AppError } from "@/lib/errors";
 import { authMiddleware } from "@/middleware/auth.middleware";
@@ -17,6 +18,23 @@ import {
 import { sendOtpEmail } from "@/services/otp.service";
 
 export const authRoute = Router();
+
+function signOAuthState(value: string) {
+  return createHmac("sha256", env.jwtSecret).update(value).digest("base64url");
+}
+
+function getCookie(req: { headers: { cookie?: string } }, name: string) {
+  return req.headers.cookie?.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
+}
+
+function validOAuthState(req: { headers: { cookie?: string } }, state: string | undefined) {
+  const cookie = getCookie(req, "oauth_state");
+  if (!cookie || !state) return false;
+  const [value, signature] = cookie.split(".");
+  if (!value || !signature || value !== state) return false;
+  const expected = signOAuthState(value);
+  return signature.length === expected.length && timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
 
 authRoute.post("/api/auth/signup", async (req, res, next) => {
   try {
@@ -128,6 +146,15 @@ authRoute.get("/api/auth/me", authMiddleware, async (req, res, next) => {
 
 authRoute.get("/api/auth/google", (_req, res) => {
   const redirectUri = env.googleCallbackUrl;
+  const state = randomBytes(32).toString("base64url");
+  const cookieValue = `${state}.${signOAuthState(state)}`;
+  res.cookie("oauth_state", cookieValue, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: env.isProduction,
+    maxAge: 10 * 60 * 1000,
+    path: "/api/auth/google/callback",
+  });
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", env.googleClientId);
   authUrl.searchParams.set("redirect_uri", redirectUri);
@@ -135,18 +162,21 @@ authRoute.get("/api/auth/google", (_req, res) => {
   authUrl.searchParams.set("scope", "openid email profile");
   authUrl.searchParams.set("access_type", "offline");
   authUrl.searchParams.set("prompt", "consent");
+  authUrl.searchParams.set("state", state);
 
   res.redirect(authUrl.toString());
 });
 
 authRoute.get("/api/auth/google/callback", async (req, res) => {
   const code = typeof req.query.code === "string" ? req.query.code : undefined;
-  if (!code) {
+  const state = typeof req.query.state === "string" ? req.query.state : undefined;
+  if (!code || !validOAuthState(req, state)) {
     res.redirect(`${env.clientUrl}/login?error=google_auth_failed`);
     return;
   }
 
   try {
+    res.clearCookie("oauth_state", { path: "/api/auth/google/callback" });
     const redirectUri = env.googleCallbackUrl;
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
@@ -195,7 +225,7 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
 
     const token = signJwtToken(user._id!);
     const hasProfile = user.profile && Object.keys(user.profile).length > 0;
-    res.redirect(`${env.clientUrl}/${hasProfile ? "dashboard" : "health-profile"}?token=${token}`);
+    res.redirect(`${env.clientUrl}/${hasProfile ? "dashboard" : "health-profile"}#token=${encodeURIComponent(token)}`);
   } catch {
     res.redirect(`${env.clientUrl}/login?error=google_auth_failed`);
   }

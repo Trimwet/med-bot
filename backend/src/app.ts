@@ -7,12 +7,14 @@ import { authRoute } from "@/routes/auth.route";
 import { userRoute } from "@/routes/user.route";
 import { toErrorResponse } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { env } from "@/config/env";
 
 export const app = express();
 
 
-app.use(cors());
-app.use(express.json());
+const allowedOrigins = new Set([env.clientUrl, "http://localhost:5173"]);
+app.use(cors({ origin: (origin, callback) => callback(null, !origin || allowedOrigins.has(origin)) }));
+app.use(express.json({ limit: "32kb" }));
 
 app.use(healthRoute);
 app.use(sessionRoute);

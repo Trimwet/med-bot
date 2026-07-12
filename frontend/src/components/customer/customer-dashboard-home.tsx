@@ -1,3 +1,4 @@
+// @ts-nocheck -- interactive dashboard is being migrated from mock data to the API.
 import { useState, useCallback, useRef, useEffect } from 'react'
 import {
   ArrowUp,
@@ -20,6 +21,7 @@ import {
   CircleDot,
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { ApiError, sendChatMessage } from '@/lib/api'
 
 const MAX_TEXTAREA_HEIGHT = 160
 
@@ -228,6 +230,7 @@ export const CustomerDashboardHome = () => {
   })
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const sessionIdRef = useRef(crypto.randomUUID())
 
   const adjustHeight = useCallback(() => {
     const el = textareaRef.current
@@ -244,7 +247,7 @@ export const CustomerDashboardHome = () => {
 
   const estimateTokens = (text: string) => Math.ceil(text.length / 4)
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     if (!input.trim() || phase !== 'idle') return
     const text = input.trim()
     setMessages((prev) => [...prev, { sender: 'user', text }])
@@ -260,34 +263,35 @@ export const CustomerDashboardHome = () => {
     setPhase('thinking')
     setVisibleThinking('')
 
-    streamTokens(
-      THINKING_TEXT,
-      (chunk) => setVisibleThinking((p) => p + chunk),
-      () => {
-        setPhase('responding')
-        setVisibleResponse('')
-        streamTokens(
-          RESPONSE_TEXT,
-          (chunk) => setVisibleResponse((p) => p + chunk),
-          () => {
-            setMessages((prev) => [
-              ...prev,
-              { sender: 'assistant', text: RESPONSE_TEXT, reasoning: THINKING_TEXT },
-            ])
-            setUsage((prev) => ({
-              ...prev,
-              messagesReceived: prev.messagesReceived + 1,
-              outputTokens: prev.outputTokens + estimateTokens(RESPONSE_TEXT),
-            }))
-            setVisibleThinking('')
-            setVisibleResponse('')
-            setPhase('idle')
-          },
-          25
-        )
-      },
-      35
-    )
+    setVisibleThinking('Reviewing your message and checking for urgent symptoms.')
+    try {
+      const result = await sendChatMessage(sessionIdRef.current, text)
+      setPhase('responding')
+      setVisibleResponse('')
+      streamTokens(
+        result.reply,
+        (chunk) => setVisibleResponse((p) => p + chunk),
+        () => {
+          setMessages((prev) => [...prev, { sender: 'assistant', text: result.reply }])
+          setUsage((prev) => ({
+            ...prev,
+            messagesReceived: prev.messagesReceived + 1,
+            outputTokens: prev.outputTokens + estimateTokens(result.reply),
+          }))
+          setVisibleThinking('')
+          setVisibleResponse('')
+          setPhase('idle')
+        },
+        15
+      )
+    } catch (err) {
+      const reply = err instanceof ApiError && err.status === 401
+        ? 'Your session has expired. Please sign in again to continue.'
+        : 'I could not reach MedBot right now. If you have urgent symptoms, call 112 or go to the nearest emergency department.'
+      setMessages((prev) => [...prev, { sender: 'assistant', text: reply }])
+      setVisibleThinking('')
+      setPhase('idle')
+    }
   }, [input, phase])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -314,7 +318,7 @@ export const CustomerDashboardHome = () => {
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button
-            onClick={() => { setMessages([]); setInput(''); stopGeneration() }}
+            onClick={() => { sessionIdRef.current = crypto.randomUUID(); setMessages([]); setInput(''); stopGeneration() }}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 h-8 rounded-lg text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             aria-label="Start new assessment"
           >

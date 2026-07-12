@@ -6,7 +6,9 @@ export const sessionRoute = Router();
 
 sessionRoute.get("/session/:sessionId", authMiddleware, async (req, res, next) => {
   try {
-    const session = await getOrCreateSession(req.params.sessionId);
+    const userId = (req as any).user?.id;
+    if (!userId) throw new Error("Authenticated user is required");
+    const session = await getOrCreateSession(req.params.sessionId, userId);
     res.json(session);
   } catch (err) {
     next(err);

@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL as string
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
 
 export class ApiError extends Error {
   status: number
@@ -120,5 +120,18 @@ export function updateProfile(payload: ProfilePayload) {
   return request<{ message: string; profile: Record<string, unknown> }>('/api/users/me/profile', {
     method: 'PUT',
     body: JSON.stringify(payload),
+  })
+}
+
+export interface ChatResponse {
+  reply: string
+  saved: boolean
+  urgency?: 'emergency'
+}
+
+export function sendChatMessage(sessionId: string, message: string) {
+  return request<ChatResponse>('/chat', {
+    method: 'POST',
+    body: JSON.stringify({ sessionId, message }),
   })
 }

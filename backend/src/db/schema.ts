@@ -13,6 +13,8 @@ export interface SessionMessage {
 export interface SessionDocument {
   _id?: ObjectId;
   sessionId: string;
+  /** The account that owns this conversation. Never trust a session ID alone. */
+  userId: string;
   userProfile: {
     ageRange?: string;
     location?: string;

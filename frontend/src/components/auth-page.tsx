@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff, Mail, Lock, User, Phone, ChevronLeft } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Loader } from '@/components/motion/loader'
 import {
   signup,

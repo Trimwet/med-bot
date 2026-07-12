@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 
 interface DarkModeContextType {
   dark: boolean
@@ -10,7 +10,7 @@ const DarkModeContext = createContext<DarkModeContextType>({ dark: false, toggle
 export const useDarkMode = () => useContext(DarkModeContext)
 
 export const DarkModeProvider = ({ children }: { children: ReactNode }) => {
-  const [dark, setDark] = useState(() => {
+  const [dark, setDark] = useState<boolean>(() => {
     const saved = localStorage.getItem('medbot-business-dark')
     return saved ? JSON.parse(saved) : false
   })

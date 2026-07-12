@@ -1,4 +1,3 @@
-import React from 'react'
 import { Check, X, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -164,7 +163,7 @@ export const CompareSection = () => {
                         key={plan}
                         className="p-4 flex items-center justify-center border-l border-line"
                       >
-                        <CheckIcon included={planValues[plan][feature.name]} />
+                        <CheckIcon included={Boolean(planValues[plan][feature.name])} />
                       </div>
                     ))}
                   </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { FileText, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface DisclaimerPageProps {
