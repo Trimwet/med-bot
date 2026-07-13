@@ -16,11 +16,28 @@ export interface KnowledgeEdge {
   label: string;
 }
 
+export const CATEGORIES = [
+  "infectious",    // malaria, typhoid, fever, Lassa, meningitis
+  "respiratory",   // cough, TB, pneumonia, breathing difficulty, asthma
+  "cardiac",       // chest pain, hypertension, palpitations
+  "gi",            // diarrhoea, vomiting, dehydration, cholera, abdominal pain
+  "neurological",  // headache, stroke, seizure, confusion, sickle cell crisis
+  "maternal",      // pregnancy complications, postpartum
+  "trauma",        // injuries, burns, fractures, snake bites
+  "skin",          // rashes, wounds, cellulitis, abscess
+  "mental",        // anxiety, depression, suicidal thoughts, panic
+  "general",       // non-specific, default fallback
+] as const;
+
+export type ProtocolCategory = (typeof CATEGORIES)[number];
+
 export interface KnowledgeDocument {
   _id?: ObjectId;
   nodeId: string;
   protocolId: string;
   protocolVersion: string;
+  category: ProtocolCategory;
+  subcategory?: string;
   title: string;
   content: string;
   embedding: number[];

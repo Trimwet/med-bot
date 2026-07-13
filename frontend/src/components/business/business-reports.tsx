@@ -1,10 +1,10 @@
 import { Calendar, Download, Printer, ClipboardList, AlertTriangle, UserCog, Users, AlertCircle } from 'lucide-react'
 
 const weeklyStats = [
-  { label: 'Total Assessments', value: '1,245', change: '+12%', icon: ClipboardList, iconColor: 'text-blue-500' },
-  { label: 'Emergency Cases', value: '78', change: '-8%', icon: AlertTriangle, iconColor: 'text-red-500' },
-  { label: 'Doctor Referrals', value: '156', change: '+15%', icon: UserCog, iconColor: 'text-purple-500' },
-  { label: 'Active Users', value: '892', change: '+5%', icon: Users, iconColor: 'text-green-500' },
+  { label: 'Total Assessments', value: '1,245', change: '+12%', icon: ClipboardList, iconColor: 'text-[#073B4C] dark:text-[#00A8A8]' },
+  { label: 'Emergency Cases', value: '78', change: '-8%', icon: AlertTriangle, iconColor: 'text-[#073B4C] dark:text-[#00A8A8]' },
+  { label: 'Doctor Referrals', value: '156', change: '+15%', icon: UserCog, iconColor: 'text-[#073B4C] dark:text-[#00A8A8]' },
+  { label: 'Active Users', value: '892', change: '+5%', icon: Users, iconColor: 'text-[#073B4C] dark:text-[#00A8A8]' },
 ]
 
 const monthlyStats = [
@@ -74,7 +74,7 @@ export const BusinessReports = () => {
                 <span className="text-[10px] text-gray-400 dark:text-[#525666] uppercase">{stat.label}</span>
               </div>
               <p className="text-xl font-bold text-gray-900 dark:text-[#e8eaed]">{stat.value}</p>
-              <span className="text-[10px] text-green-600 font-semibold">{stat.change}</span>
+              <span className="text-[10px] text-[#00A8A8] font-semibold">{stat.change}</span>
             </div>
           ))}
         </div>
@@ -127,7 +127,7 @@ export const BusinessReports = () => {
             <div key={stat.label} className="text-center">
               <p className="text-[10px] text-gray-400 dark:text-[#525666] uppercase mb-1">{stat.label}</p>
               <p className="text-xl font-bold text-gray-900 dark:text-[#e8eaed]">{stat.value}</p>
-              <span className="text-[10px] text-green-600 font-semibold">{stat.change}</span>
+              <span className="text-[10px] text-[#00A8A8] font-semibold">{stat.change}</span>
             </div>
           ))}
         </div>
@@ -135,11 +135,11 @@ export const BusinessReports = () => {
         <div className="pt-4 border-t border-gray-100 dark:border-[#1e2028]">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-[#a0a4ad] mb-2">Insights & Trends</h4>
           <div className="space-y-2">
-            <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-3 rounded-r-lg">
+            <div className="bg-[#073B4C]/5 dark:bg-[#00A8A8]/10 border-l-4 border-[#073B4C] dark:border-[#00A8A8] p-3 rounded-r-lg">
               <p className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">Highest growth in 6 months</p>
               <p className="text-xs text-gray-500 dark:text-[#6b7080]">The 18% increase in assessments is the highest recorded growth since November 2025.</p>
             </div>
-            <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-400 p-3 rounded-r-lg">
+            <div className="bg-[#00D4D4]/5 dark:bg-[#00D4D4]/10 border-l-4 border-[#00A8A8] dark:border-[#00D4D4] p-3 rounded-r-lg">
               <p className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">Efficiency Peak</p>
               <p className="text-xs text-gray-500 dark:text-[#6b7080]">Referral processing time dropped by 24% this month due to new AI sorting algorithms.</p>
             </div>
@@ -166,7 +166,7 @@ export const BusinessReports = () => {
             <div key={stat.label} className="text-center">
               <p className="text-[10px] text-gray-400 dark:text-[#525666] uppercase mb-1">{stat.label}</p>
               <p className="text-xl font-bold text-gray-900 dark:text-[#e8eaed]">{stat.value}</p>
-              <span className="text-[10px] text-green-600 font-semibold">{stat.change}</span>
+              <span className="text-[10px] text-[#00A8A8] font-semibold">{stat.change}</span>
             </div>
           ))}
         </div>

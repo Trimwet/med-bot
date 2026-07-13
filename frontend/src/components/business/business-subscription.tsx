@@ -1,4 +1,4 @@
-import { Check, Info, Download, AlertCircle } from 'lucide-react'
+import { Check, Sparkles, Download, AlertCircle, ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const freeFeatures = [
@@ -28,6 +28,17 @@ const invoices = [
   { id: 'INV-2026-04-0004', date: 'Apr 20, 2026', plan: 'Premium Monthly', amount: '₦20,000', status: 'Paid' },
 ]
 
+function FeatureRow({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-5 h-5 rounded-full bg-[#073B4C]/10 dark:bg-[#00D4D4]/10 flex items-center justify-center shrink-0">
+        <Check className="w-3 h-3 text-[#073B4C] dark:text-[#00D4D4]" strokeWidth={3} />
+      </div>
+      <span className="text-sm text-gray-600 dark:text-[#a0a4ad]">{label}</span>
+    </div>
+  )
+}
+
 export const BusinessSubscription = () => {
   const navigate = useNavigate()
   return (
@@ -41,86 +52,100 @@ export const BusinessSubscription = () => {
       </div>
 
       {/* Plans */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
         {/* Free Plan */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-6">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-[#e8eaed] mb-1">Free Plan</h3>
-          <div className="flex items-baseline gap-1 mb-4">
-            <span className="text-3xl font-bold text-gray-900 dark:text-[#e8eaed]">₦0</span>
+        <div className="bg-white dark:bg-[#0f1117] rounded-2xl border border-gray-200 dark:border-[#1e2028] p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-[#e8eaed]">Free</h3>
+            <span className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-full bg-gray-100 dark:bg-[#1a1d25] text-gray-500 dark:text-[#6b7080]">
+              Current
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1 mb-5">
+            <span className="text-4xl font-bold text-gray-900 dark:text-[#e8eaed]">₦0</span>
             <span className="text-sm text-gray-500 dark:text-[#6b7080]">/month</span>
           </div>
-          <div className="space-y-3 mb-6">
+          <div className="space-y-3.5 mb-7 flex-1">
             {freeFeatures.map((f) => (
-              <div key={f} className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check className="w-3 h-3 text-green-600" />
-                </div>
-                <span className="text-sm text-gray-700 dark:text-[#a0a4ad]">{f}</span>
-              </div>
+              <FeatureRow key={f} label={f} />
             ))}
           </div>
-          <button className="w-full py-2.5 border border-gray-300 dark:border-[#2a2d35] rounded-lg text-sm font-semibold text-gray-500 dark:text-[#6b7080] cursor-not-allowed">
+          <button
+            disabled
+            className="w-full py-2.5 rounded-lg text-sm font-semibold text-gray-400 dark:text-[#525666] bg-gray-100 dark:bg-[#1a1d25] cursor-not-allowed"
+          >
             Current Plan
           </button>
         </div>
 
         {/* Premium Plan */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border-2 border-[#073B4C] p-6 relative">
-          <span className="absolute -top-3 right-4 bg-[#073B4C] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-            Recommended
-          </span>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-[#e8eaed] mb-1">Premium Plan</h3>
-          <div className="flex items-baseline gap-1 mb-4">
-            <span className="text-3xl font-bold text-gray-900 dark:text-[#e8eaed]">₦20,000</span>
+        <div className="relative bg-white dark:bg-[#0f1117] rounded-2xl border border-[#073B4C] dark:border-[#00D4D4]/40 p-6 flex flex-col shadow-lg shadow-[#073B4C]/10 dark:shadow-[#00D4D4]/10">
+          <div className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-[#073B4C] dark:bg-[#00D4D4] text-white dark:text-[#073B4C] text-[10px] font-bold uppercase tracking-wider">
+            Most Popular
+          </div>
+          <div className="flex items-center justify-between mb-1 mt-1">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-[#e8eaed]">Premium</h3>
+            <span className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-full bg-[#073B4C]/10 dark:bg-[#00D4D4]/10 text-[#073B4C] dark:text-[#00D4D4]">
+              ₦20k/mo
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1 mb-5">
+            <span className="text-4xl font-bold text-gray-900 dark:text-[#e8eaed]">₦20,000</span>
             <span className="text-sm text-gray-500 dark:text-[#6b7080]">/month</span>
           </div>
-          <div className="space-y-3 mb-6">
+          <div className="space-y-3.5 mb-7 flex-1">
             {premiumFeatures.map((f) => (
-              <div key={f} className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check className="w-3 h-3 text-green-600" />
-                </div>
-                <span className="text-sm text-gray-700 dark:text-[#a0a4ad]">{f}</span>
-              </div>
+              <FeatureRow key={f} label={f} />
             ))}
           </div>
           <button
             onClick={() => navigate('/business/dashboard/payment')}
-            className="w-full py-2.5 bg-[#073B4C] text-white rounded-lg text-sm font-semibold hover:bg-[#0A202A] transition-colors"
+            className="w-full py-2.5 rounded-lg text-sm font-semibold text-white bg-[#073B4C] dark:bg-[#00D4D4] dark:text-[#073B4C] hover:bg-[#0A202A] dark:hover:bg-[#00C4C4] transition-colors"
           >
             Upgrade to Premium
           </button>
         </div>
       </div>
 
-      {/* Status & Upgrade */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-              <Info className="w-5 h-5 text-blue-500" />
+      {/* Upgrade CTA */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#073B4C] via-[#054A5E] to-[#0A202A] p-6 sm:p-8">
+        <div className="absolute -top-16 -right-10 w-56 h-56 rounded-full bg-[#00D4D4]/10 blur-2xl" />
+        <div className="absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-white/5 blur-2xl" />
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0">
+              <Sparkles className="w-6 h-6 text-[#00D4D4]" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">Enjoying MedBot? Upgrade to Premium for advanced features and priority support.</p>
+              <h3 className="text-lg font-bold text-white">Unlock Premium</h3>
+              <p className="text-sm text-white/70 mt-1 max-w-md leading-relaxed">
+                Unlimited assessments, advanced health reports, priority support, and premium AI features — all in one plan.
+              </p>
             </div>
           </div>
           <button
             onClick={() => navigate('/business/dashboard/payment')}
-            className="px-4 py-2 bg-[#073B4C] text-white rounded-lg text-sm font-semibold hover:bg-[#0A202A] transition-colors flex-shrink-0"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-[#073B4C] text-sm font-bold hover:bg-white/90 transition-colors shrink-0 shadow-lg shadow-black/20"
           >
             Upgrade Now
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
+      </div>
 
+      {/* Plan Status */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-400 dark:text-[#525666] uppercase font-semibold">Plan Status</p>
-              <p className="text-lg font-bold text-gray-900 dark:text-[#e8eaed] mt-1">No active renewal</p>
-              <p className="text-xs text-gray-500 dark:text-[#6b7080] mt-0.5">Upgrade to unlock full features</p>
-            </div>
-            <span className="px-3 py-1 bg-gray-100 dark:bg-[#1a1d25] text-gray-600 dark:text-[#6b7080] text-xs font-semibold rounded-full">FREE</span>
-          </div>
+          <p className="text-xs text-gray-400 dark:text-[#525666] uppercase font-semibold tracking-wider">Current Plan</p>
+          <p className="text-lg font-bold text-gray-900 dark:text-[#e8eaed] mt-2">Free</p>
+        </div>
+        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
+          <p className="text-xs text-gray-400 dark:text-[#525666] uppercase font-semibold tracking-wider">Renewal</p>
+          <p className="text-lg font-bold text-gray-900 dark:text-[#e8eaed] mt-2">No active renewal</p>
+        </div>
+        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
+          <p className="text-xs text-gray-400 dark:text-[#525666] uppercase font-semibold tracking-wider">Premium Price</p>
+          <p className="text-lg font-bold text-gray-900 dark:text-[#e8eaed] mt-2">₦20,000<span className="text-sm font-normal text-gray-500 dark:text-[#6b7080]">/mo</span></p>
         </div>
       </div>
 
@@ -128,7 +153,7 @@ export const BusinessSubscription = () => {
       <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028]">
         <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-[#1e2028]">
           <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Payment History</h3>
-          <button className="text-sm font-semibold text-[#073B4C] hover:underline">Export CSV</button>
+          <button className="text-sm font-semibold text-[#073B4C] dark:text-[#00D4D4] hover:underline">Export CSV</button>
         </div>
 
         <div className="hidden sm:grid grid-cols-[1.2fr_1fr_1fr_0.8fr_1fr] gap-4 px-5 py-3 border-b border-gray-100 dark:border-[#1e2028] text-xs font-semibold text-gray-400 dark:text-[#525666] uppercase tracking-wider">
@@ -142,11 +167,14 @@ export const BusinessSubscription = () => {
         <div className="divide-y divide-gray-100 dark:divide-[#1e2028]">
           {paymentHistory.map((p, i) => (
             <div key={i} className="grid grid-cols-1 sm:grid-cols-[1.2fr_1fr_1fr_0.8fr_1fr] gap-2 sm:gap-4 px-5 py-4 items-center">
-              <span className="text-sm text-gray-700 dark:text-[#a0a4ad]">{p.date}</span>
-              <span className="text-sm text-gray-600 dark:text-[#6b7080]">{p.plan}</span>
+              <span className="text-sm text-gray-600 dark:text-[#a0a4ad]">{p.date}</span>
+              <span className="text-sm text-gray-500 dark:text-[#6b7080]">{p.plan}</span>
               <span className="text-sm font-medium text-gray-900 dark:text-[#e8eaed]">{p.amount}</span>
-              <span className="text-sm text-green-600 font-medium">{p.status}</span>
-              <button className="text-sm text-[#073B4C] font-semibold hover:underline text-left">
+              <span className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[#073B4C] dark:text-[#00D4D4]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#073B4C] dark:bg-[#00D4D4]" />
+                {p.status}
+              </span>
+              <button className="text-sm text-[#073B4C] dark:text-[#00D4D4] font-semibold hover:underline text-left">
                 View Invoice ↗
               </button>
             </div>
@@ -176,12 +204,15 @@ export const BusinessSubscription = () => {
         <div className="divide-y divide-gray-100 dark:divide-[#1e2028]">
           {invoices.map((inv, i) => (
             <div key={i} className="grid grid-cols-1 sm:grid-cols-[1.2fr_1fr_1fr_1fr_0.8fr_0.8fr] gap-2 sm:gap-4 px-5 py-4 items-center">
-              <span className="text-sm text-[#073B4C] font-medium">{inv.id}</span>
-              <span className="text-sm text-gray-600 dark:text-[#6b7080]">{inv.date}</span>
-              <span className="text-sm text-gray-600 dark:text-[#6b7080]">{inv.plan}</span>
+              <span className="text-sm text-[#073B4C] dark:text-[#00D4D4] font-medium">{inv.id}</span>
+              <span className="text-sm text-gray-500 dark:text-[#6b7080]">{inv.date}</span>
+              <span className="text-sm text-gray-500 dark:text-[#6b7080]">{inv.plan}</span>
               <span className="text-sm font-medium text-gray-900 dark:text-[#e8eaed]">{inv.amount}</span>
-              <span className="text-sm text-green-600 font-medium">{inv.status}</span>
-              <button className="p-2 text-gray-400 dark:text-[#525666] hover:text-gray-600 dark:hover:text-[#6b7080] self-start sm:self-center">
+              <span className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[#073B4C] dark:text-[#00D4D4]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#073B4C] dark:bg-[#00D4D4]" />
+                {inv.status}
+              </span>
+              <button className="p-2 text-gray-400 dark:text-[#525666] hover:text-[#073B4C] dark:hover:text-[#00D4D4] self-start sm:self-center transition-colors">
                 <Download className="w-4 h-4" />
               </button>
             </div>

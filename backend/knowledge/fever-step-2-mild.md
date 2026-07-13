@@ -2,6 +2,8 @@
 nodeId: "fever.step_2_mild"
 protocolId: "fever"
 protocolVersion: "1.0"
+category: "infectious"
+subcategory: "fever"
 title: "Fever — Mild Assessment"
 activationThreshold: 0.75
 triageQuestions:

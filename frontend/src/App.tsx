@@ -22,6 +22,7 @@ import { BusinessSubscription } from '@/components/business/business-subscriptio
 import { BusinessSettings } from '@/components/business/business-settings'
 import { StaffManagement } from '@/components/business/staff-management'
 import { BusinessPayment } from '@/components/business/business-payment'
+import { ProtocolAdmin } from '@/components/admin/protocol-admin'
 
 function AppRoutes() {
   const navigate = useNavigate()
@@ -147,6 +148,7 @@ function AppRoutes() {
         <Route path="settings" element={<BusinessSettings />} />
         <Route path="staff" element={<StaffManagement />} />
         <Route path="payment" element={<BusinessPayment />} />
+        <Route path="protocols" element={<ProtocolAdmin />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

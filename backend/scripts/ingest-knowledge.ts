@@ -15,6 +15,8 @@ interface Frontmatter {
   nodeId: string;
   protocolId: string;
   protocolVersion: string;
+  category: string;
+  subcategory?: string;
   title: string;
   activationThreshold: number;
   triageQuestions?: string[];
@@ -56,6 +58,8 @@ async function ingestFile(fileName: string) {
     nodeId: fm.nodeId,
     protocolId: fm.protocolId,
     protocolVersion: fm.protocolVersion,
+    category: fm.category as any,
+    subcategory: fm.subcategory,
     title: fm.title,
     content: content.trim(),
     embedding: nodeEmbedding,
@@ -84,7 +88,9 @@ async function ingestFile(fileName: string) {
 }
 
 async function main() {
-  const files = (await readdir(KNOWLEDGE_DIR)).filter((f) => f.endsWith(".md"));
+  const files = (await readdir(KNOWLEDGE_DIR)).filter(
+    (f) => f.endsWith(".md") && !f.startsWith("_")
+  );
   if (files.length === 0) {
     console.log(`No markdown files found in ${KNOWLEDGE_DIR}`);
     return;

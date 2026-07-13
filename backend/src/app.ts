@@ -6,6 +6,7 @@ import { chatRoute } from "@/routes/chat.route";
 import { authRoute } from "@/routes/auth.route";
 import { userRoute } from "@/routes/user.route";
 import { consentRoute } from "@/routes/consent.route";
+import { adminRoute } from "@/routes/admin.route";
 import { toErrorResponse } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { env } from "@/config/env";
@@ -23,6 +24,7 @@ app.use(chatRoute);
 app.use(authRoute);
 app.use(userRoute);
 app.use(consentRoute);
+app.use(adminRoute);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const { status, body } = toErrorResponse(err);

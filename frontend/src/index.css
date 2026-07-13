@@ -46,18 +46,36 @@ h1, h2, h3, h4, h5, h6 {
   .gpu { transform: translateZ(0); }
 }
 
-/* Hide all scrollbars */
+/* ── Scrollbar ── */
 ::-webkit-scrollbar {
-  display: none !important;
+  width: 6px;
+  height: 6px;
 }
 
-html,
+::-webkit-scrollbar-track {
+  background: #0f1117;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2d35;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3d45;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2d35 #0f1117;
+}
+
 body {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2d35 #0f1117;
 }
 
 * {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2d35 #0f1117;
 }

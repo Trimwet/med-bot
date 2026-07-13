@@ -13,12 +13,12 @@ const initialStaff = [
 const roles = ['Admin', 'Doctor', 'Nurse', 'Support Staff', 'Data Analyst', 'Receptionist']
 
 const roleColors: Record<string, string> = {
-  Admin: 'bg-navy text-white',
-  Doctor: 'bg-teal text-white',
-  Nurse: 'bg-green-500 text-white',
-  'Support Staff': 'bg-purple-500 text-white',
-  'Data Analyst': 'bg-amber-500 text-white',
-  Receptionist: 'bg-pink-500 text-white',
+  Admin: 'bg-[#073B4C] text-white',
+  Doctor: 'bg-[#00A8A8] text-white',
+  Nurse: 'bg-[#073B4C]/70 text-white',
+  'Support Staff': 'bg-[#00D4D4] text-[#073B4C]',
+  'Data Analyst': 'bg-[#073B4C]/50 text-white',
+  Receptionist: 'bg-[#00A8A8]/70 text-white',
 }
 
 export const StaffManagement = () => {

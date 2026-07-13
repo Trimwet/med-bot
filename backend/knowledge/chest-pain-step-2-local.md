@@ -2,6 +2,8 @@
 nodeId: "chest_pain.step_2_local"
 protocolId: "chest_pain"
 protocolVersion: "1.0"
+category: "cardiac"
+subcategory: "chest_pain"
 title: "Chest Pain — Localised Pain Assessment"
 activationThreshold: 0.78
 triageQuestions:

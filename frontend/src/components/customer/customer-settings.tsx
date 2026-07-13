@@ -10,6 +10,7 @@ import {
   Check,
   Camera,
   AlertTriangle,
+  Globe,
 } from 'lucide-react'
 
 type NavItem = {
@@ -114,10 +115,10 @@ function ToggleRow({ label, description, enabled, onChange }: ToggleRowProps) {
 
 function ProfileSection() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
-  const [name, setName] = useState('Alex Johnson')
-  const [email, setEmail] = useState('alex@example.com')
-  const [phone, setPhone] = useState('+1 (555) 123-4567')
-  const [location, setLocation] = useState('New York, NY')
+  const [name, setName] = useState('Aisha Bello')
+  const [email, setEmail] = useState('aisha@example.com')
+  const [phone, setPhone] = useState('+234 801 234 5678')
+  const [location, setLocation] = useState('Lagos, Nigeria')
 
   const inputClass = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C]'
 
@@ -362,7 +363,6 @@ export const CustomerSettings = () => {
             >
               <item.icon className="w-4 h-4 shrink-0" />
               <span className="truncate">{item.label}</span>
-              <ChevronRight className="w-4 h-4 ml-auto text-gray-400 md:hidden" />
             </button>
           )
         })}
@@ -370,34 +370,46 @@ export const CustomerSettings = () => {
     </div>
   )
 
-  // Mobile nav view
-  if (mobileView === 'nav') {
-    return (
-      <div className="flex flex-col h-full bg-white">
-        <div className="h-14 flex items-center px-4 border-b border-gray-100 shrink-0">
-          <h1 className="text-sm font-semibold text-gray-900">Settings</h1>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {sidebar}
-        </div>
-      </div>
-    )
-  }
-
-  // Mobile detail view
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="h-14 flex items-center gap-2 px-4 border-b border-gray-100 shrink-0">
-        <button
-          onClick={() => setMobileView('nav')}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <h1 className="text-sm font-semibold text-gray-900 truncate">{SECTION_TITLES[activeNav]}</h1>
-      </div>
-      <div className="flex-1 min-h-0 overflow-y-auto p-4">
-        {ActiveSection && <ActiveSection />}
+      {/* Mobile nav view */}
+      {mobileView === 'nav' && (
+        <>
+          <div className="h-14 flex items-center px-4 border-b border-gray-100 shrink-0 md:hidden">
+            <h1 className="text-sm font-semibold text-gray-900">Settings</h1>
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto md:hidden">
+            {sidebar}
+          </div>
+        </>
+      )}
+
+      {/* Mobile detail view */}
+      {mobileView === 'detail' && (
+        <>
+          <div className="h-14 flex items-center gap-2 px-4 border-b border-gray-100 shrink-0 md:hidden">
+            <button
+              onClick={() => setMobileView('nav')}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <h1 className="text-sm font-semibold text-gray-900 truncate">{SECTION_TITLES[activeNav]}</h1>
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 md:hidden">
+            {ActiveSection && <ActiveSection />}
+          </div>
+        </>
+      )}
+
+      {/* Desktop layout: sidebar + content side by side */}
+      <div className="hidden md:flex h-full">
+        <div className="w-64 shrink-0 border-r border-gray-100">
+          {sidebar}
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
+          {ActiveSection && <ActiveSection />}
+        </div>
       </div>
     </div>
   )

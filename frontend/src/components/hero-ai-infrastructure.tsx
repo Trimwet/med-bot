@@ -31,7 +31,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             timelineRef={timelineRef}
             as="h1"
             animationNum={4}
-            className="text-5xl md:text-7xl font-semibold tracking-tight leading-[120%] max-w-2xl my-5 font-display"
+            className="text-4xl md:text-5xl font-semibold tracking-tight leading-[120%] max-w-2xl my-5 font-display"
           >
             Your AI Medical
             <br />
@@ -44,7 +44,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             timelineRef={timelineRef}
             as="p"
             animationNum={5}
-            className="text-muted text-lg md:text-xl max-w-xl mb-6 font-light"
+            className="text-muted text-base md:text-lg max-w-xl mb-6 font-light"
           >
             Describe your symptoms, get instant guidance, and receive
             personalized recommendations powered by clinical knowledge and AI.

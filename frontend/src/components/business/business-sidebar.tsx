@@ -12,6 +12,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Contact,
+  FileEdit,
 } from 'lucide-react'
 
 const navItems = [
@@ -21,6 +22,7 @@ const navItems = [
   { to: '/business/dashboard/staff', label: 'Staff Management', icon: Contact },
   { to: '/business/dashboard/reports', label: 'Reports', icon: FileBarChart },
   { to: '/business/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
+  { to: '/business/dashboard/protocols', label: 'Protocol Authoring', icon: FileEdit },
   { to: '/business/dashboard/settings', label: 'Settings', icon: Cog },
 ]
 

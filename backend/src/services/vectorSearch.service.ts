@@ -1,6 +1,7 @@
 import { getDb, COLLECTIONS } from "@/db/client";
-import type { KnowledgeDocument } from "@/db/schema";
+import type { KnowledgeDocument, ProtocolCategory } from "@/db/schema";
 import { embedText } from "@/services/embeddings.service";
+import { classifyMessage } from "@/services/categoryClassifier.service";
 import { logger } from "@/lib/logger";
 
 function cosineSimilarity(a: number[], b: number[]): number {
@@ -14,11 +15,10 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return denom === 0 ? 0 : dot / denom;
 }
 
-// ── Keyword fallback ─────────────────────────────────────────────
-// Used when embedding API is unavailable. Matches query words against
-// document title, content, and triage question keywords.
+// ── Keyword fallback token helpers ───────────────────────────────
 
-function tokenize(text: string): string[] {
+function tokenize(text: string | null | undefined): string[] {
+  if (!text) return [];
   return text
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, " ")
@@ -34,60 +34,129 @@ function keywordScore(query: string, doc: KnowledgeDocument): number {
     ...(doc.metadata.triageQuestions ?? []).flatMap(tokenize),
     ...(doc.metadata.redFlags ?? []).flatMap(tokenize),
   ]);
-
   if (queryTokens.size === 0) return 0;
-
   let matches = 0;
   for (const qt of queryTokens) {
     for (const dt of docTokens) {
-      if (dt.includes(qt) || qt.includes(dt)) {
-        matches++;
-        break;
-      }
+      if (dt.includes(qt) || qt.includes(dt)) { matches++; break; }
     }
   }
-
   return matches / queryTokens.size;
 }
 
-function keywordEdgeScore(query: string, edge: KnowledgeDocument["edges"][0]): number {
+function keywordEdgeScore(query: string, label: string): number {
   const queryTokens = new Set(tokenize(query));
-  const edgeTokens = new Set(tokenize(edge.label));
-
+  const edgeTokens = new Set(tokenize(label));
   if (queryTokens.size === 0 || edgeTokens.size === 0) return 0;
-
   let matches = 0;
   for (const qt of queryTokens) {
     for (const et of edgeTokens) {
-      if (et.includes(qt) || qt.includes(et)) {
-        matches++;
-        break;
-      }
+      if (et.includes(qt) || qt.includes(et)) { matches++; break; }
     }
   }
-
   return matches / queryTokens.size;
 }
 
-// ── Main search functions ────────────────────────────────────────
+// ── Layer 1: coarse category classification lives in categoryClassifier.service ──
 
-export async function globalVectorSearch(query: string, limit = 5): Promise<{ node: KnowledgeDocument; score: number }[]> {
-  const db = await getDb();
-  const nodes = await db.collection<KnowledgeDocument>(COLLECTIONS.knowledge).find({}).toArray();
+// ── Layer 2: search within a category ────────────────────────────
 
-  // Try embedding-based search first
+const VECTOR_INDEX_NAME = "vector_index";
+
+// Cache whether the Atlas $vectorSearch index is usable, so we don't
+// retry (and pay the latency for) a failing aggregation on every message
+// once we already know it's unavailable (e.g. local dev / free tier).
+let atlasVectorSearchAvailable: boolean | null = null;
+
+async function tryAtlasVectorSearch(
+  queryEmbedding: number[],
+  category: ProtocolCategory,
+  limit: number
+): Promise<{ node: KnowledgeDocument; score: number }[] | null> {
+  if (atlasVectorSearchAvailable === false) return null;
+
+  try {
+    const db = await getDb();
+    const collection = db.collection<KnowledgeDocument>(COLLECTIONS.knowledge);
+
+    const results = await collection
+      .aggregate([
+        {
+          $vectorSearch: {
+            index: VECTOR_INDEX_NAME,
+            path: "embedding",
+            queryVector: queryEmbedding,
+            numCandidates: 150,
+            limit,
+            filter: { category: { $in: [category, "general"] } },
+          },
+        },
+        {
+          $project: {
+            nodeId: 1, protocolId: 1, protocolVersion: 1, category: 1, subcategory: 1,
+            title: 1, content: 1, embedding: 1, activationThreshold: 1, edges: 1,
+            metadata: 1, updatedAt: 1, updatedBy: 1,
+            score: { $meta: "vectorSearchScore" },
+          },
+        },
+      ])
+      .toArray();
+
+    atlasVectorSearchAvailable = true;
+
+    // vectorSearchScore is already a 0-1-ish cosine-derived score, comparable
+    // to our in-memory cosineSimilarity output.
+    return results.map((r) => {
+      const { score, ...node } = r as unknown as KnowledgeDocument & { score: number };
+      return { node: node as KnowledgeDocument, score };
+    });
+  } catch (err) {
+    atlasVectorSearchAvailable = false;
+    logger.warn("Atlas $vectorSearch unavailable, falling back to in-memory search", {
+      message: (err as Error).message,
+    });
+    return null;
+  }
+}
+
+export async function globalVectorSearch(
+  query: string,
+  limit = 5
+): Promise<{ node: KnowledgeDocument; score: number }[]> {
+  // Layer 1: classify the message into a broad category
+  const { category } = classifyMessage(query);
+
+  // Try to embed the query once; reused for both the Atlas path and the
+  // in-memory fallback path.
   let useEmbeddings = false;
   let queryEmbedding: number[] = [];
   try {
     queryEmbedding = await embedText(query);
     useEmbeddings = true;
-  } catch (err) {
-    logger.warn("embedding API unavailable, falling back to keyword search", {
-      error: (err as Error).message,
-    });
+  } catch {
+    logger.warn("embedding API unavailable, using keyword search");
   }
 
-  const scored = nodes.map((node) => ({
+  // Fast path: MongoDB Atlas $vectorSearch (real vector index, scales to
+  // thousands of nodes without loading everything into memory).
+  if (useEmbeddings) {
+    const atlasResults = await tryAtlasVectorSearch(queryEmbedding, category, limit);
+    if (atlasResults && atlasResults.length > 0) {
+      return atlasResults;
+    }
+  }
+
+  // Fallback path: brute-force in-memory scan. Used when the Atlas index
+  // isn't deployed yet (local dev, lower Atlas tier) or embeddings are down.
+  const db = await getDb();
+  const allNodes = await db.collection<KnowledgeDocument>(COLLECTIONS.knowledge).find({}).toArray();
+
+  let candidates = allNodes.filter((n) => n.category === category || n.category === "general");
+  if (candidates.length < 2) {
+    candidates = allNodes;
+  }
+
+  const scored = candidates.map((node) => ({
     node,
     score: useEmbeddings
       ? cosineSimilarity(queryEmbedding, node.embedding)
@@ -104,14 +173,13 @@ export async function edgeConstrainedSearch(
 ): Promise<{ toNodeId: string; label: string; score: number }[]> {
   if (edges.length === 0) return [];
 
-  // Try embedding-based search first
   let useEmbeddings = false;
   let queryEmbedding: number[] = [];
   try {
     queryEmbedding = await embedText(query);
     useEmbeddings = true;
-  } catch (err) {
-    // Silently fall back to keyword search
+  } catch {
+    // fall back to keyword
   }
 
   const scored = edges.map((edge) => ({
@@ -119,7 +187,7 @@ export async function edgeConstrainedSearch(
     label: edge.label,
     score: useEmbeddings
       ? cosineSimilarity(queryEmbedding, edge.triggerEmbedding)
-      : keywordEdgeScore(query, edge),
+      : keywordEdgeScore(query, edge.label),
   }));
 
   scored.sort((a, b) => b.score - a.score);

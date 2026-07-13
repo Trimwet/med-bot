@@ -2,6 +2,8 @@
 nodeId: "fever.step_1"
 protocolId: "fever"
 protocolVersion: "1.0"
+category: "infectious"
+subcategory: "fever"
 title: "Fever — Initial Assessment"
 activationThreshold: 0.75
 triageQuestions:

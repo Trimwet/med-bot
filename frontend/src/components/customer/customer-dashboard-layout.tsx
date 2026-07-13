@@ -165,7 +165,13 @@ export const CustomerDashboardLayout = () => {
             <Cog className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Settings</span>}
           </Link>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors">
+          <button
+            onClick={() => {
+              navigate('/dashboard/settings')
+              setMobileOpen(false)
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+          >
             <UserCircle className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Profile</span>}
           </button>

@@ -14,16 +14,16 @@ interface Article {
 const CATEGORIES: Category[] = ['All', 'Common Illnesses', 'Prevention', 'First Aid', 'Healthy Living', 'Mental Health']
 
 const ARTICLES: Article[] = [
-  { title: 'Common Cold', description: 'Learn about causes, symptoms, and home care.', readTime: '5 min read', image: '/hero-doctor.jpg', category: 'Common Illnesses' },
-  { title: 'Flu (Influenza)', description: 'Understand the flu, symptoms, and when to see a doctor.', readTime: '6 min read', image: '/hero-doctor.jpg', category: 'Common Illnesses' },
-  { title: 'Fever', description: 'Types of fever, causes, and home care tips.', readTime: '4 min read', image: '/hero-doctor.jpg', category: 'Common Illnesses' },
-  { title: 'Headache', description: 'Types, causes, and effective relief methods.', readTime: '4 min read', image: '/hero-doctor.jpg', category: 'Common Illnesses' },
-  { title: 'Hand Hygiene', description: 'Simple steps to keep your hands clean and safe.', readTime: '4 min read', image: '/hero-doctor.jpg', category: 'Prevention' },
-  { title: 'Vaccinations', description: 'Stay protected with recommended vaccines.', readTime: '5 min read', image: '/hero-doctor.jpg', category: 'Prevention' },
-  { title: 'Nutrition Basics', description: 'Eat right, feel right — the basics of balanced eating.', readTime: '5 min read', image: '/hero-doctor.jpg', category: 'Prevention' },
-  { title: 'Healthy Habits', description: 'Daily habits for a stronger and healthier you.', readTime: '6 min read', image: '/hero-doctor.jpg', category: 'Prevention' },
-  { title: 'Treating Minor Cuts', description: 'Step-by-step first aid for cuts and scrapes.', readTime: '3 min read', image: '/hero-doctor.jpg', category: 'First Aid' },
-  { title: 'Managing Stress', description: 'Practical techniques to reduce everyday stress.', readTime: '5 min read', image: '/hero-doctor.jpg', category: 'Mental Health' },
+  { title: 'Common Cold', description: 'Learn about causes, symptoms, and home care.', readTime: '5 min read', image: '/common-cold.jpg', category: 'Common Illnesses' },
+  { title: 'Flu (Influenza)', description: 'Understand the flu, symptoms, and when to see a doctor.', readTime: '6 min read', image: '/flu-influenza.jpg', category: 'Common Illnesses' },
+  { title: 'Fever', description: 'Types of fever, causes, and home care tips.', readTime: '4 min read', image: '/fever.jpg', category: 'Common Illnesses' },
+  { title: 'Headache', description: 'Types, causes, and effective relief methods.', readTime: '4 min read', image: '/headache.jpg', category: 'Common Illnesses' },
+
+  { title: 'Vaccinations', description: 'Stay protected with recommended vaccines.', readTime: '5 min read', image: '/vaccine-vial.jpg', category: 'Prevention' },
+  { title: 'Nutrition Basics', description: 'Eat right, feel right — the basics of balanced eating.', readTime: '5 min read', image: '/nutrition-basics.jpg', category: 'Prevention' },
+  { title: 'Healthy Habits', description: 'Daily habits for a stronger and healthier you.', readTime: '6 min read', image: '/healthy-habits.jpg', category: 'Prevention' },
+  { title: 'Treating Minor Cuts', description: 'Step-by-step first aid for cuts and scrapes.', readTime: '3 min read', image: '/treating-minor-cuts.jpg', category: 'First Aid' },
+  { title: 'Managing Stress', description: 'Practical techniques to reduce everyday stress.', readTime: '5 min read', image: '/managing-stress.jpg', category: 'Mental Health' },
 ]
 
 export const HealthLibrary = () => {

@@ -2,6 +2,8 @@
 nodeId: "breathing.step_1"
 protocolId: "breathing_difficulty"
 protocolVersion: "1.0"
+category: "respiratory"
+subcategory: "breathing"
 title: "Breathing Difficulty — Initial Assessment"
 activationThreshold: 0.80
 triageQuestions:
