@@ -49,15 +49,19 @@ function loadDotEnvFile(): Record<string, string> {
   // 1. Render Secret Files path
   const renderSecretPath = "/etc/secrets/.env";
   if (existsSync(renderSecretPath)) {
+    console.log("[env] loading from Render Secret Files:", renderSecretPath);
     return parseDotEnv(readFileSync(renderSecretPath, "utf8"));
   }
+  console.log("[env] Render Secret Files not found at:", renderSecretPath);
 
   // 2. Local development fallback (relative to config file)
   const localEnvPath = resolve(dirname(currentFile), "../../.env");
   if (existsSync(localEnvPath)) {
+    console.log("[env] loading from local .env:", localEnvPath);
     return parseDotEnv(readFileSync(localEnvPath, "utf8"));
   }
 
+  console.log("[env] no .env file found, using defaults only");
   return {};
 }
 
