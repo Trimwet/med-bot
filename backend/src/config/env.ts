@@ -26,12 +26,9 @@ const ENV_SPEC: EnvVar[] = [
   { key: "PAYSTACK_PUBLIC_KEY", required: false, default: "" },
 ];
 
-function loadDotEnvFile() {
-  const currentFile = fileURLToPath(import.meta.url);
-  const envPath = resolve(dirname(currentFile), "../../.env");
-  if (!existsSync(envPath)) return {};
+function parseDotEnv(content: string): Record<string, string> {
   const values: Record<string, string> = {};
-  for (const line of readFileSync(envPath, "utf8").split(/\r?\n/)) {
+  for (const line of content.split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
     const sep = trimmed.indexOf("=");
@@ -44,6 +41,24 @@ function loadDotEnvFile() {
     values[key] = value;
   }
   return values;
+}
+
+function loadDotEnvFile(): Record<string, string> {
+  const currentFile = fileURLToPath(import.meta.url);
+
+  // 1. Render Secret Files path
+  const renderSecretPath = "/etc/secrets/.env";
+  if (existsSync(renderSecretPath)) {
+    return parseDotEnv(readFileSync(renderSecretPath, "utf8"));
+  }
+
+  // 2. Local development fallback (relative to config file)
+  const localEnvPath = resolve(dirname(currentFile), "../../.env");
+  if (existsSync(localEnvPath)) {
+    return parseDotEnv(readFileSync(localEnvPath, "utf8"));
+  }
+
+  return {};
 }
 
 function loadEnv() {
