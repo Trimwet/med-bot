@@ -17,9 +17,11 @@
   "dependencies": {
     "@vercel/connect": "^0.3.2",
     "ai": "^7.0.18",
+    "bullmq": "^5.34.0",
     "cors": "^2.8.5",
     "eve": "^0.22.1",
     "express": "^4.21.0",
+    "ioredis": "^5.4.2",
     "gray-matter": "^4.0.3",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.10.0",

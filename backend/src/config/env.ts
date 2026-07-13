@@ -24,6 +24,8 @@ const ENV_SPEC: EnvVar[] = [
   { key: "CLIENT_URL", required: false, default: "http://localhost:5173" },
   { key: "PAYSTACK_SECRET_KEY", required: false, default: "" },
   { key: "PAYSTACK_PUBLIC_KEY", required: false, default: "" },
+  { key: "REDIS_URL", required: false, default: "" },
+  { key: "ERROR_WEBHOOK_URL", required: false, default: "" },
 ];
 
 function parseDotEnv(content: string): Record<string, string> {
@@ -98,4 +100,6 @@ export const env = {
   clientUrl: raw.CLIENT_URL,
   paystackSecretKey: raw.PAYSTACK_SECRET_KEY,
   paystackPublicKey: raw.PAYSTACK_PUBLIC_KEY,
+  redisUrl: raw.REDIS_URL,
+  errorWebhookUrl: raw.ERROR_WEBHOOK_URL,
 } as const;

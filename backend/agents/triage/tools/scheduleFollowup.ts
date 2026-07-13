@@ -1,13 +1,9 @@
-// Tool: scheduleFollowup — sends a follow-up email after a session closes.
-//
-// Uses Brevo (Sendinblue) transactional email API, which is already
-// configured in the backend for OTP emails.
-
 import { logger } from "@/lib/logger";
 import { env } from "@/config/env";
 import { getDb, COLLECTIONS } from "@/db/client";
-import type { UserDocument } from "@/db/schema";
+import type { UserDocument, FollowupJobDocument } from "@/db/schema";
 import { ObjectId } from "mongodb";
+import { getFollowupQueue } from "@/services/queue.service";
 
 export interface ScheduleFollowupInput {
   sessionId: string;
@@ -19,6 +15,7 @@ export interface ScheduleFollowupInput {
 export interface ScheduleFollowupResult {
   scheduled: boolean;
   emailSent?: boolean;
+  queued?: boolean;
   error?: string;
 }
 
@@ -61,7 +58,6 @@ async function getUserEmail(userId: string): Promise<string | null> {
   const db = await getDb();
   const users = db.collection<UserDocument>(COLLECTIONS.users);
 
-  // Try by ObjectId first (most common case — MongoDB _id)
   if (ObjectId.isValid(userId)) {
     const byId = await users.findOne(
       { _id: new ObjectId(userId) },
@@ -70,7 +66,6 @@ async function getUserEmail(userId: string): Promise<string | null> {
     if (byId?.email) return byId.email;
   }
 
-  // Fallback: try by email field directly
   const byEmail = await users.findOne(
     { email: userId },
     { projection: { email: 1 } }
@@ -78,7 +73,23 @@ async function getUserEmail(userId: string): Promise<string | null> {
   return byEmail?.email ?? null;
 }
 
-async function sendBrevoEmail(toEmail: string, subject: string, htmlBody: string): Promise<boolean> {
+export async function sendFollowupEmail(userId: string, messageTemplate: string): Promise<boolean> {
+  const template = MESSAGE_TEMPLATES[messageTemplate];
+  if (!template) {
+    logger.warn("unknown followup template", { messageTemplate });
+    return false;
+  }
+
+  const email = await getUserEmail(userId);
+  if (!email) {
+    logger.warn("cannot send follow-up: no email for user", { userId });
+    return false;
+  }
+
+  const userName = email.split("@")[0];
+  const textBody = template.body(userName);
+  const htmlBody = textBody.replace(/\n/g, "<br/>");
+
   try {
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -88,8 +99,8 @@ async function sendBrevoEmail(toEmail: string, subject: string, htmlBody: string
       },
       body: JSON.stringify({
         sender: { email: env.senderEmail, name: "MedBot" },
-        to: [{ email: toEmail }],
-        subject,
+        to: [{ email }],
+        subject: template.subject,
         htmlContent: htmlBody,
       }),
     });
@@ -100,7 +111,7 @@ async function sendBrevoEmail(toEmail: string, subject: string, htmlBody: string
       return false;
     }
 
-    logger.info("follow-up email sent", { to: toEmail, subject });
+    logger.info("follow-up email sent", { to: email, subject: template.subject });
     return true;
   } catch (err) {
     logger.error("brevo email send error", { error: (err as Error).message });
@@ -109,30 +120,39 @@ async function sendBrevoEmail(toEmail: string, subject: string, htmlBody: string
 }
 
 export async function scheduleFollowup(input: ScheduleFollowupInput): Promise<ScheduleFollowupResult> {
-  const template = MESSAGE_TEMPLATES[input.messageTemplate];
-  if (!template) {
-    return { scheduled: false, error: `Unknown template: ${input.messageTemplate}` };
-  }
+  const scheduledFor = new Date(Date.now() + input.delayHours * 3600000).toISOString();
+  const dedupeKey = `${input.sessionId}_${scheduledFor.slice(0, 13)}`;
 
-  const email = await getUserEmail(input.userId);
-  if (!email) {
-    logger.warn("cannot send follow-up: no email for user", { userId: input.userId });
-    return { scheduled: false, error: "User email not found" };
-  }
-
-  const userName = email.split("@")[0];
-  const textBody = template.body(userName);
-  const htmlBody = textBody.replace(/\n/g, "<br/>");
-
-  const sent = await sendBrevoEmail(email, template.subject, htmlBody);
-
-  if (sent) {
-    logger.info("follow-up scheduled and sent", {
+  // Persist job to followupJobs collection for idempotency
+  const db = await getDb();
+  try {
+    await db.collection<FollowupJobDocument>(COLLECTIONS.followupJobs).insertOne({
       sessionId: input.sessionId,
-      to: email,
-      delayHours: input.delayHours,
+      tenantId: "",
+      patientId: input.userId,
+      scheduledFor,
+      dedupeKey,
+      status: "pending",
     });
+  } catch {
+    // Duplicate key — job already scheduled, skip
+    logger.info("followup job already exists", { dedupeKey });
+    return { scheduled: true, emailSent: false, queued: false };
   }
 
-  return { scheduled: true, emailSent: sent };
+  // BullMQ path (async, delayed)
+  const queue = getFollowupQueue();
+  if (queue) {
+    await queue.add(
+      "send-followup",
+      { sessionId: input.sessionId, userId: input.userId, messageTemplate: input.messageTemplate },
+      { delay: input.delayHours * 3600000, deduplication: { id: dedupeKey, ttl: 86400000 } },
+    );
+    logger.info("followup job queued", { sessionId: input.sessionId, delayHours: input.delayHours });
+    return { scheduled: true, queued: true };
+  }
+
+  // Fallback: send synchronously (no Redis)
+  const sent = await sendFollowupEmail(input.userId, input.messageTemplate);
+  return { scheduled: true, emailSent: sent, queued: false };
 }

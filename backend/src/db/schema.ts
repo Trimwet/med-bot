@@ -43,6 +43,7 @@ export interface KnowledgeDocument {
   embedding: number[];
   activationThreshold: number;
   edges: KnowledgeEdge[];
+  isLatest?: boolean;
   metadata: {
     triageQuestions?: string[];
     severityScale?: Record<string, string>;
@@ -89,6 +90,7 @@ export interface PatientDocument {
   name: string;
   consentGivenAt?: string;
   dataRetentionPolicy?: string;
+  retainUntil?: string;
   createdAt: string;
 }
 

@@ -88,7 +88,10 @@ async function tryAtlasVectorSearch(
             queryVector: queryEmbedding,
             numCandidates: 150,
             limit,
-            filter: { category: { $in: [category, "general"] } },
+            filter: {
+              category: { $in: [category, "general"] },
+              isLatest: { $ne: false },
+            },
           },
         },
         {
@@ -151,7 +154,7 @@ export async function globalVectorSearch(
   const db = await getDb();
   const allNodes = await db.collection<KnowledgeDocument>(COLLECTIONS.knowledge).find({}).toArray();
 
-  let candidates = allNodes.filter((n) => n.category === category || n.category === "general");
+  let candidates = allNodes.filter((n) => n.isLatest !== false && (n.category === category || n.category === "general"));
   if (candidates.length < 2) {
     candidates = allNodes;
   }

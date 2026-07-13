@@ -31,6 +31,8 @@ export async function ensureIndexes(): Promise<void> {
     database.collection("tenants").createIndex({ tier: 1 }),
     database.collection("token_ledger").createIndex({ tenantId: 1, timestamp: -1 }),
     database.collection("token_ledger").createIndex({ tenantId: 1, sessionId: 1 }),
+    database.collection("patients").createIndex({ retainUntil: 1 }, { expireAfterSeconds: 0 }),
+    database.collection("followup_jobs").createIndex({ dedupeKey: 1 }, { unique: true }),
   ]);
 
   logger.info("mongodb indexes ensured");

@@ -92,6 +92,15 @@ export async function upsertProtocolNode(input: ProtocolNodeInput): Promise<Know
 
   const { nodeEmbedding, edges } = await embedProtocol(input);
 
+  const db = await getDb();
+  const collection = db.collection<KnowledgeDocument>(COLLECTIONS.knowledge);
+
+  // Mark all existing nodes for this protocol as not latest (versioning support)
+  await collection.updateMany(
+    { protocolId: input.protocolId },
+    { $set: { isLatest: false } },
+  );
+
   const doc: KnowledgeDocument = {
     nodeId: input.nodeId,
     protocolId: input.protocolId,
@@ -103,6 +112,7 @@ export async function upsertProtocolNode(input: ProtocolNodeInput): Promise<Know
     embedding: nodeEmbedding,
     activationThreshold: input.activationThreshold ?? 0.7,
     edges,
+    isLatest: true,
     metadata: {
       triageQuestions: input.triageQuestions ?? [],
       severityScale: input.severityScale ?? {},
@@ -113,8 +123,7 @@ export async function upsertProtocolNode(input: ProtocolNodeInput): Promise<Know
     updatedBy: input.updatedBy,
   };
 
-  const db = await getDb();
-  await db.collection<KnowledgeDocument>(COLLECTIONS.knowledge).updateOne(
+  await collection.updateOne(
     { nodeId: input.nodeId },
     { $set: doc },
     { upsert: true }

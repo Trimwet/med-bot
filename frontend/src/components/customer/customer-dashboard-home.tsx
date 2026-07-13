@@ -335,7 +335,7 @@ export const CustomerDashboardHome = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6">
+      <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 [scrollbar-width:thin] [scrollbar-color:#d1d5db_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full">
         {messages.length === 0 && !isBusy ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center max-w-sm mx-auto px-4">
@@ -515,7 +515,7 @@ export const CustomerDashboardHome = () => {
               placeholder="Message MedBot..."
               rows={1}
               disabled={isBusy}
-              className="w-full resize-none bg-transparent px-4 pt-3.5 pb-1 text-base sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none leading-relaxed disabled:opacity-50"
+              className="w-full resize-none bg-transparent px-4 pt-3.5 pb-1 text-base sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none leading-relaxed disabled:opacity-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               style={{ maxHeight: MAX_TEXTAREA_HEIGHT }}
             />
 

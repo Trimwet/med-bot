@@ -9,6 +9,7 @@ import { scheduleFollowup } from "../../agents/triage/tools/scheduleFollowup";
 import type { ClinicalInput } from "@/db/schema";
 import { getEffectiveMultiplier, computeTokenCost, deductTokens } from "@/services/tenant.service";
 import { recordTokenUsage } from "@/services/tokenLedger.service";
+import { saveSessionSummary, findRelevantHistory } from "@/services/sessionSummary.service";
 import OpenAI from "openai";
 import { env } from "@/config/env";
 
@@ -200,8 +201,19 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       return;
     }
 
+    // ── History recall ───────────────────────────────────────────
+    let historyContext = "";
+    try {
+      const relevant = await findRelevantHistory(userId, message);
+      if (relevant.length > 0) {
+        historyContext = "\nPatient history:\n" + relevant.map((h) => `- ${h.summaryText}`).join("\n");
+      }
+    } catch {
+      // non-blocking
+    }
+
     // ── High confidence: extract, evaluate, respond ───────────────
-    const extracted = await extractStructuredData(message, {
+    const extracted = await extractStructuredData(historyContext ? `${message}\n\n${historyContext}` : message, {
       title: traversalResult.title,
       content: traversalResult.title,
       metadata: { triageQuestions: protocolQuestions, redFlags: [] },
@@ -215,13 +227,33 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
     };
 
     // Evaluate via the agent tool
-    const clinicalResult = await clinicalRule({
-      severityScale: clinicalInput.severityScale,
-      durationHours: clinicalInput.durationHours,
-      associatedSymptoms: clinicalInput.associatedSymptoms,
-      redFlags: clinicalInput.redFlags,
-      nodeId: activeNodeId,
-    });
+    let clinicalResult;
+    try {
+      clinicalResult = await clinicalRule({
+        severityScale: clinicalInput.severityScale,
+        durationHours: clinicalInput.durationHours,
+        associatedSymptoms: clinicalInput.associatedSymptoms,
+        redFlags: clinicalInput.redFlags,
+        nodeId: activeNodeId,
+      });
+    } catch (ruleErr) {
+      // Fire error webhook — the one alert the plan requires
+      logger.error("Clinical Rule Layer error", { sessionId, nodeId: activeNodeId, error: (ruleErr as Error).message });
+      if (env.errorWebhookUrl) {
+        fetch(env.errorWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "clinical_rule_error",
+            sessionId,
+            nodeId: activeNodeId,
+            error: (ruleErr as Error).message,
+            timestamp: new Date().toISOString(),
+          }),
+        }).catch(() => {}); // fire-and-forget
+      }
+      throw ruleErr;
+    }
 
     const phrased = await phraseResponse(clinicalResult.severity, clinicalResult.guidanceText ?? clinicalResult.nextStep, { title: traversalResult.title, content: traversalResult.title }, message);
 
@@ -248,6 +280,18 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
         messageTemplate: "post_triage_checkin",
       }).catch((err) => logger.warn("followup schedule failed", { sessionId, error: (err as Error).message }));
     }
+
+    // Save session summary (async, non-blocking)
+    saveSessionSummary(sessionId, userId, session.tenantId, {
+      ...session,
+      activeNodeId,
+      verdict: clinicalResult.severity,
+      extractedAnswers: {
+        severityScore: clinicalInput.severityScale,
+        durationHours: clinicalInput.durationHours,
+        reportedSymptoms: clinicalInput.associatedSymptoms,
+      },
+    }).catch((err) => logger.warn("session summary save failed", { sessionId, error: (err as Error).message }));
 
     // Non-blocking metering
     if (session.tenantId) {
