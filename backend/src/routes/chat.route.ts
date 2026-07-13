@@ -7,6 +7,8 @@ import { vectorSearch, getProtocolQuestions } from "../../agents/triage/tools/ve
 import { clinicalRule } from "../../agents/triage/tools/clinicalRule";
 import { scheduleFollowup } from "../../agents/triage/tools/scheduleFollowup";
 import type { ClinicalInput } from "@/db/schema";
+import { getEffectiveMultiplier, computeTokenCost, deductTokens } from "@/services/tenant.service";
+import { recordTokenUsage } from "@/services/tokenLedger.service";
 import OpenAI from "openai";
 import { env } from "@/config/env";
 
@@ -35,7 +37,7 @@ const deepseek = new OpenAI({
 async function extractStructuredData(
   patientMessage: string,
   protocolNode: { title: string; content: string; metadata: { triageQuestions?: string[]; redFlags?: string[] } }
-): Promise<{ severityScore: number; durationHours: number; reportedSymptoms: string[] } | null> {
+): Promise<{ data: { severityScore: number; durationHours: number; reportedSymptoms: string[] } | null; usage: { promptTokens: number; completionTokens: number } | null }> {
   const questions = protocolNode.metadata.triageQuestions?.join("\n") ?? "";
   const redFlags = protocolNode.metadata.redFlags?.join(", ") ?? "";
 
@@ -62,12 +64,15 @@ Return {"severityScore": number, "durationHours": number, "reportedSymptoms": st
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
     });
+    const usage = completion.usage
+      ? { promptTokens: completion.usage.prompt_tokens, completionTokens: completion.usage.completion_tokens }
+      : null;
     const raw = completion.choices[0]?.message?.content;
-    if (!raw) return null;
-    return JSON.parse(raw);
+    if (!raw) return { data: null, usage };
+    return { data: JSON.parse(raw), usage };
   } catch (err) {
     logger.warn("structured extraction failed", { error: (err as Error).message });
-    return null;
+    return { data: null, usage: null };
   }
 }
 
@@ -76,7 +81,7 @@ async function phraseResponse(
   guidanceText: string,
   protocolNode: { title: string; content: string },
   patientMessage: string,
-): Promise<string> {
+): Promise<{ text: string; usage: { promptTokens: number; completionTokens: number } | null }> {
   const prompt = `You are Eve, a calm, professional medical triage assistant serving Nigerian patients. You speak in plain language, no jargon, no emojis.
 
 You have received a clinical verdict that you must relay to the patient. You CANNOT change, soften, or override this verdict.
@@ -95,9 +100,12 @@ Phrase the verdict in a helpful, clear way. Explain what the patient should do n
       temperature: 0.3,
       messages: [{ role: "user", content: prompt }],
     });
-    return completion.choices[0]?.message?.content ?? guidanceText;
+    const usage = completion.usage
+      ? { promptTokens: completion.usage.prompt_tokens, completionTokens: completion.usage.completion_tokens }
+      : null;
+    return { text: completion.choices[0]?.message?.content ?? guidanceText, usage };
   } catch {
-    return guidanceText;
+    return { text: guidanceText, usage: null };
   }
 }
 
@@ -128,7 +136,8 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       return;
     }
 
-    const session = await getOrCreateSession(sessionId, userId);
+    const tenantId = req.headers["x-tenant-id"] as string | undefined;
+    const session = await getOrCreateSession(sessionId, userId, tenantId);
 
     const userMsg = { role: "user" as const, content: message, timestamp: new Date().toISOString() };
     await appendMessage(sessionId, userId, userMsg);
@@ -199,10 +208,10 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
     });
 
     const clinicalInput: ClinicalInput = {
-      severityScale: extracted?.severityScore ?? 5,
-      durationHours: extracted?.durationHours ?? 24,
-      associatedSymptoms: extracted?.reportedSymptoms ?? [],
-      redFlags: extracted?.reportedSymptoms ?? [],
+      severityScale: extracted.data?.severityScore ?? 5,
+      durationHours: extracted.data?.durationHours ?? 24,
+      associatedSymptoms: extracted.data?.reportedSymptoms ?? [],
+      redFlags: extracted.data?.reportedSymptoms ?? [],
     };
 
     // Evaluate via the agent tool
@@ -214,9 +223,9 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       nodeId: activeNodeId,
     });
 
-    const reply = await phraseResponse(clinicalResult.severity, clinicalResult.guidanceText ?? clinicalResult.nextStep, { title: traversalResult.title, content: traversalResult.title }, message);
+    const phrased = await phraseResponse(clinicalResult.severity, clinicalResult.guidanceText ?? clinicalResult.nextStep, { title: traversalResult.title, content: traversalResult.title }, message);
 
-    await appendMessage(sessionId, userId, { role: "assistant", content: reply, timestamp: new Date().toISOString() });
+    await appendMessage(sessionId, userId, { role: "assistant", content: phrased.text, timestamp: new Date().toISOString() });
 
     const shouldClose = clinicalResult.severity === "emergency";
     await updateSessionGraphState(sessionId, userId, {
@@ -240,8 +249,33 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       }).catch((err) => logger.warn("followup schedule failed", { sessionId, error: (err as Error).message }));
     }
 
+    // Non-blocking metering
+    if (session.tenantId) {
+      const pTokens = extracted.usage?.promptTokens ?? 0;
+      const cTokens = extracted.usage?.completionTokens ?? 0;
+      const pTokensPhrase = phrased.usage?.promptTokens ?? 0;
+      const cTokensPhrase = phrased.usage?.completionTokens ?? 0;
+      const totalPrompt = pTokens + pTokensPhrase || Math.ceil(message.length / 4);
+      const totalCompletion = cTokens + cTokensPhrase || Math.ceil(phrased.text.length / 4);
+
+      getEffectiveMultiplier(session.tenantId)
+        .then((eff) => {
+          const cost = computeTokenCost(totalPrompt, totalCompletion, eff.multiplier);
+          return deductTokens(session.tenantId!, Math.ceil(cost))
+            .then(() => recordTokenUsage({
+              tenantId: session.tenantId!,
+              sessionId,
+              promptTokens: totalPrompt,
+              completionTokens: totalCompletion,
+              multiplierApplied: eff.multiplier,
+              costNgn: cost,
+            }));
+        })
+        .catch((err) => logger.warn("metering failed", { sessionId, error: (err as Error).message }));
+    }
+
     res.json({
-      reply,
+      reply: phrased.text,
       saved: true,
       verdict: clinicalResult.severity,
       matchedRedFlags: clinicalResult.matchedRedFlags.length > 0 ? clinicalResult.matchedRedFlags : undefined,

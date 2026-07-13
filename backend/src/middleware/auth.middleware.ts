@@ -23,6 +23,7 @@ export async function authMiddleware(req: Request, _res: Response, next: NextFun
         email: user.email,
         name: user.name,
         isVerified: user.isVerified,
+        tenantId: user.tenantId,
       };
       return next();
     }

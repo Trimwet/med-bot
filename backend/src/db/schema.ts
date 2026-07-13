@@ -70,7 +70,7 @@ export interface ClinicalRuleDocument {
 export interface TenantDocument {
   _id?: ObjectId;
   name: string;
-  tier: "growth" | "enterprise";
+  tier: "growth" | "enterprise" | "b2c";
   tokenBalance: number;
   subscriptionStartDate: string;
   subscriptionEndDate: string;
@@ -179,6 +179,7 @@ export interface UserDocument {
   otp?: string;
   otpExpires?: Date;
   profile?: UserProfile;
+  tenantId?: string;
   consentGivenAt?: string;
   createdAt?: string;
   updatedAt?: string;

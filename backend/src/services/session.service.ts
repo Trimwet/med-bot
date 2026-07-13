@@ -4,6 +4,7 @@ import type { SessionDocument, SessionMessage } from "@/db/schema";
 export async function getOrCreateSession(
   sessionId: string,
   userId: string,
+  tenantId?: string,
 ): Promise<SessionDocument> {
   const db = await getDb();
   const collection = db.collection<SessionDocument>(COLLECTIONS.sessions);
@@ -15,6 +16,7 @@ export async function getOrCreateSession(
   const fresh: SessionDocument = {
     sessionId,
     userId,
+    tenantId,
     channel: "web",
     status: "in_progress",
     userProfile: {},

@@ -1,19 +1,38 @@
 import { ObjectId } from "mongodb";
 import { getDb, COLLECTIONS } from "@/db/client";
 import type { TenantDocument } from "@/db/schema";
+
+type TenantTier = TenantDocument["tier"];
 import { NotFoundError, ValidationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
-const TIER_MULTIPLIERS: Record<string, number> = {
+const TIER_MULTIPLIERS: Record<TenantTier, number> = {
   growth: 2.0,
   enterprise: 1.0,
+  b2c: 5.0,
+};
+
+const TIER_OVERAGE_MULTIPLIERS: Record<TenantTier, number> = {
+  growth: 2.5,
+  enterprise: 2.0,
+  b2c: 5.0,
+};
+
+const MONTHLY_INCLUDED_TOKENS: Record<TenantTier, number> = {
+  growth: 50000,
+  enterprise: 200000,
+  b2c: 0,
 };
 
 const PROMPT_RATE_PER_1K = 0.5;
 const COMPLETION_RATE_PER_1K = 1.0;
 
-export function getTierMultiplier(tier: string): number {
-  return TIER_MULTIPLIERS[tier] ?? 2.0;
+export function getTierMultiplier(tier: TenantTier): number {
+  return TIER_MULTIPLIERS[tier] ?? 5.0;
+}
+
+export function getOverageMultiplier(tier: TenantTier): number {
+  return TIER_OVERAGE_MULTIPLIERS[tier] ?? 5.0;
 }
 
 export function computeTokenCost(
@@ -28,7 +47,7 @@ export function computeTokenCost(
 
 export async function createTenant(
   name: string,
-  tier: "growth" | "enterprise",
+  tier: TenantTier,
 ): Promise<TenantDocument> {
   const db = await getDb();
   const existing = await db.collection<TenantDocument>(COLLECTIONS.tenants).findOne({ name });
@@ -76,6 +95,33 @@ export async function updateTenant(
   );
   if (!result) throw new NotFoundError("Tenant not found");
   return result;
+}
+
+export async function getEffectiveMultiplier(tenantId: string): Promise<{ multiplier: number; isOverage: boolean }> {
+  const tenant = await getTenantById(tenantId);
+  if (!tenant) throw new NotFoundError("Tenant not found");
+
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+  const db = await getDb();
+  const pipeline = [
+    { $match: { tenantId, timestamp: { $gte: monthStart } } },
+    {
+      $group: {
+        _id: null,
+        totalTokens: { $sum: { $add: ["$promptTokens", "$completionTokens"] } },
+      },
+    },
+  ];
+  const result = await db.collection(COLLECTIONS.tokenLedger).aggregate(pipeline).toArray();
+  const usedTokens: number = (result[0] as { totalTokens: number } | undefined)?.totalTokens ?? 0;
+  const included = MONTHLY_INCLUDED_TOKENS[tenant.tier];
+
+  if (usedTokens >= included) {
+    return { multiplier: TIER_OVERAGE_MULTIPLIERS[tenant.tier], isOverage: true };
+  }
+  return { multiplier: TIER_MULTIPLIERS[tenant.tier], isOverage: false };
 }
 
 export async function deductTokens(
