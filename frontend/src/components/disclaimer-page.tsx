@@ -46,11 +46,11 @@ export const DisclaimerPage = ({ onBack, onAccept }: DisclaimerPageProps) => {
             {/* Content */}
             <div className="space-y-5 text-sm leading-relaxed text-muted">
               <p className="font-semibold text-ink text-base">
-                Please read this carefully before using MediChat.
+                Please read this carefully before using MedBot.
               </p>
 
               <p>
-                MediChat provides AI-powered health information based on the symptoms
+                MedBot provides AI-powered health information based on the symptoms
                 you describe. It uses advanced language models to cross-reference medical
                 databases, but it operates without the physical presence or contextual
                 nuance of a qualified professional.

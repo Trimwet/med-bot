@@ -498,3 +498,135 @@ export async function upsertGoogleUser(profile: { id: string; displayName?: stri
 function generateOtp() {
   return (100000 + Math.floor(Math.random() * 900000)).toString();
 }
+
+/**
+ * Step 1 of forgot password: verify email exists, issue an OTP for reset.
+ * No token is returned here — the caller must call verifyResetOtp next.
+ */
+export async function requestPasswordReset(email: string) {
+  const normalized = normalizeEmail(email);
+  const user = await getUserByEmail(normalized);
+
+  if (!user) {
+    return { message: "If an account with that email exists, a reset code has been sent." };
+  }
+
+  const otp = generateOtp();
+  const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+  await setOtpForUser(user, otp, otpExpires);
+
+  return { message: "If an account with that email exists, a reset code has been sent.", otp };
+}
+
+/**
+ * Step 2 of forgot password: verify the OTP, then update the password.
+ */
+export async function resetPassword(input: { email: string; otp: string; newPassword: string }) {
+  const email = normalizeEmail(input.email);
+  const otp = input.otp?.trim();
+  const newPassword = input.newPassword?.trim();
+
+  if (!email || !otp || !newPassword) {
+    throw new ValidationError("Email, OTP, and new password are required");
+  }
+
+  const user = await getUserByEmail(email);
+  if (!user) {
+    throw new AppError("User not found", 404, "USER_NOT_FOUND");
+  }
+
+  if (!user.otp || !user.otpExpires) {
+    throw new AppError("No reset pending for this user", 400, "NO_OTP_PENDING");
+  }
+
+  if (user.otp !== otp) {
+    throw new AppError("Invalid OTP", 400, "INVALID_OTP");
+  }
+
+  if (new Date(user.otpExpires) < new Date()) {
+    throw new AppError("OTP has expired", 400, "OTP_EXPIRED");
+  }
+
+  const hashedPassword = hashPassword(newPassword);
+  const store = await getUserStore();
+
+  if (store.mode === "memory") {
+    user.password = hashedPassword;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.updatedAt = new Date().toISOString();
+  } else {
+    await store.users.updateOne(
+      { _id: user._id },
+      {
+        $set: { password: hashedPassword, updatedAt: new Date().toISOString() },
+        $unset: { otp: "", otpExpires: "" },
+      }
+    );
+  }
+
+  return { message: "Password has been reset successfully" };
+}
+
+/**
+ * Change password for an authenticated user (requires current password).
+ */
+export async function changePassword(userId: string, input: { currentPassword: string; newPassword: string }) {
+  const { currentPassword, newPassword } = input;
+
+  if (!currentPassword || !newPassword) {
+    throw new ValidationError("Current password and new password are required");
+  }
+
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new AppError("User not found", 404, "USER_NOT_FOUND");
+  }
+
+  if (!user.password) {
+    throw new AppError("This account was created with Google. Please set a password through the settings.", 400, "NO_PASSWORD");
+  }
+
+  const isMatch = comparePassword(currentPassword, user.password);
+  if (!isMatch) {
+    throw new AppError("Current password is incorrect", 401, "INVALID_CREDENTIALS");
+  }
+
+  const hashedPassword = hashPassword(newPassword);
+  const store = await getUserStore();
+
+  if (store.mode === "memory") {
+    user.password = hashedPassword;
+    user.updatedAt = new Date().toISOString();
+  } else {
+    await store.users.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { password: hashedPassword, updatedAt: new Date().toISOString() } }
+    );
+  }
+
+  return { message: "Password changed successfully" };
+}
+
+/**
+ * Delete a user account and all associated data (NDPR compliance).
+ * Removes: user document, all sessions, all session summaries, consent.
+ */
+export async function deleteUserAccount(userId: string) {
+  const db = await getDb();
+  const store = await getUserStore();
+  const oid = new ObjectId(userId);
+
+  if (store.mode === "memory") {
+    const idx = memoryUsers.findIndex((u) => u._id?.toString() === userId);
+    if (idx !== -1) memoryUsers.splice(idx, 1);
+  } else {
+    await Promise.all([
+      store.users.deleteOne({ _id: oid }),
+      db.collection(COLLECTIONS.sessions).deleteMany({ userId }),
+      db.collection(COLLECTIONS.sessionSummaries).deleteMany({ patientId: userId }),
+    ]);
+  }
+
+  return { message: "Account and all associated data have been permanently deleted" };
+}

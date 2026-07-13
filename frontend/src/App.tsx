@@ -58,7 +58,7 @@ function AppRoutes() {
             initialMode="login"
             onBack={() => navigate('/')}
             onToggleMode={() => navigate('/signup')}
-            onLoginSuccess={() => navigate('/')}
+            onLoginSuccess={() => navigate('/dashboard')}
             onForgotPassword={() => navigate('/forgot-password')}
           />
         }

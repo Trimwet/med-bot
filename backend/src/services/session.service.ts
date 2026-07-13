@@ -1,5 +1,62 @@
 import { getDb, COLLECTIONS } from "@/db/client";
 import type { SessionDocument, SessionMessage } from "@/db/schema";
+import { ObjectId } from "mongodb";
+
+export interface SessionListEntry {
+  sessionId: string;
+  activeNodeId?: string;
+  verdict?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
+  firstMessage?: string;
+}
+
+export async function listUserSessions(
+  userId: string,
+  options: { status?: string; limit?: number; offset?: number } = {}
+): Promise<{ sessions: SessionListEntry[]; total: number }> {
+  const db = await getDb();
+  const collection = db.collection<SessionDocument>(COLLECTIONS.sessions);
+  const { status, limit = 50, offset = 0 } = options;
+
+  const query: Record<string, unknown> = { userId };
+  if (status) query.status = status;
+
+  const [docs, total] = await Promise.all([
+    collection
+      .find(query)
+      .sort({ updatedAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .toArray(),
+    collection.countDocuments(query),
+  ]);
+
+  return {
+    sessions: docs.map((d) => ({
+      sessionId: d.sessionId,
+      activeNodeId: d.activeNodeId,
+      verdict: d.verdict,
+      status: d.status,
+      createdAt: d.createdAt,
+      updatedAt: d.updatedAt,
+      messageCount: d.messages?.length ?? 0,
+      firstMessage: d.messages?.find((m) => m.role === "user")?.content,
+    })),
+    total,
+  };
+}
+
+export async function deleteSession(sessionId: string, userId: string): Promise<void> {
+  const db = await getDb();
+  const collection = db.collection<SessionDocument>(COLLECTIONS.sessions);
+  const result = await collection.deleteOne({ sessionId, userId });
+  if (result.deletedCount === 0) {
+    throw new Error("Session not found or already deleted");
+  }
+}
 
 export async function getOrCreateSession(
   sessionId: string,

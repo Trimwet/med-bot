@@ -3,6 +3,7 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { env } from "@/config/env";
 import { AppError } from "@/lib/errors";
 import { authMiddleware } from "@/middleware/auth.middleware";
+import { logger } from "@/lib/logger";
 import {
   getAuthenticatedUser,
   requestLoginOtp,
@@ -14,8 +15,13 @@ import {
   verifyJwtToken,
   verifyLoginOtp,
   verifyOtp,
+  requestPasswordReset,
+  resetPassword,
+  changePassword,
+  deleteUserAccount,
 } from "@/services/auth.service";
 import { sendOtpEmail } from "@/services/otp.service";
+import { listUserSessions, deleteSession } from "@/services/session.service";
 
 export const authRoute = Router();
 
@@ -42,11 +48,22 @@ authRoute.post("/api/auth/signup", async (req, res, next) => {
     const result = await signupUser({ name, email, password });
     const sent = await sendOtpEmail(email, result.otp);
 
+    if (env.nodeEnv === "development") {
+      logger.info(`[DEV OTP] signup for ${email}: ${result.otp}`);
+    }
+
+    if (!sent) {
+      res.json({
+        message: "Signup successful, but we couldn't send the verification email. Please try resending the code.",
+        emailSent: false,
+        ...(env.nodeEnv === "development" && { devOtp: result.otp }),
+      });
+      return;
+    }
+
     res.json({
-      message: sent
-        ? result.message
-        : "Signup successful, but we couldn't send the verification email. Please try resending the code.",
-      emailSent: sent,
+      message: result.message,
+      emailSent: true,
     });
   } catch (err) {
     next(err);
@@ -73,8 +90,17 @@ authRoute.post("/api/auth/resend-otp", async (req, res, next) => {
     const newOtp = await resendOtp(email);
     const sent = await sendOtpEmail(email, newOtp);
 
+    if (env.nodeEnv === "development") {
+      logger.info(`[DEV OTP] resend signup for ${email}: ${newOtp}`);
+    }
+
     if (!sent) {
-      throw new AppError("Failed to send OTP email", 500, "OTP_EMAIL_FAILED");
+      res.json({
+        message: "OTP could not be sent via email. Please try again.",
+        emailSent: false,
+        ...(env.nodeEnv === "development" && { devOtp: newOtp }),
+      });
+      return;
     }
 
     res.json({ message: "OTP resent successfully" });
@@ -91,8 +117,17 @@ authRoute.post("/api/auth/login", async (req, res, next) => {
     const result = await requestLoginOtp({ email, password });
     const sent = await sendOtpEmail(email, result.otp);
 
+    if (env.nodeEnv === "development") {
+      logger.info(`[DEV OTP] login for ${email}: ${result.otp}`);
+    }
+
     if (!sent) {
-      throw new AppError("Failed to send OTP email", 500, "OTP_EMAIL_FAILED");
+      res.json({
+        message: "Credentials verified, but we couldn't send the OTP email. Please try resending the code.",
+        emailSent: false,
+        ...(env.nodeEnv === "development" && { devOtp: result.otp }),
+      });
+      return;
     }
 
     res.json({ message: result.message });
@@ -122,8 +157,17 @@ authRoute.post("/api/auth/resend-login-otp", async (req, res, next) => {
     const newOtp = await resendLoginOtp(email);
     const sent = await sendOtpEmail(email, newOtp);
 
+    if (env.nodeEnv === "development") {
+      logger.info(`[DEV OTP] resend login for ${email}: ${newOtp}`);
+    }
+
     if (!sent) {
-      throw new AppError("Failed to send OTP email", 500, "OTP_EMAIL_FAILED");
+      res.json({
+        message: "OTP could not be sent via email. Please try again.",
+        emailSent: false,
+        ...(env.nodeEnv === "development" && { devOtp: newOtp }),
+      });
+      return;
     }
 
     res.json({ message: "OTP resent successfully" });
@@ -228,5 +272,95 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
     res.redirect(`${env.clientUrl}/${hasProfile ? "dashboard" : "health-profile"}#token=${encodeURIComponent(token)}`);
   } catch {
     res.redirect(`${env.clientUrl}/login?error=google_auth_failed`);
+  }
+});
+
+// ── Forgot / Reset Password ─────────────────────────────────────────
+
+authRoute.post("/api/auth/forgot-password", async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      throw new AppError("Email is required", 400, "VALIDATION_ERROR");
+    }
+    const result = await requestPasswordReset(email);
+    let sent = false;
+    if (result.otp) {
+      sent = await sendOtpEmail(email, result.otp);
+    }
+    res.json({ message: result.message, emailSent: sent });
+  } catch (err) {
+    next(err);
+  }
+});
+
+authRoute.post("/api/auth/reset-password", async (req, res, next) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const result = await resetPassword({ email, otp, newPassword });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Change Password (authenticated) ────────────────────────────────
+
+authRoute.post("/api/auth/change-password", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+    }
+    const result = await changePassword(userId, req.body);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Account Deletion (NDPR compliance) ──────────────────────────────
+
+authRoute.delete("/api/users/me", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+    }
+    const result = await deleteUserAccount(userId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Session Listing & Deletion ──────────────────────────────────────
+
+authRoute.get("/api/sessions", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+    }
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    const limit = Math.min(Number(req.query.limit) || 50, 100);
+    const offset = Math.max(Number(req.query.offset) || 0, 0);
+    const result = await listUserSessions(userId, { status, limit, offset });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+authRoute.delete("/api/sessions/:sessionId", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+    }
+    await deleteSession(req.params.sessionId, userId);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
   }
 });

@@ -6,6 +6,7 @@
 import { Router } from "express";
 import { adminMiddleware } from "@/middleware/admin.middleware";
 import { logger } from "@/lib/logger";
+import { getDb, COLLECTIONS } from "@/db/client";
 import {
   upsertProtocolNode,
   listProtocolNodes,
@@ -74,6 +75,61 @@ adminRoute.delete("/api/admin/protocols/:nodeId", async (req, res, next) => {
   try {
     await deleteProtocolNode(req.params.nodeId);
     res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Dashboard Stats ─────────────────────────────────────────────────
+
+adminRoute.get("/api/admin/stats", async (_req, res, next) => {
+  try {
+    const db = await getDb();
+
+    const [
+      totalSessions,
+      activeSessions,
+      completedSessions,
+      emergencySessions,
+      totalUsers,
+      totalProtocols,
+      totalRules,
+    ] = await Promise.all([
+      db.collection(COLLECTIONS.sessions).countDocuments(),
+      db.collection(COLLECTIONS.sessions).countDocuments({ status: "in_progress" }),
+      db.collection(COLLECTIONS.sessions).countDocuments({ status: "closed" }),
+      db.collection(COLLECTIONS.sessions).countDocuments({ verdict: "emergency" }),
+      db.collection(COLLECTIONS.users).countDocuments(),
+      db.collection(COLLECTIONS.knowledge).countDocuments(),
+      db.collection(COLLECTIONS.clinicalRules).countDocuments(),
+    ]);
+
+    const verdictBreakdown = await db
+      .collection(COLLECTIONS.sessions)
+      .aggregate([
+        { $match: { verdict: { $exists: true, $ne: null } } },
+        { $group: { _id: "$verdict", count: { $sum: 1 } } },
+      ])
+      .toArray();
+
+    const recentSessions = await db
+      .collection(COLLECTIONS.sessions)
+      .find({}, { projection: { sessionId: 1, userId: 1, verdict: 1, status: 1, createdAt: 1 } })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .toArray();
+
+    res.json({
+      totalSessions,
+      activeSessions,
+      completedSessions,
+      emergencySessions,
+      totalUsers,
+      totalProtocols,
+      totalRules,
+      verdictBreakdown: Object.fromEntries(verdictBreakdown.map((v) => [v._id, v.count])),
+      recentSessions,
+    });
   } catch (err) {
     next(err);
   }
