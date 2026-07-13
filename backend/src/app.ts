@@ -17,7 +17,13 @@ export const app = express();
 
 
 const allowedOrigins = new Set([env.clientUrl, "http://localhost:5173"]);
-app.use(cors({ origin: (origin, callback) => callback(null, !origin || allowedOrigins.has(origin)) }));
+function isAllowedOrigin(origin: string): boolean {
+  if (allowedOrigins.has(origin)) return true;
+  // Allow any Vercel preview/branch deployment for this project during testing.
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+app.use(cors({ origin: (origin, callback) => callback(null, !origin || isAllowedOrigin(origin)) }));
 app.use(express.json({ limit: "32kb" }));
 
 app.use(healthRoute);
@@ -27,6 +33,8 @@ app.use(authRoute);
 app.use(userRoute);
 app.use(consentRoute);
 app.use(adminRoute);
+app.use(tenantRoute);
+app.use(analyticsRoute);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const { status, body } = toErrorResponse(err);
