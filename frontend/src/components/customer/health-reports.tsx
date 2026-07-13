@@ -10,6 +10,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Stethoscope,
+  BedDouble,
+  Droplets,
+  CloudFog,
+  Activity,
+  Pill,
+  Wind,
+  Building2,
+  Phone,
+  Armchair,
+  Ban,
+  Utensils,
 } from 'lucide-react'
 
 type Urgency = 'Low' | 'Moderate' | 'High'
@@ -24,7 +35,7 @@ interface HealthReport {
   urgency: Urgency
   symptomList: string[]
   triageOutcome: string
-  adviceItems: { icon: string; text: string }[]
+  adviceItems: { iconKey: string; text: string }[]
   warning: string
 }
 
@@ -41,10 +52,10 @@ const REPORTS: HealthReport[] = [
     triageOutcome:
       'Based on your reported symptoms, your condition appears to be mild. Self-care at home is currently appropriate, and there are no immediate indicators of severe escalation.',
     adviceItems: [
-      { icon: '🛏️', text: 'Rest well and get enough sleep' },
-      { icon: '💧', text: 'Drink plenty of fluids' },
-      { icon: '♨️', text: 'Take warm steam inhalation' },
-      { icon: '📊', text: 'Monitor your symptoms regularly' },
+      { iconKey: 'bed', text: 'Rest well and get enough sleep' },
+      { iconKey: 'droplets', text: 'Drink plenty of fluids' },
+      { iconKey: 'steam', text: 'Take warm steam inhalation' },
+      { iconKey: 'activity', text: 'Monitor your symptoms regularly' },
     ],
     warning:
       'High fever (above 102°F), difficulty breathing, chest pain, severe headache, or confusion. If symptoms worsen rapidly, call emergency services.',
@@ -61,10 +72,10 @@ const REPORTS: HealthReport[] = [
     triageOutcome:
       'Your symptoms suggest a moderate respiratory infection. Monitor closely and consider consulting a healthcare provider if symptoms persist beyond 5-7 days.',
     adviceItems: [
-      { icon: '💊', text: 'Take over-the-counter cold medications as needed' },
-      { icon: '💧', text: 'Stay well hydrated' },
-      { icon: '🛏️', text: 'Get adequate rest' },
-      { icon: '🫁', text: 'Use saline nasal spray for congestion' },
+      { iconKey: 'pill', text: 'Take over-the-counter cold medications as needed' },
+      { iconKey: 'droplets', text: 'Stay well hydrated' },
+      { iconKey: 'bed', text: 'Get adequate rest' },
+      { iconKey: 'wind', text: 'Use saline nasal spray for congestion' },
     ],
     warning: 'High fever, difficulty breathing, or symptoms worsening after initial improvement.',
   },
@@ -80,10 +91,10 @@ const REPORTS: HealthReport[] = [
     triageOutcome:
       'Your combination of symptoms requires urgent medical evaluation. Please seek immediate professional medical care.',
     adviceItems: [
-      { icon: '🏥', text: 'Visit the nearest emergency room immediately' },
-      { icon: '📞', text: 'Call emergency services if symptoms intensify' },
-      { icon: '🪑', text: 'Sit upright and try to remain calm' },
-      { icon: '🚫', text: 'Do not drive yourself to the hospital' },
+      { iconKey: 'hospital', text: 'Visit the nearest emergency room immediately' },
+      { iconKey: 'phone', text: 'Call emergency services if symptoms intensify' },
+      { iconKey: 'armchair', text: 'Sit upright and try to remain calm' },
+      { iconKey: 'ban', text: 'Do not drive yourself to the hospital' },
     ],
     warning: 'These symptoms may indicate a serious cardiac or pulmonary condition. Do not delay seeking medical attention.',
   },
@@ -99,10 +110,10 @@ const REPORTS: HealthReport[] = [
     triageOutcome:
       'Your symptoms suggest a mild gastrointestinal issue, likely viral gastritis. Home care should be sufficient.',
     adviceItems: [
-      { icon: '🥣', text: 'Eat bland foods (BRAT diet)' },
-      { icon: '💧', text: 'Stay hydrated with small sips of water' },
-      { icon: '🚫', text: 'Avoid spicy, fatty, or acidic foods' },
-      { icon: '🛏️', text: 'Rest and avoid strenuous activity' },
+      { iconKey: 'utensils', text: 'Eat bland foods (BRAT diet)' },
+      { iconKey: 'droplets', text: 'Stay hydrated with small sips of water' },
+      { iconKey: 'ban', text: 'Avoid spicy, fatty, or acidic foods' },
+      { iconKey: 'bed', text: 'Rest and avoid strenuous activity' },
     ],
     warning: 'Blood in stool, severe abdominal pain, persistent vomiting, or signs of dehydration.',
   },
@@ -112,6 +123,20 @@ const URGENCY_STYLES: Record<Urgency, { dot: string; text: string; badge: string
   Low: { dot: 'bg-green-500', text: 'text-green-700', badge: 'bg-green-50 text-green-700' },
   Moderate: { dot: 'bg-yellow-500', text: 'text-yellow-700', badge: 'bg-yellow-50 text-yellow-700' },
   High: { dot: 'bg-red-500', text: 'text-red-700', badge: 'bg-red-50 text-red-700' },
+}
+
+const ADVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  bed: BedDouble,
+  droplets: Droplets,
+  steam: CloudFog,
+  activity: Activity,
+  pill: Pill,
+  wind: Wind,
+  hospital: Building2,
+  phone: Phone,
+  armchair: Armchair,
+  ban: Ban,
+  utensils: Utensils,
 }
 
 const findByAssessmentId = (assessmentId: string | null) =>
@@ -247,12 +272,16 @@ export const HealthReports = () => {
         <div className="mb-6">
           <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Advice</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {selected.adviceItems.map((item) => (
-              <div key={item.text} className="flex items-center gap-2.5 px-3 py-2.5 bg-gray-50 rounded-lg">
-                <span className="text-base shrink-0">{item.icon}</span>
-                <span className="text-xs text-gray-700 leading-snug">{item.text}</span>
-              </div>
-            ))}
+            {selected.adviceItems.map((item) => {
+              const Icon = ADVICE_ICONS[item.iconKey]
+              if (!Icon) return null
+              return (
+                <div key={item.text} className="flex items-center gap-2.5 px-3 py-2.5 bg-gray-50 rounded-lg">
+                  <Icon className="w-4 h-4 text-[#073B4C] shrink-0" />
+                  <span className="text-xs text-gray-700 leading-snug">{item.text}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
