@@ -27,6 +27,10 @@ export async function ensureIndexes(): Promise<void> {
     database.collection("clinical_rules").createIndex({ nodeId: 1 }, { unique: true }),
     database.collection("sessions_collection").createIndex({ userId: 1, sessionId: 1 }),
     database.collection("users_collection").createIndex({ email: 1 }, { sparse: true }),
+    database.collection("tenants").createIndex({ name: 1 }, { unique: true }),
+    database.collection("tenants").createIndex({ tier: 1 }),
+    database.collection("token_ledger").createIndex({ tenantId: 1, timestamp: -1 }),
+    database.collection("token_ledger").createIndex({ tenantId: 1, sessionId: 1 }),
   ]);
 
   logger.info("mongodb indexes ensured");

@@ -7,6 +7,8 @@ import { authRoute } from "@/routes/auth.route";
 import { userRoute } from "@/routes/user.route";
 import { consentRoute } from "@/routes/consent.route";
 import { adminRoute } from "@/routes/admin.route";
+import { tenantRoute } from "@/routes/tenant.route";
+import { analyticsRoute } from "@/routes/analytics.route";
 import { toErrorResponse } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { env } from "@/config/env";

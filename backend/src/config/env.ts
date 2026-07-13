@@ -22,6 +22,8 @@ const ENV_SPEC: EnvVar[] = [
   { key: "GOOGLE_CLIENT_SECRET", required: false, default: "" },
   { key: "GOOGLE_CALLBACK_URL", required: false, default: "http://localhost:5001/api/auth/google/callback" },
   { key: "CLIENT_URL", required: false, default: "http://localhost:5173" },
+  { key: "PAYSTACK_SECRET_KEY", required: false, default: "" },
+  { key: "PAYSTACK_PUBLIC_KEY", required: false, default: "" },
 ];
 
 function loadDotEnvFile() {
@@ -75,4 +77,6 @@ export const env = {
   googleClientSecret: raw.GOOGLE_CLIENT_SECRET,
   googleCallbackUrl: raw.GOOGLE_CALLBACK_URL,
   clientUrl: raw.CLIENT_URL,
+  paystackSecretKey: raw.PAYSTACK_SECRET_KEY,
+  paystackPublicKey: raw.PAYSTACK_PUBLIC_KEY,
 } as const;
