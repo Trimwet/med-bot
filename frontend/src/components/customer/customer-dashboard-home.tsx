@@ -22,6 +22,16 @@ import {
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ApiError, sendChatMessage } from '@/lib/api'
+import SplitText from '@/components/ui/SplitText'
+
+const GREETING_MESSAGES = [
+  { greeting: "Hi there, I'm MedBot", subtitle: "Tell me what's going on and I'll help you figure out the next step." },
+  { greeting: "Hey, I'm MedBot", subtitle: "Describe how you're feeling and I'll point you in the right direction." },
+  { greeting: "Hello, I'm MedBot", subtitle: "What's on your mind today? I'm here to help you make sense of your symptoms." },
+  { greeting: "Hi, I'm MedBot", subtitle: "Feeling unwell? Describe your symptoms and I'll help you decide what to do next." },
+  { greeting: "Hey there, I'm MedBot", subtitle: "Let me help you figure out what's going on. What are you experiencing?" },
+  { greeting: "Hi, I'm MedBot", subtitle: "Tell me what you're feeling or ask a health question, and I'll help you figure out the next step." },
+]
 
 const MAX_TEXTAREA_HEIGHT = 160
 
@@ -231,6 +241,7 @@ export const CustomerDashboardHome = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const sessionIdRef = useRef(crypto.randomUUID())
+  const [greetingIndex, setGreetingIndex] = useState(() => Math.floor(Math.random() * GREETING_MESSAGES.length))
 
   const adjustHeight = useCallback(() => {
     const el = textareaRef.current
@@ -244,6 +255,15 @@ export const CustomerDashboardHome = () => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, visibleThinking, visibleResponse, phase])
+
+  // Rotate greeting messages every 6 seconds while no messages are present
+  useEffect(() => {
+    if (messages.length > 0 || phase !== 'idle') return
+    const timer = setInterval(() => {
+      setGreetingIndex((prev) => (prev + 1) % GREETING_MESSAGES.length)
+    }, 6000)
+    return () => clearInterval(timer)
+  }, [messages.length, phase])
 
   const estimateTokens = (text: string) => Math.ceil(text.length / 4)
 
@@ -342,11 +362,23 @@ export const CustomerDashboardHome = () => {
               <div className="w-12 h-12 rounded-xl bg-[#073B4C]/5 flex items-center justify-center mx-auto mb-4">
                 <img src="/assets/Logo.jpeg" alt="" className="w-8 h-8 rounded-lg" />
               </div>
-              <h2 className="text-gray-900 text-base font-semibold mb-1.5">
-                Hi, I&rsquo;m MedBot 👋
-              </h2>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                Tell me what you&rsquo;re feeling or ask a health question, and I&rsquo;ll help you figure out the next step.
+              <SplitText
+                key={greetingIndex}
+                text={GREETING_MESSAGES[greetingIndex].greeting}
+                className="text-gray-900 text-base font-semibold mb-1.5"
+                tag="h2"
+                delay={30}
+                duration={0.5}
+                ease="power3.out"
+                splitType="chars"
+                from={{ opacity: 0, y: 20 }}
+                to={{ opacity: 1, y: 0 }}
+                threshold={0.1}
+                rootMargin="-50px"
+                textAlign="center"
+              />
+              <p className="text-gray-500 text-sm leading-relaxed mt-1.5">
+                {GREETING_MESSAGES[greetingIndex].subtitle}
               </p>
             </div>
           </div>
