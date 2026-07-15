@@ -5,7 +5,7 @@ import {
   ChevronDown,
   ChevronLeft,
 } from 'lucide-react'
-import { tenantSignup, tenantVerifyOtp } from '@/lib/api'
+import { tenantSignup, tenantVerifyOtp, getGoogleAuthUrl } from '@/lib/api'
 
 interface BusinessSignupProps {
   onBack?: () => void
@@ -340,7 +340,7 @@ export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSig
 
         <button
           type="button"
-          onClick={() => window.location.href = '/api/auth/google?from=business'}
+          onClick={() => window.location.href = getGoogleAuthUrl('business')}
           className="w-full flex items-center justify-center gap-2 border border-gray-300 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">

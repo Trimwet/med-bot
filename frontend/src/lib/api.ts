@@ -1,4 +1,4 @@
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
+export const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
 
 export class ApiError extends Error {
   status: number
@@ -114,8 +114,10 @@ export function resetPassword(email: string, otp: string, newPassword: string) {
   })
 }
 
-export function getGoogleAuthUrl() {
-  return `${API_URL}/api/auth/google`
+export function getGoogleAuthUrl(from?: string) {
+  const base = API_URL || ''
+  const params = from ? `?from=${from}` : ''
+  return `${base}/api/auth/google${params}`
 }
 
 export interface ProfilePayload {
