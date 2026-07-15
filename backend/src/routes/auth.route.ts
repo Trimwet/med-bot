@@ -56,14 +56,14 @@ authRoute.post("/api/auth/signup", async (req, res, next) => {
       res.json({
         message: "Signup successful, but we couldn't send the verification email. Please try resending the code.",
         emailSent: false,
-        ...(env.nodeEnv === "development" && { devOtp: result.otp }),
+
       });
       return;
     }
 
     res.json({
       message: result.message,
-      emailSent: true,
+      emailSent: sent,
     });
   } catch (err) {
     next(err);
@@ -98,7 +98,7 @@ authRoute.post("/api/auth/resend-otp", async (req, res, next) => {
       res.json({
         message: "OTP could not be sent via email. Please try again.",
         emailSent: false,
-        ...(env.nodeEnv === "development" && { devOtp: newOtp }),
+
       });
       return;
     }
@@ -125,7 +125,7 @@ authRoute.post("/api/auth/login", async (req, res, next) => {
       res.json({
         message: "Credentials verified, but we couldn't send the OTP email. Please try resending the code.",
         emailSent: false,
-        ...(env.nodeEnv === "development" && { devOtp: result.otp }),
+
       });
       return;
     }
@@ -165,7 +165,7 @@ authRoute.post("/api/auth/resend-login-otp", async (req, res, next) => {
       res.json({
         message: "OTP could not be sent via email. Please try again.",
         emailSent: false,
-        ...(env.nodeEnv === "development" && { devOtp: newOtp }),
+
       });
       return;
     }

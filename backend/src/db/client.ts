@@ -12,7 +12,11 @@ let db: Db | null = null;
 
 export async function getDb(): Promise<Db> {
   if (db) return db;
-  client = new MongoClient(env.mongodbUri);
+  client = new MongoClient(env.mongodbUri, {
+    tls: true,
+    serverSelectionTimeoutMS: 5000,
+    family: 4,
+  });
   await client.connect();
   db = client.db(env.mongodbDbName);
   return db;
