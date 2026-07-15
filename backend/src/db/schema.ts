@@ -181,6 +181,11 @@ export interface UserDocument {
   otp?: string;
   otpExpires?: Date;
   profile?: UserProfile;
+  phone?: string;
+  orgType?: string;
+  country?: string;
+  orgSize?: string;
+  role?: "user" | "admin";
   tenantId?: string;
   consentGivenAt?: string;
   createdAt?: string;

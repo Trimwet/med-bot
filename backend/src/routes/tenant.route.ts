@@ -1,235 +1,89 @@
 import { Router } from "express";
-import { authMiddleware } from "@/middleware/auth.middleware";
-import {
-  createTenant,
-  getTenantById,
-  listTenants,
-  updateTenant,
-  getTenantBalance,
-  addTokens,
-  findPackageById,
-  TOKEN_PACKAGES,
-} from "@/services/tenant.service";
-import {
-  getTokenUsageByTenant,
-  getDailyTokenUsage,
-} from "@/services/tokenLedger.service";
-import { initializePayment, verifyPayment } from "@/services/paystack.service";
-import {
-  createApiKey,
-  listApiKeys,
-  revokeApiKey,
-} from "@/services/apiKey.service";
+import { AppError } from "@/lib/errors";
+import { sendOtpEmail } from "@/services/otp.service";
 import { logger } from "@/lib/logger";
-import { ValidationError, NotFoundError, UnauthorizedError } from "@/lib/errors";
-
-function enforceTenantAccess(req: Parameters<Router>[0], tenantId: string): void {
-  const user = (req as any).user;
-  if (req.headers["x-core-secret"]) return;
-  if (user?.tenantId && user.tenantId !== tenantId) {
-    throw new UnauthorizedError("You do not have access to this tenant");
-  }
-}
+import { env } from "@/config/env";
+import {
+  signupTenant,
+  verifyTenantOtp,
+  requestTenantLoginOtp,
+  verifyTenantLoginOtp,
+} from "@/services/tenant.service";
 
 export const tenantRoute = Router();
-tenantRoute.use("/api/v1/tenants", authMiddleware);
 
-tenantRoute.get("/api/v1/tenants/packages", (_req, res) => {
-  res.json({ packages: TOKEN_PACKAGES });
-});
-
-tenantRoute.get("/api/v1/tenants", async (_req, res, next) => {
+tenantRoute.post("/api/tenants/signup", async (req, res, next) => {
   try {
-    const tenants = await listTenants();
-    res.json({ tenants });
-  } catch (err) {
-    next(err);
-  }
-});
+    const { orgName, orgType, country, email, phone, orgSize, password } = req.body;
+    const result = await signupTenant({ orgName, orgType, country, email, phone, orgSize, password });
+    const sent = await sendOtpEmail(email, result.otp);
 
-tenantRoute.post("/api/v1/tenants", async (req, res, next) => {
-  try {
-    const { name, tier } = req.body;
-    if (!name || !tier) throw new ValidationError("name and tier are required");
-    if (!["growth", "enterprise", "b2c"].includes(tier)) throw new ValidationError("tier must be growth, enterprise, or b2c");
-    const tenant = await createTenant(name, tier);
-    res.status(201).json(tenant);
-  } catch (err) {
-    next(err);
-  }
-});
-
-tenantRoute.get("/api/v1/tenants/:tenantId", async (req, res, next) => {
-  try {
-    enforceTenantAccess(req, req.params.tenantId);
-    const tenant = await getTenantById(req.params.tenantId);
-    if (!tenant) throw new NotFoundError("Tenant not found");
-    res.json(tenant);
-  } catch (err) {
-    next(err);
-  }
-});
-
-tenantRoute.put("/api/v1/tenants/:tenantId", async (req, res, next) => {
-  try {
-    enforceTenantAccess(req, req.params.tenantId);
-    const { name, tier, whitelabelConfig } = req.body;
-    const updates: Record<string, unknown> = {};
-    if (name) updates.name = name;
-    if (tier) {
-      if (!["growth", "enterprise", "b2c"].includes(tier)) throw new ValidationError("tier must be growth, enterprise, or b2c");
-      updates.tier = tier;
+    if (env.nodeEnv === "development") {
+      logger.info(`[DEV OTP] tenant signup for ${email}: ${result.otp}`);
     }
-    if (whitelabelConfig) updates.whitelabelConfig = whitelabelConfig;
-    const tenant = await updateTenant(req.params.tenantId, updates);
-    res.json(tenant);
-  } catch (err) {
-    next(err);
-  }
-});
 
-tenantRoute.get("/api/v1/tenants/:tenantId/balance", async (req, res, next) => {
-  try {
-    enforceTenantAccess(req, req.params.tenantId);
-    const balance = await getTenantBalance(req.params.tenantId);
-    res.json(balance);
-  } catch (err) {
-    next(err);
-  }
-});
-
-tenantRoute.get("/api/v1/tenants/:tenantId/usage", async (req, res, next) => {
-  try {
-    enforceTenantAccess(req, req.params.tenantId);
-    const { startDate, endDate, days } = req.query;
-    if (days) {
-      const data = await getDailyTokenUsage(req.params.tenantId, Number(days));
-      res.json({ daily: data });
-    } else {
-      const data = await getTokenUsageByTenant(
-        req.params.tenantId,
-        startDate as string | undefined,
-        endDate as string | undefined,
-      );
-      res.json(data);
+    if (!sent) {
+      res.json({
+        message: result.message,
+        emailSent: false,
+      });
+      return;
     }
+
+    res.json({ message: result.message, emailSent: true });
   } catch (err) {
     next(err);
   }
 });
 
-tenantRoute.post("/api/v1/tenants/topup", async (req, res, next) => {
+tenantRoute.post("/api/tenants/verify-otp", async (req, res, next) => {
   try {
-    const { tenantId, packageId, email } = req.body;
-    if (!tenantId || !packageId || !email) throw new ValidationError("tenantId, packageId, and email are required");
-    enforceTenantAccess(req, tenantId);
-
-    const pkg = findPackageById(packageId);
-    if (!pkg) throw new ValidationError("Invalid package");
-
-    const result = await initializePayment(email, pkg.amountNgn, {
-      tenantId,
-      packageId,
-      tokens: pkg.tokens,
-      purpose: "token_topup",
-    });
-
+    const { email, otp } = req.body;
+    const result = await verifyTenantOtp({ email, otp });
     res.json({
-      authorizationUrl: result.authorizationUrl,
-      reference: result.reference,
-      package: pkg,
+      message: "Email verified successfully",
+      token: result.token,
+      tenant: result.tenant,
     });
   } catch (err) {
     next(err);
   }
 });
 
-tenantRoute.post("/api/v1/tenants/topup/verify", async (req, res, next) => {
+tenantRoute.post("/api/tenants/login", async (req, res, next) => {
   try {
-    const { reference } = req.body;
-    if (!reference) throw new ValidationError("reference is required");
+    const { email, password } = req.body;
+    const result = await requestTenantLoginOtp({ email, password });
+    const sent = await sendOtpEmail(email, result.otp);
 
-    const verification = await verifyPayment(reference);
-    if (verification.status !== "success") {
-      res.json({ status: "failed", message: "Payment was not successful" });
+    if (env.nodeEnv === "development") {
+      logger.info(`[DEV OTP] tenant login for ${email}: ${result.otp}`);
+    }
+
+    if (!sent) {
+      res.json({
+        message: "Credentials verified, but we couldn't send the OTP email.",
+        emailSent: false,
+      });
       return;
     }
 
-    const { tenantId, tokens } = verification.metadata as Record<string, unknown>;
-    if (!tenantId || !tokens) throw new ValidationError("Invalid payment metadata");
-
-    const newBalance = await addTokens(tenantId as string, tokens as number);
-    logger.info("tokens credited", { tenantId, tokens, newBalance, reference });
-    res.json({ status: "success", balance: newBalance, reference });
+    res.json({ message: result.message });
   } catch (err) {
     next(err);
   }
 });
 
-// ── API Keys ──────────────────────────────────────────────────────────
-
-tenantRoute.post("/api/v1/tenants/:tenantId/api-keys", async (req, res, next) => {
+tenantRoute.post("/api/tenants/verify-login-otp", async (req, res, next) => {
   try {
-    enforceTenantAccess(req, req.params.tenantId);
-    const { label, expiresInDays } = req.body;
-    if (!label) throw new ValidationError("label is required");
-    const result = await createApiKey(req.params.tenantId, label, expiresInDays);
-    res.status(201).json(result);
+    const { email, otp } = req.body;
+    const result = await verifyTenantLoginOtp({ email, otp });
+    res.json({
+      message: "Login successful",
+      token: result.token,
+      tenant: result.tenant,
+    });
   } catch (err) {
     next(err);
-  }
-});
-
-tenantRoute.get("/api/v1/tenants/:tenantId/api-keys", async (req, res, next) => {
-  try {
-    enforceTenantAccess(req, req.params.tenantId);
-    const keys = await listApiKeys(req.params.tenantId);
-    res.json({ keys });
-  } catch (err) {
-    next(err);
-  }
-});
-
-tenantRoute.delete("/api/v1/tenants/:tenantId/api-keys/:keyId", async (req, res, next) => {
-  try {
-    enforceTenantAccess(req, req.params.tenantId);
-    const ok = await revokeApiKey(req.params.tenantId, req.params.keyId);
-    if (!ok) throw new NotFoundError("API key not found");
-    res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
-});
-
-tenantRoute.post("/api/v1/paystack/webhook", async (req, res, next) => {
-  try {
-    const signature = req.headers["x-paystack-signature"] as string | undefined;
-    const body = JSON.stringify(req.body);
-    const crypto = await import("node:crypto");
-    const secret = process.env.PAYSTACK_SECRET_KEY || "";
-    const hash = crypto.createHmac("sha512", secret).update(body).digest("hex");
-
-    if (!signature || hash !== signature) {
-      res.status(401).json({ error: "Invalid signature" });
-      return;
-    }
-
-    const event = req.body;
-    if (event.event === "charge.success") {
-      const { metadata, reference, amount } = event.data;
-      if (metadata?.purpose === "token_topup" && metadata.tenantId && metadata.tokens) {
-        await addTokens(metadata.tenantId, metadata.tokens);
-        logger.info("webhook: tokens credited", {
-          tenantId: metadata.tenantId,
-          tokens: metadata.tokens,
-          reference,
-          amount,
-        });
-      }
-    }
-    res.status(200).json({ status: "ok" });
-  } catch (err) {
-    logger.error("webhook error", { error: (err as Error).message });
-    res.status(200).json({ status: "ok" });
   }
 });

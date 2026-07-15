@@ -163,3 +163,117 @@ export async function fetchTtsAudio(text: string): Promise<Blob> {
   if (!res.ok) throw new ApiError('TTS request failed', res.status)
   return res.blob()
 }
+
+export interface SessionEntry {
+  sessionId: string
+  activeNodeId?: string
+  verdict?: string
+  status: string
+  createdAt: string
+  updatedAt: string
+  messageCount: number
+  firstMessage?: string
+}
+
+export interface SessionsResponse {
+  sessions: SessionEntry[]
+  total: number
+}
+
+export function listSessions(params?: { status?: string; limit?: number; offset?: number }) {
+  const query = new URLSearchParams()
+  if (params?.status) query.set('status', params.status)
+  if (params?.limit) query.set('limit', String(params.limit))
+  if (params?.offset) query.set('offset', String(params.offset))
+  return request<SessionsResponse>(`/api/sessions?${query}`)
+}
+
+export function deleteUserSession(sessionId: string) {
+  return request<void>(`/api/sessions/${encodeURIComponent(sessionId)}`, {
+    method: 'DELETE',
+  })
+}
+
+export function getProfile() {
+  return request<{ profile: Record<string, unknown> }>('/api/users/me/profile')
+}
+
+export function changeUserPassword(currentPassword: string, newPassword: string) {
+  return request<{ message: string }>('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  })
+}
+
+export function deleteAccount() {
+  return request<{ message: string }>('/api/users/me', {
+    method: 'DELETE',
+  })
+}
+
+export function getAdminStats() {
+  return request<{
+    totalSessions: number
+    activeSessions: number
+    completedSessions: number
+    emergencySessions: number
+    totalUsers: number
+    totalProtocols: number
+    totalRules: number
+    verdictBreakdown: Record<string, number>
+    recentSessions: Array<{ sessionId: string; userId: string; verdict?: string; status: string; createdAt: string }>
+  }>('/api/admin/stats')
+}
+
+export interface Tenant {
+  id: string
+  name: string
+  tier: string
+  email: string
+  createdAt: string
+}
+
+export interface TenantAuthResponse {
+  message: string
+  token?: string
+  tenant?: Tenant
+  emailSent?: boolean
+}
+
+export interface TenantSignupPayload {
+  orgName: string
+  orgType: string
+  country: string
+  email: string
+  phone: string
+  orgSize: string
+  password: string
+}
+
+export function tenantSignup(payload: TenantSignupPayload) {
+  return request<TenantAuthResponse>('/api/tenants/signup', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function tenantVerifyOtp(email: string, otp: string) {
+  return request<TenantAuthResponse>('/api/tenants/verify-otp', {
+    method: 'POST',
+    body: JSON.stringify({ email, otp }),
+  })
+}
+
+export function tenantLogin(email: string, password: string) {
+  return request<TenantAuthResponse>('/api/tenants/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
+export function tenantVerifyLoginOtp(email: string, otp: string) {
+  return request<TenantAuthResponse>('/api/tenants/verify-login-otp', {
+    method: 'POST',
+    body: JSON.stringify({ email, otp }),
+  })
+}
