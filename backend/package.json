@@ -15,6 +15,7 @@
     "test-chat": "tsx scripts/test-chat.ts"
   },
   "dependencies": {
+    "@openrouter/ai-sdk-provider": "^3.0.0",
     "@vercel/connect": "^0.3.2",
     "ai": "^7.0.18",
     "bullmq": "^5.34.0",

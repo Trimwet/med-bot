@@ -1,5 +1,7 @@
 import { defineAgent } from "eve";
+import { openrouter } from "@openrouter/ai-sdk-provider";
 
 export default defineAgent({
-  model: "anthropic/claude-sonnet-5",
+  model: openrouter("deepseek/deepseek-v4-flash:free"),
+  modelContextWindowTokens: 128_000,
 });
