@@ -120,9 +120,9 @@ const REPORTS: HealthReport[] = [
 ]
 
 const URGENCY_STYLES: Record<Urgency, { dot: string; text: string; badge: string }> = {
-  Low: { dot: 'bg-green-500', text: 'text-green-700', badge: 'bg-green-50 text-green-700' },
-  Moderate: { dot: 'bg-yellow-500', text: 'text-yellow-700', badge: 'bg-yellow-50 text-yellow-700' },
-  High: { dot: 'bg-red-500', text: 'text-red-700', badge: 'bg-red-50 text-red-700' },
+  Low: { dot: 'bg-green-500', text: 'text-green-700', badge: 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400' },
+  Moderate: { dot: 'bg-yellow-500', text: 'text-yellow-700', badge: 'bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-400' },
+  High: { dot: 'bg-red-500', text: 'text-red-700 dark:text-red-400', badge: 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400' },
 }
 
 const ADVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -175,14 +175,14 @@ export const HealthReports = () => {
     <div className="flex-1 min-h-0 overflow-y-auto">
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full py-12">
-          <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
-            <FileText className="w-5 h-5 text-gray-400" />
+          <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+            <FileText className="w-5 h-5 text-gray-400 dark:text-gray-500" />
           </div>
-          <p className="text-sm font-medium text-gray-900 mb-1">No reports found</p>
-          <p className="text-xs text-gray-500">Try a different search term</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">No reports found</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Try a different search term</p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-gray-800">
           {filtered.map((report) => {
             const s = URGENCY_STYLES[report.urgency]
             const isActive = report.id === selectedId
@@ -191,23 +191,23 @@ export const HealthReports = () => {
                 key={report.id}
                 onClick={() => selectReport(report.id)}
                 className={`w-full text-left px-3 sm:px-6 py-4 transition-colors ${
-                  isActive ? 'bg-[#073B4C]/5' : 'hover:bg-gray-50'
+                  isActive ? 'bg-[#073B4C]/5 dark:bg-teal/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-medium text-gray-900 truncate">{report.date}</h3>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{report.date}</h3>
                   <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0 flex items-center gap-1 ${s.badge}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
                     {report.urgency}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 line-clamp-1 mb-1.5">{report.symptoms}</p>
-                <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-1.5">{report.symptoms}</p>
+                <div className="flex items-center gap-3 text-[11px] text-gray-400 dark:text-gray-500">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {report.time}
                   </span>
-                  <span className="text-gray-300">{report.reportId}</span>
+                  <span className="text-gray-300 dark:text-gray-600">{report.reportId}</span>
                 </div>
               </button>
             )
@@ -224,13 +224,13 @@ export const HealthReports = () => {
         <div className="flex items-start justify-between gap-3 mb-1">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <span className="text-sm font-semibold text-gray-900">{selected.date}</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{selected.date}</span>
               <span className={`flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${style.badge}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
                 {selected.urgency} Urgency
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs text-gray-400">
+            <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {selected.time}
@@ -243,7 +243,7 @@ export const HealthReports = () => {
         {/* Backlink to source assessment */}
         <button
           onClick={() => navigate('/dashboard/assessment-history')}
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#073B4C] transition-colors mb-6"
+          className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 hover:text-[#073B4C] transition-colors mb-6"
         >
           Generated from your assessment on {selected.date}
           <ChevronRight className="w-3 h-3" />
@@ -251,10 +251,10 @@ export const HealthReports = () => {
 
         {/* Symptoms */}
         <div className="mb-6">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Symptoms</p>
+          <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Symptoms</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
             {selected.symptomList.map((s) => (
-              <div key={s} className="flex items-center gap-2 text-sm text-gray-700">
+              <div key={s} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
                 <span className="w-1 h-1 rounded-full bg-gray-300 shrink-0" />
                 {s}
               </div>
@@ -264,21 +264,21 @@ export const HealthReports = () => {
 
         {/* Triage outcome */}
         <div className="mb-6">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Triage Outcome</p>
-          <p className="text-sm text-gray-600 leading-relaxed">{selected.triageOutcome}</p>
+          <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Triage Outcome</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{selected.triageOutcome}</p>
         </div>
 
         {/* Advice */}
         <div className="mb-6">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Advice</p>
+          <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Advice</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {selected.adviceItems.map((item) => {
               const Icon = ADVICE_ICONS[item.iconKey]
               if (!Icon) return null
               return (
-                <div key={item.text} className="flex items-center gap-2.5 px-3 py-2.5 bg-gray-50 rounded-lg">
+                <div key={item.text} className="flex items-center gap-2.5 px-3 py-2.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                   <Icon className="w-4 h-4 text-[#073B4C] shrink-0" />
-                  <span className="text-xs text-gray-700 leading-snug">{item.text}</span>
+                  <span className="text-xs text-gray-700 dark:text-gray-200 leading-snug">{item.text}</span>
                 </div>
               )
             })}
@@ -286,9 +286,9 @@ export const HealthReports = () => {
         </div>
 
         {/* Warning */}
-        <div className="flex items-start gap-2.5 p-3.5 bg-red-50 rounded-xl mb-6">
+        <div className="flex items-start gap-2.5 p-3.5 bg-red-50 dark:bg-red-950/30 rounded-xl mb-6">
           <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-          <p className="text-xs text-red-700 leading-relaxed">
+          <p className="text-xs text-red-700 dark:text-red-400 leading-relaxed">
             <span className="font-medium">Seek immediate medical attention if you experience: </span>
             {selected.warning}
           </p>
@@ -296,7 +296,7 @@ export const HealthReports = () => {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-2">
-          <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
             <Download className="w-4 h-4" />
             Download PDF
           </button>
@@ -310,44 +310,44 @@ export const HealthReports = () => {
   )
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white dark:bg-[#0a0c10]">
       {/* Header */}
-      <div className="h-14 flex items-center justify-between px-3 sm:px-6 border-b border-gray-100 shrink-0">
+      <div className="h-14 flex items-center justify-between px-3 sm:px-6 border-b border-gray-100 dark:border-gray-800 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           {mobileView === 'detail' && (
             <button
               onClick={() => setMobileView('list')}
-              className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors shrink-0 -ml-1"
+              className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0 -ml-1"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
           )}
-          <h1 className="text-sm font-semibold text-gray-900 truncate">Reports</h1>
-          <span className="text-xs text-gray-400 hidden sm:inline">({filtered.length})</span>
+          <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">Reports</h1>
+          <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">({filtered.length})</span>
         </div>
       </div>
 
       {/* Intro + Search */}
-      <div className={`px-3 sm:px-6 py-3 border-b border-gray-100 shrink-0 space-y-2.5 ${mobileView === 'detail' ? 'hidden lg:block' : ''}`}>
-        <p className="text-xs text-gray-500 hidden lg:block">
+      <div className={`px-3 sm:px-6 py-3 border-b border-gray-100 dark:border-gray-800 shrink-0 space-y-2.5 ${mobileView === 'detail' ? 'hidden lg:block' : ''}`}>
+        <p className="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">
           Finished write-ups from your completed assessments — symptoms, guidance, and warning signs
           you can download or share with a doctor.
         </p>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search reports..."
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C] transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C] transition-colors"
           />
         </div>
       </div>
 
       {/* Body: list + detail */}
       <div className="flex-1 min-h-0 flex overflow-hidden">
-        <div className={`w-full lg:w-80 lg:shrink-0 lg:border-r lg:border-gray-100 flex-col ${mobileView === 'list' ? 'flex' : 'hidden lg:flex'}`}>
+        <div className={`w-full lg:w-80 lg:shrink-0 lg:border-r lg:border-gray-100 dark:border-gray-800 flex-col ${mobileView === 'list' ? 'flex' : 'hidden lg:flex'}`}>
           {list}
         </div>
         <div className={`flex-1 min-w-0 flex-col ${mobileView === 'detail' ? 'flex' : 'hidden lg:flex'}`}>
@@ -355,11 +355,11 @@ export const HealthReports = () => {
             detail
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
-                <Stethoscope className="w-5 h-5 text-gray-400" />
+              <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+                <Stethoscope className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               </div>
-              <p className="text-sm font-medium text-gray-900 mb-1">Select a report</p>
-              <p className="text-xs text-gray-500">Choose a report from the list to view its details</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Select a report</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Choose a report from the list to view its details</p>
             </div>
           )}
         </div>

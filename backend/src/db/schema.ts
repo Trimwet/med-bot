@@ -201,3 +201,15 @@ export interface ClinicalResult {
   nextStep: string;
   guidanceText?: string;
 }
+
+export interface ApiKeyDocument {
+  _id?: ObjectId;
+  tenantId: string;
+  label: string;
+  keyPrefix: string;
+  keyHash: string;
+  lastUsedAt?: string;
+  expiresAt?: string;
+  isActive: boolean;
+  createdAt: string;
+}

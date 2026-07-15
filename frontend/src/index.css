@@ -42,6 +42,17 @@ h1, h2, h3, h4, h5, h6 {
   50% { transform: translateY(-14px) rotate(1.5deg) scale(1.01); }
 }
 
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  3% { transform: rotate(14deg); }
+  5% { transform: rotate(-8deg); }
+  7% { transform: rotate(14deg); }
+  9% { transform: rotate(-4deg); }
+  11% { transform: rotate(10deg); }
+  15% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
 @layer utilities {
   .gpu { transform: translateZ(0); }
 }
@@ -98,4 +109,9 @@ body {
 .hide-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+@keyframes orb-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
 }

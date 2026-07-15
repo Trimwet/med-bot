@@ -53,29 +53,29 @@ const testimonials = [
 ]
 
 const TestimonialCard = ({ testimonial, reverse = false }: { testimonial: typeof testimonials[0]; reverse?: boolean }) => (
-  <div className="w-[380px] shrink-0 p-7 rounded-lg bg-teal/5 backdrop-blur-sm border border-teal/10 hover:bg-teal/10 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden group">
-    <div className={`absolute top-4 ${reverse ? 'left-4 rotate-180' : 'right-4'}`}>
-      <Quote className="w-10 h-10 fill-teal/5 stroke-teal/10" />
+  <div className="w-[280px] sm:w-[380px] shrink-0 p-4 sm:p-7 rounded-lg bg-teal/5 backdrop-blur-sm border border-teal/10 hover:bg-teal/10 transition-all duration-300 flex flex-col gap-3 sm:gap-5 relative overflow-hidden group">
+    <div className={`absolute top-3 sm:top-4 ${reverse ? 'left-3 sm:left-4 rotate-180' : 'right-3 sm:right-4'}`}>
+      <Quote className="w-7 h-7 sm:w-10 sm:h-10 fill-teal/5 stroke-teal/10" />
     </div>
 
     <div className={`flex ${reverse ? 'justify-end' : ''}`}>
       {[...Array(testimonial.rating)].map((_, i) => (
-        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+        <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
       ))}
     </div>
 
-    <p className="text-[#9CA3AF] leading-relaxed text-pretty font-medium">
+    <p className="text-[#9CA3AF] leading-relaxed text-pretty font-medium text-xs sm:text-[15px] line-clamp-4 sm:line-clamp-none">
       {testimonial.text}
     </p>
 
-    <div className="flex items-center gap-4 mt-auto">
-      <div className="size-11 rounded-full bg-teal flex items-center justify-center text-white font-bold text-sm border border-teal/30">
+    <div className="flex items-center gap-3 sm:gap-4 mt-auto">
+      <div className="size-9 sm:size-11 rounded-full bg-teal flex items-center justify-center text-white font-bold text-xs sm:text-sm border border-teal/30">
         {testimonial.avatar}
       </div>
-      <div className="flex-1">
-        <p className="font-semibold text-white text-sm">{testimonial.name}</p>
-        <p className="text-xs text-[#9CA3AF]/80">{testimonial.role}</p>
-        <p className="text-xs text-[#9CA3AF]/60">{testimonial.company}</p>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-white text-xs sm:text-sm truncate">{testimonial.name}</p>
+        <p className="text-[10px] sm:text-xs text-[#9CA3AF]/80 truncate">{testimonial.role}</p>
+        <p className="text-[10px] sm:text-xs text-[#9CA3AF]/60 truncate">{testimonial.company}</p>
       </div>
     </div>
   </div>
@@ -85,23 +85,17 @@ export const MarqueeTestimonials = () => {
   const doubled = [...testimonials, ...testimonials]
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#0A202A] py-16">
+    <section className="relative w-full overflow-hidden bg-[#0A202A] py-10 sm:py-16">
       <style>{`
-        @keyframes marquee-left {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-        @keyframes marquee-right {
-          from { transform: translateX(-50%); }
-          to { transform: translateX(0); }
+        @keyframes marquee-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
         .marquee-row-left {
-          animation: marquee-left 40s linear infinite;
-          will-change: transform;
+          animation: marquee-scroll 40s linear infinite;
         }
         .marquee-row-right {
-          animation: marquee-right 45s linear infinite;
-          will-change: transform;
+          animation: marquee-scroll 45s linear infinite reverse;
         }
         .marquee-row-left:hover,
         .marquee-row-right:hover {
@@ -110,22 +104,22 @@ export const MarqueeTestimonials = () => {
       `}</style>
 
       {/* Header */}
-      <div className="max-w-7xl mx-auto px-6 mb-14 text-center">
-        <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 font-display">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-8 sm:mb-14 text-center">
+        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-white text-balance leading-none mb-2 sm:mb-4 font-display">
           Trusted by Clinicians
         </h2>
-        <p className="text-lg text-[#9CA3AF] max-w-2xl mx-auto">
+        <p className="text-sm sm:text-lg text-[#9CA3AF] max-w-2xl mx-auto">
           Hear from healthcare professionals using MedBot to transform patient intake
         </p>
       </div>
 
       {/* Gradient fades */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-linear-to-r from-[#0A202A] to-transparent z-10" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-linear-to-l from-[#0A202A] to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-linear-to-r from-[#0A202A] to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 bg-linear-to-l from-[#0A202A] to-transparent z-10" />
 
       {/* Row 1 - left to right */}
       <div className="overflow-hidden">
-        <div className="flex gap-5 px-6 w-max marquee-row-left">
+        <div className="flex gap-3 sm:gap-5 w-max marquee-row-left">
           {doubled.map((testimonial, i) => (
             <TestimonialCard key={i} testimonial={testimonial} />
           ))}
@@ -133,8 +127,8 @@ export const MarqueeTestimonials = () => {
       </div>
 
       {/* Row 2 - right to left */}
-      <div className="overflow-hidden mt-5">
-        <div className="flex gap-5 px-6 w-max marquee-row-right">
+      <div className="overflow-hidden mt-3 sm:mt-5">
+        <div className="flex gap-3 sm:gap-5 w-max marquee-row-right">
           {doubled.map((testimonial, i) => (
             <TestimonialCard key={`second-${i}`} testimonial={testimonial} reverse />
           ))}

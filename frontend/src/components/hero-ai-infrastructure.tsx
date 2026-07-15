@@ -31,7 +31,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             timelineRef={timelineRef}
             as="h1"
             animationNum={4}
-            className="text-4xl md:text-5xl font-semibold tracking-tight leading-[120%] max-w-2xl my-5 font-display"
+            className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[120%] max-w-2xl my-5 font-display"
           >
             Your AI Medical
             <br />
@@ -82,7 +82,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             <div className="absolute -inset-2 bg-paper rounded-3xl border border-line shadow-xl animate-[float-border_4s_ease-in-out_infinite_0.4s] will-change-transform"></div>
             <div className="relative overflow-hidden rounded-2xl border border-line shadow-2xl bg-white">
               <img
-                src="/hero-doctor.jpg"
+                src="/hero-doctor.png"
                 alt="Doctor consulting with patient"
                 loading="lazy"
                 decoding="async"

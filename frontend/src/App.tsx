@@ -23,10 +23,32 @@ import { BusinessSettings } from '@/components/business/business-settings'
 import { StaffManagement } from '@/components/business/staff-management'
 import { BusinessPayment } from '@/components/business/business-payment'
 import { ProtocolAdmin } from '@/components/admin/protocol-admin'
+import { AdminLogin } from '@/components/admin/admin-login'
+import { AdminLayout } from '@/components/admin/admin-layout'
+import { AdminOverview } from '@/components/admin/admin-overview'
+import { AdminTenants } from '@/components/admin/admin-tenants'
+import { AdminUsers } from '@/components/admin/admin-users'
+import { AdminAnalytics } from '@/components/admin/admin-analytics'
+import { AdminPartners } from '@/components/admin/admin-partners'
+import { AdminSettings } from '@/components/admin/admin-settings'
 
 function AppRoutes() {
   const navigate = useNavigate()
   const location = useLocation()
+
+  // Apply stored theme on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('medbot-theme') as 'light' | 'dark' | 'system' | null
+    const theme = stored || 'light'
+    const resolved = theme === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : theme
+    if (resolved === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(location.hash.slice(1))
@@ -149,6 +171,24 @@ function AppRoutes() {
         <Route path="staff" element={<StaffManagement />} />
         <Route path="payment" element={<BusinessPayment />} />
         <Route path="protocols" element={<ProtocolAdmin />} />
+      </Route>
+
+      {/* Super Admin Routes */}
+      <Route
+        path="/admin/login"
+        element={
+          <AdminLogin
+            onBack={() => navigate('/')}
+          />
+        }
+      />
+      <Route path="/admin/dashboard" element={<AdminLayout />}>
+        <Route index element={<AdminOverview />} />
+        <Route path="tenants" element={<AdminTenants />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="analytics" element={<AdminAnalytics />} />
+        <Route path="partners" element={<AdminPartners />} />
+        <Route path="settings" element={<AdminSettings />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

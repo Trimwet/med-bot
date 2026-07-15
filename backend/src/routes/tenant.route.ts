@@ -15,6 +15,11 @@ import {
   getDailyTokenUsage,
 } from "@/services/tokenLedger.service";
 import { initializePayment, verifyPayment } from "@/services/paystack.service";
+import {
+  createApiKey,
+  listApiKeys,
+  revokeApiKey,
+} from "@/services/apiKey.service";
 import { logger } from "@/lib/logger";
 import { ValidationError, NotFoundError, UnauthorizedError } from "@/lib/errors";
 
@@ -156,6 +161,41 @@ tenantRoute.post("/api/v1/tenants/topup/verify", async (req, res, next) => {
     const newBalance = await addTokens(tenantId as string, tokens as number);
     logger.info("tokens credited", { tenantId, tokens, newBalance, reference });
     res.json({ status: "success", balance: newBalance, reference });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── API Keys ──────────────────────────────────────────────────────────
+
+tenantRoute.post("/api/v1/tenants/:tenantId/api-keys", async (req, res, next) => {
+  try {
+    enforceTenantAccess(req, req.params.tenantId);
+    const { label, expiresInDays } = req.body;
+    if (!label) throw new ValidationError("label is required");
+    const result = await createApiKey(req.params.tenantId, label, expiresInDays);
+    res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+tenantRoute.get("/api/v1/tenants/:tenantId/api-keys", async (req, res, next) => {
+  try {
+    enforceTenantAccess(req, req.params.tenantId);
+    const keys = await listApiKeys(req.params.tenantId);
+    res.json({ keys });
+  } catch (err) {
+    next(err);
+  }
+});
+
+tenantRoute.delete("/api/v1/tenants/:tenantId/api-keys/:keyId", async (req, res, next) => {
+  try {
+    enforceTenantAccess(req, req.params.tenantId);
+    const ok = await revokeApiKey(req.params.tenantId, req.params.keyId);
+    if (!ok) throw new NotFoundError("API key not found");
+    res.status(204).send();
   } catch (err) {
     next(err);
   }

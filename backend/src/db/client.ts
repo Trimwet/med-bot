@@ -48,6 +48,7 @@ export const COLLECTIONS = {
   tokenLedger: "token_ledger",
   followupJobs: "followup_jobs",
   users: "users_collection",
+  apiKeys: "api_keys",
 } as const;
 
 export async function closeDb() {

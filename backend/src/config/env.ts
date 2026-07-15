@@ -26,6 +26,7 @@ const ENV_SPEC: EnvVar[] = [
   { key: "PAYSTACK_PUBLIC_KEY", required: false, default: "" },
   { key: "REDIS_URL", required: false, default: "" },
   { key: "ERROR_WEBHOOK_URL", required: false, default: "" },
+  { key: "FISH_AUDIO_API_KEY", required: false, default: "" },
 ];
 
 function parseDotEnv(content: string): Record<string, string> {
@@ -102,4 +103,5 @@ export const env = {
   paystackPublicKey: raw.PAYSTACK_PUBLIC_KEY,
   redisUrl: raw.REDIS_URL,
   errorWebhookUrl: raw.ERROR_WEBHOOK_URL,
+  fishAudioApiKey: raw.FISH_AUDIO_API_KEY,
 } as const;

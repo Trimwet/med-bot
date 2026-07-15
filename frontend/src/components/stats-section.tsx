@@ -1,16 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useInView } from 'motion/react'
 import NumberFlow from '@number-flow/react'
+import { prepareWithSegments, measureNaturalWidth } from '@chenglou/pretext'
 
 interface AnimatedStatProps {
   value: number
   suffix?: string
   decimals?: number
   label: string
+  labelWidth: number
+  valueWidth: number
   delay?: number
 }
 
-function AnimatedStat({ value, suffix = '', decimals = 0, label, delay = 0 }: AnimatedStatProps) {
+function AnimatedStat({ value, suffix = '', decimals = 0, label, labelWidth, valueWidth, delay = 0 }: AnimatedStatProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-50px' })
   const [target, setTarget] = useState(0)
@@ -23,7 +26,7 @@ function AnimatedStat({ value, suffix = '', decimals = 0, label, delay = 0 }: An
 
   return (
     <div ref={ref}>
-      <div className="text-3xl font-semibold mb-1 tracking-tighter flex items-baseline">
+      <div className="text-3xl font-semibold mb-1 tracking-tighter flex items-baseline" style={{ minWidth: valueWidth }}>
         <NumberFlow
           value={target}
           decimals={decimals}
@@ -31,7 +34,7 @@ function AnimatedStat({ value, suffix = '', decimals = 0, label, delay = 0 }: An
         />
         {suffix && <span>{suffix}</span>}
       </div>
-      <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-widest">
+      <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-widest" style={{ minWidth: labelWidth }}>
         {label}
       </div>
     </div>
@@ -48,6 +51,23 @@ const stats = [
 export const StatsSection = () => {
   const headerRef = useRef(null)
   const headerInView = useInView(headerRef, { once: true, margin: '-50px' })
+
+  const measurements = useMemo(() => {
+    try {
+      const statValues = stats.map(s => `${s.value}${s.suffix}`)
+      const fullLabels = stats.map(s => s.label)
+      const valueWidths = statValues.map(t => Math.ceil(measureNaturalWidth(prepareWithSegments(t, '600 30px Inter, sans-serif')) + 4))
+      const labelWidths = fullLabels.map(t => Math.ceil(measureNaturalWidth(prepareWithSegments(t, '500 12px Inter, sans-serif'))))
+      return {
+        valueWidths,
+        labelWidths,
+        maxValueWidth: Math.max(...valueWidths),
+        maxLabelWidth: Math.max(...labelWidths),
+      }
+    } catch {
+      return { valueWidths: stats.map(() => 0), labelWidths: stats.map(() => 0), maxValueWidth: 0, maxLabelWidth: 0 }
+    }
+  }, [])
 
   return (
     <section className="pb-16 px-6 bg-[#0A202A] text-white relative overflow-hidden">
@@ -70,6 +90,8 @@ export const StatsSection = () => {
                   suffix={stat.suffix}
                   decimals={stat.decimals}
                   label={stat.label}
+                  labelWidth={measurements.maxLabelWidth}
+                  valueWidth={measurements.maxValueWidth}
                   delay={i * 150}
                 />
               ))}

@@ -72,9 +72,9 @@ const ASSESSMENTS: Assessment[] = [
 ]
 
 const URGENCY_STYLES: Record<Urgency, { dot: string; badge: string }> = {
-  Low: { dot: 'bg-green-500', badge: 'bg-green-50 text-green-700' },
-  Moderate: { dot: 'bg-yellow-500', badge: 'bg-yellow-50 text-yellow-700' },
-  High: { dot: 'bg-red-500', badge: 'bg-red-50 text-red-700' },
+  Low: { dot: 'bg-green-500', badge: 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400' },
+  Moderate: { dot: 'bg-yellow-500', badge: 'bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-400' },
+  High: { dot: 'bg-red-500', badge: 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400' },
 }
 
 const FILTERS = ['All', 'Ongoing', 'Completed'] as const
@@ -98,12 +98,12 @@ export const AssessmentHistory = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white dark:bg-[#0a0c10]">
       {/* Header */}
-      <div className="h-14 flex items-center justify-between px-3 sm:px-6 border-b border-gray-100 shrink-0">
+      <div className="h-14 flex items-center justify-between px-3 sm:px-6 border-b border-gray-100 dark:border-gray-800 shrink-0">
         <div className="flex items-center gap-2">
-          <h1 className="text-sm font-semibold text-gray-900">Chat Assessments</h1>
-          <span className="text-xs text-gray-400">({filtered.length})</span>
+          <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Chat Assessments</h1>
+          <span className="text-xs text-gray-400 dark:text-gray-500">({filtered.length})</span>
         </div>
         <button
           onClick={() => navigate('/dashboard')}
@@ -115,8 +115,8 @@ export const AssessmentHistory = () => {
       </div>
 
       {/* Intro line + Filters */}
-      <div className="px-3 sm:px-6 py-3 border-b border-gray-100 shrink-0 space-y-2.5">
-        <p className="text-xs text-gray-500">
+      <div className="px-3 sm:px-6 py-3 border-b border-gray-100 dark:border-gray-800 shrink-0 space-y-2.5">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Every chat you've had with MedBot, including ones still in progress. Once a session
           finishes, its full write-up appears in{' '}
           <button
@@ -133,7 +133,7 @@ export const AssessmentHistory = () => {
               key={f}
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${
-                filter === f ? 'bg-[#073B4C] text-white' : 'text-gray-500 hover:bg-gray-100'
+                filter === f ? 'bg-[#073B4C] text-white' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
               {f}
@@ -146,30 +146,30 @@ export const AssessmentHistory = () => {
       <div className="flex-1 min-h-0 overflow-y-auto">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-12">
-            <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
-              <FileText className="w-5 h-5 text-gray-400" />
+            <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+              <FileText className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             </div>
-            <p className="text-sm font-medium text-gray-900 mb-1">No assessments found</p>
-            <p className="text-xs text-gray-500">Try a different filter or start a new assessment</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">No assessments found</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Try a different filter or start a new assessment</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {filtered.map((assessment) => {
               const style = assessment.urgency ? URGENCY_STYLES[assessment.urgency] : null
               return (
                 <div
                   key={assessment.id}
                   onClick={() => openAssessment(assessment)}
-                  className="group px-3 sm:px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="group px-3 sm:px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-medium text-gray-900 truncate">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                           {assessment.symptoms}
                         </h3>
                         {assessment.status === 'ongoing' ? (
-                          <span className="px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0 flex items-center gap-1 bg-blue-50 text-blue-700">
+                          <span className="px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0 flex items-center gap-1 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                             Ongoing
                           </span>
@@ -182,7 +182,7 @@ export const AssessmentHistory = () => {
                           )
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                      <div className="flex items-center gap-3 text-[11px] text-gray-400 dark:text-gray-500">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {assessment.date}
@@ -191,23 +191,23 @@ export const AssessmentHistory = () => {
                           <Clock className="w-3 h-3" />
                           {assessment.time}
                         </span>
-                        {assessment.reportId && <span className="text-gray-300">{assessment.reportId}</span>}
+                        {assessment.reportId && <span className="text-gray-300 dark:text-gray-600">{assessment.reportId}</span>}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0">
                       {assessment.status === 'ongoing' ? (
-                        <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#073B4C] border border-[#073B4C]/30 rounded-lg hover:bg-[#073B4C]/5 transition-colors opacity-0 group-hover:opacity-100">
+                        <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#073B4C] border border-[#073B4C]/30 rounded-lg hover:bg-[#073B4C]/5 dark:text-teal dark:border-teal/30 dark:hover:bg-teal/10 transition-colors opacity-0 group-hover:opacity-100">
                           <MessageSquare className="w-3.5 h-3.5" />
                           Continue
                         </button>
                       ) : (
-                        <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-white hover:border-gray-300 transition-colors opacity-0 group-hover:opacity-100">
+                        <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-white hover:border-gray-300 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-800 dark:hover:border-gray-600 transition-colors opacity-0 group-hover:opacity-100">
                           <FileText className="w-3.5 h-3.5" />
                           View Report
                         </button>
                       )}
-                      <ChevronRight className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </div>
                 </div>
@@ -217,7 +217,7 @@ export const AssessmentHistory = () => {
         )}
 
         {filtered.length > 0 && (
-          <div className="flex items-center justify-center gap-1.5 py-6 text-xs text-gray-400">
+          <div className="flex items-center justify-center gap-1.5 py-6 text-xs text-gray-400 dark:text-gray-500">
             <AlertCircle className="w-3.5 h-3.5" />
             No more assessments to load
           </div>

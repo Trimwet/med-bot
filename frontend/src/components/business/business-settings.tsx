@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Building2,
   Lock,
@@ -12,6 +12,13 @@ import {
   Mail,
   MapPin,
   AlertTriangle,
+  Key,
+  Plus,
+  Eye,
+  EyeOff,
+  Copy,
+  Trash2,
+  Check,
 } from 'lucide-react'
 
 type NavItem = {
@@ -25,6 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'staff', label: 'Staff & roles', icon: Users },
+  { id: 'api-keys', label: 'API Keys', icon: Key },
   { id: 'logout', label: 'Logout', icon: LogOut },
 ]
 
@@ -265,11 +273,236 @@ function LogoutSection() {
   )
 }
 
+const API_BASE = 'https://medbot-backend-5rgh.onrender.com'
+
+const businessFetch = async (path: string, options?: RequestInit) => {
+  const token = localStorage.getItem('token')
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options?.headers || {}),
+    },
+  })
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  if (res.status === 204) return null
+  return res.json()
+}
+
+interface ApiKeyRecord {
+  _id: string
+  label: string
+  keyPrefix: string
+  isActive: boolean
+  expiresAt: string | null
+  lastUsedAt: string | null
+  createdAt: string
+}
+
+function ApiKeysSection() {
+  const [keys, setKeys] = useState<ApiKeyRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [newKey, setNewKey] = useState<{ rawKey: string; label: string } | null>(null)
+  const [showRaw, setShowRaw] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [label, setLabel] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [tenantId, setTenantId] = useState<string | null>(null)
+  const [noTenant, setNoTenant] = useState(false)
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('token')
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        if (payload.tenantId) {
+          setTenantId(payload.tenantId)
+        } else {
+          setNoTenant(true)
+          setLoading(false)
+        }
+      } else {
+        setLoading(false)
+      }
+    } catch {
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchKeys = useCallback(async () => {
+    if (!tenantId) return
+    try {
+      const data = await businessFetch(`/api/v1/tenants/${tenantId}/api-keys`)
+      setKeys(data.keys || [])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }, [tenantId])
+
+  useEffect(() => {
+    if (tenantId) fetchKeys()
+  }, [tenantId, fetchKeys])
+
+  const handleCreate = async () => {
+    if (!label.trim() || !tenantId) return
+    setCreating(true)
+    try {
+      const data = await businessFetch(`/api/v1/tenants/${tenantId}/api-keys`, {
+        method: 'POST',
+        body: JSON.stringify({ label: label.trim() }),
+      })
+      setNewKey({ rawKey: data.rawKey, label: label.trim() })
+      setLabel('')
+      await fetchKeys()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const handleRevoke = async (keyId: string) => {
+    if (!tenantId) return
+    try {
+      await businessFetch(`/api/v1/tenants/${tenantId}/api-keys/${keyId}`, { method: 'DELETE' })
+      setKeys((prev) => prev.filter((k) => k._id !== keyId))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (noTenant) {
+    return (
+      <div className="space-y-6 max-w-xl">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">API Keys</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Manage API keys for programmatic access to MedBot</p>
+        </div>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+          <Key className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+          <p className="text-sm font-medium text-gray-600">No tenant linked to your account</p>
+          <p className="text-xs text-gray-400 mt-1">Contact an administrator to link your account to a hospital tenant.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="animate-pulse space-y-4">
+        <div className="h-6 w-32 bg-gray-100 rounded-lg" />
+        <div className="h-20 bg-gray-100 rounded-xl" />
+        <div className="h-40 bg-gray-100 rounded-xl" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6 max-w-xl">
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">API Keys</h2>
+        <p className="text-sm text-gray-500 mt-0.5">Manage API keys for programmatic access to MedBot</p>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Create API Key</h3>
+        <div className="flex gap-3">
+          <input
+            type="text"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="e.g. Production Integration"
+            className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#073B4C]/30"
+          />
+          <button
+            onClick={handleCreate}
+            disabled={!label.trim() || creating}
+            className="px-4 py-2 bg-[#073B4C] hover:bg-[#054A5E] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {creating ? 'Creating...' : 'Create'}
+          </button>
+        </div>
+      </div>
+
+      {newKey && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 space-y-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-yellow-800">Key created — copy it now</p>
+              <p className="text-xs text-yellow-700 mt-0.5">You won't be able to see it again. Store it securely.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 bg-white border border-yellow-300 rounded-lg px-3 py-2">
+            <code className="flex-1 text-xs font-mono text-gray-900 break-all">
+              {showRaw ? newKey.rawKey : `${newKey.rawKey.slice(0, 12)}••••••••`}
+            </code>
+            <button onClick={() => setShowRaw(!showRaw)} className="text-gray-400 hover:text-gray-600">
+              {showRaw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+            <button onClick={() => handleCopy(newKey.rawKey)} className="text-gray-400 hover:text-gray-600">
+              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
+          <button onClick={() => setNewKey(null)} className="text-xs text-yellow-700 hover:text-yellow-800 font-medium">
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {keys.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-8">No API keys created yet</p>
+        ) : (
+          keys.map((key) => (
+            <div key={key._id} className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900">{key.label}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <code className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-0.5 rounded">
+                    {key.keyPrefix}...
+                  </code>
+                  <span className="text-xs text-gray-400">
+                    Created {new Date(key.createdAt).toLocaleDateString()}
+                  </span>
+                  {key.lastUsedAt && (
+                    <span className="text-xs text-gray-400">
+                      Last used {new Date(key.lastUsedAt).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => handleRevoke(key._id)}
+                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="Revoke key"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
 const SECTIONS: Record<string, React.ComponentType> = {
   profile: ProfileSection,
   notifications: NotificationsSection,
   security: SecuritySection,
   staff: StaffSection,
+  'api-keys': ApiKeysSection,
   logout: LogoutSection,
 }
 

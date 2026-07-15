@@ -135,3 +135,17 @@ export function sendChatMessage(sessionId: string, message: string) {
     body: JSON.stringify({ sessionId, message }),
   })
 }
+
+export async function fetchTtsAudio(text: string): Promise<Blob> {
+  const token = localStorage.getItem('token')
+  const res = await fetch(`${API_URL}/api/voice/tts`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ text, format: 'mp3' }),
+  })
+  if (!res.ok) throw new ApiError('TTS request failed', res.status)
+  return res.blob()
+}

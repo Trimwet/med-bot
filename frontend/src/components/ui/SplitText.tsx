@@ -20,6 +20,7 @@ interface SplitTextProps {
   textAlign?: string
   tag?: string
   onLetterAnimationComplete?: () => void
+  onStart?: () => void
 }
 
 const SplitText = ({
@@ -35,16 +36,19 @@ const SplitText = ({
   rootMargin = '-100px',
   textAlign = 'center',
   tag = 'p',
-  onLetterAnimationComplete
+  onLetterAnimationComplete,
+  onStart
 }: SplitTextProps) => {
   const ref = useRef<HTMLElement>(null)
   const animationCompletedRef = useRef(false)
   const onCompleteRef = useRef(onLetterAnimationComplete)
+  const onStartRef = useRef(onStart)
   const [fontsLoaded, setFontsLoaded] = useState(false)
 
   useEffect(() => {
     onCompleteRef.current = onLetterAnimationComplete
-  }, [onLetterAnimationComplete])
+    onStartRef.current = onStart
+  }, [onLetterAnimationComplete, onStart])
 
   useEffect(() => {
     if (document.fonts.status === 'loaded') {
@@ -109,6 +113,7 @@ const SplitText = ({
               duration,
               ease,
               stagger: delay / 1000,
+              onStart: () => onStartRef.current?.(),
               scrollTrigger: {
                 trigger: el,
                 start,

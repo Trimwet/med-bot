@@ -134,3 +134,66 @@ adminRoute.get("/api/admin/stats", async (_req, res, next) => {
     next(err);
   }
 });
+
+// ── Users List ──────────────────────────────────────────────────────
+
+adminRoute.get("/api/admin/users", async (_req, res, next) => {
+  try {
+    const db = await getDb();
+    const users = await db
+      .collection(COLLECTIONS.users)
+      .find({}, { projection: { password: 0, otp: 0, otpExpires: 0 } })
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .toArray();
+    res.json({ users });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Daily Analytics for Charts ─────────────────────────────────────
+
+adminRoute.get("/api/admin/analytics/daily", async (_req, res, next) => {
+  try {
+    const db = await getDb();
+    const days = 30;
+    const since = new Date(Date.now() - days * 86400000).toISOString();
+
+    const [sessionGrowth, userGrowth] = await Promise.all([
+      db
+        .collection(COLLECTIONS.sessions)
+        .aggregate([
+          { $match: { createdAt: { $gte: since } } },
+          {
+            $group: {
+              _id: { $dateTrunc: { date: { $dateFromString: { dateString: "$createdAt" } }, unit: "day" } },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray(),
+      db
+        .collection(COLLECTIONS.users)
+        .aggregate([
+          { $match: { createdAt: { $gte: since } } },
+          {
+            $group: {
+              _id: { $dateTrunc: { date: { $dateFromString: { dateString: "$createdAt" } }, unit: "day" } },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray(),
+    ]);
+
+    res.json({
+      sessionGrowth: sessionGrowth.map((d) => ({ date: d._id, count: d.count })),
+      userGrowth: userGrowth.map((d) => ({ date: d._id, count: d.count })),
+    });
+  } catch (err) {
+    next(err);
+  }
+});

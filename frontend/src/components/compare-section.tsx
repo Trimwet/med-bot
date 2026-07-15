@@ -102,19 +102,6 @@ export const CompareSection = () => {
   return (
     <section className="py-24 px-6 bg-paper-soft relative">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <span className="inline-flex px-4 py-1.5 text-xs font-semibold border border-teal/40 rounded-full text-teal uppercase tracking-[0.2em] bg-teal/10 mb-6">
-            Compare Plans
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-ink mb-4 font-display">
-            See what's included
-          </h2>
-          <p className="text-lg text-muted max-w-2xl mx-auto">
-            Every plan includes the essentials. Upgrade for advanced features.
-          </p>
-        </div>
-
         {/* Table */}
         <div className="bg-white rounded-xl border border-line shadow-sm overflow-x-auto">
           <div className="min-w-[600px]">

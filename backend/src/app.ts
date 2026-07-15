@@ -9,6 +9,7 @@ import { consentRoute } from "@/routes/consent.route";
 import { adminRoute } from "@/routes/admin.route";
 import { tenantRoute } from "@/routes/tenant.route";
 import { analyticsRoute } from "@/routes/analytics.route";
+import voiceRoute from "@/routes/voice.route";
 import { toErrorResponse } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { env } from "@/config/env";
@@ -35,6 +36,7 @@ app.use(consentRoute);
 app.use(adminRoute);
 app.use(tenantRoute);
 app.use(analyticsRoute);
+app.use("/api/voice", voiceRoute);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const { status, body } = toErrorResponse(err);
