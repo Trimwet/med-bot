@@ -31,9 +31,10 @@ interface BusinessSidebarProps {
   onClose: () => void
   collapsed: boolean
   onCollapsedChange: (collapsed: boolean) => void
+  onLogout: () => void
 }
 
-export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange }: BusinessSidebarProps) => {
+export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange, onLogout }: BusinessSidebarProps) => {
 
   return (
     <>
@@ -116,7 +117,7 @@ export const BusinessSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange 
             {!collapsed && 'Support'}
           </NavLink>
           <button
-            onClick={onClose}
+            onClick={onLogout}
             title={collapsed ? 'Logout' : undefined}
             className={`flex items-center gap-3 rounded-lg text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors w-full ${
               collapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-3 py-2.5'

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Building2,
   Lock,
@@ -263,7 +264,12 @@ function LogoutSection() {
           <div>
             <p className="text-sm font-medium text-gray-900">Sign out</p>
             <p className="text-xs text-gray-500 mt-0.5">You will be redirected to the login page. Any unsaved changes will be lost.</p>
-            <button className="mt-3 px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-100 transition-colors">
+            <button
+              onClick={() => {
+                localStorage.removeItem('token')
+                window.location.href = '/'
+              }}
+              className="mt-3 px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-100 transition-colors">
               Sign out
             </button>
           </div>
@@ -513,6 +519,12 @@ const SECTION_TITLES: Record<string, string> = Object.fromEntries(
 export const BusinessSettings = () => {
   const [activeNav, setActiveNav] = useState('profile')
   const [mobileView, setMobileView] = useState<'nav' | 'detail'>('nav')
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    navigate('/')
+  }
 
   const selectNav = (id: string) => {
     setActiveNav(id)

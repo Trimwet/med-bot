@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { DarkModeProvider } from '@/components/business/dark-mode-context'
 import { BusinessSidebar } from '@/components/business/business-sidebar'
 import { BusinessNavbar } from '@/components/business/business-navbar'
@@ -7,6 +7,12 @@ import { BusinessNavbar } from '@/components/business/business-navbar'
 export const BusinessDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    navigate('/')
+  }
 
   return (
     <DarkModeProvider>
@@ -17,6 +23,7 @@ export const BusinessDashboardLayout = () => {
             onClose={() => setSidebarOpen(false)}
             collapsed={collapsed}
             onCollapsedChange={setCollapsed}
+            onLogout={handleLogout}
           />
           <div className={`flex-1 transition-all duration-300 ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-64'}`}>
             <BusinessNavbar onMenuClick={() => setSidebarOpen(true)} />

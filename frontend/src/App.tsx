@@ -144,7 +144,10 @@ function AppRoutes() {
           <BusinessLogin
             onBack={() => navigate('/')}
             onSignup={() => navigate('/business/signup')}
-            onLoginSuccess={() => navigate('/business/dashboard')}
+            onLoginSuccess={(token) => {
+              localStorage.setItem('token', token)
+              navigate('/business/dashboard')
+            }}
             onForgotPassword={() => navigate('/forgot-password')}
           />
         }
@@ -155,7 +158,10 @@ function AppRoutes() {
           <BusinessSignup
             onBack={() => navigate('/')}
             onLogin={() => navigate('/business/login')}
-            onSignupSuccess={() => navigate('/business/login')}
+            onSignupSuccess={(token) => {
+              localStorage.setItem('token', token)
+              navigate('/business/dashboard')
+            }}
           />
         }
       />

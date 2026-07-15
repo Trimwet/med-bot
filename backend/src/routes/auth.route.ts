@@ -1,9 +1,12 @@
 import { Router } from "express";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { ObjectId } from "mongodb";
 import { env } from "@/config/env";
 import { AppError } from "@/lib/errors";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import { logger } from "@/lib/logger";
+import { getDb, COLLECTIONS } from "@/db/client";
+import type { TenantDocument, UserDocument } from "@/db/schema";
 import {
   getAuthenticatedUser,
   requestLoginOtp,
@@ -188,8 +191,9 @@ authRoute.get("/api/auth/me", authMiddleware, async (req, res, next) => {
   }
 });
 
-authRoute.get("/api/auth/google", (_req, res) => {
+authRoute.get("/api/auth/google", (req, res) => {
   const redirectUri = env.googleCallbackUrl;
+  const from = typeof req.query.from === "string" ? req.query.from : "";
   const state = randomBytes(32).toString("base64url");
   const cookieValue = `${state}.${signOAuthState(state)}`;
   res.cookie("oauth_state", cookieValue, {
@@ -199,6 +203,15 @@ authRoute.get("/api/auth/google", (_req, res) => {
     maxAge: 10 * 60 * 1000,
     path: "/api/auth/google/callback",
   });
+  if (from) {
+    res.cookie("oauth_from", from, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: env.isProduction,
+      maxAge: 10 * 60 * 1000,
+      path: "/api/auth/google/callback",
+    });
+  }
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", env.googleClientId);
   authUrl.searchParams.set("redirect_uri", redirectUri);
@@ -269,7 +282,38 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
 
     const token = signJwtToken(user._id!);
     const hasProfile = user.profile && Object.keys(user.profile).length > 0;
-    res.redirect(`${env.clientUrl}/${hasProfile ? "dashboard" : "health-profile"}#token=${encodeURIComponent(token)}`);
+
+    const fromParam = getCookie(req, "oauth_from") || "";
+    res.clearCookie("oauth_state", { path: "/api/auth/google/callback" });
+    res.clearCookie("oauth_from", { path: "/api/auth/google/callback" });
+
+    // For new B2B Google signups, auto-create a tenant
+    if (fromParam === "business" && !user.tenantId) {
+      const now = new Date().toISOString();
+      const db = await getDb();
+      const tenantDoc: TenantDocument = {
+        name: user.name || "My Organization",
+        tier: "growth",
+        tokenBalance: 1000000,
+        subscriptionStartDate: now,
+        subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        whitelabelConfig: {},
+        createdAt: now,
+      };
+      const tenantResult = await db.collection<TenantDocument>(COLLECTIONS.tenants).insertOne(tenantDoc);
+      const tenantId = tenantResult.insertedId.toString();
+      await db.collection<UserDocument>(COLLECTIONS.users).updateOne(
+        { _id: new ObjectId(user._id) },
+        { $set: { tenantId, role: "admin", updatedAt: now } }
+      );
+      (user as any).tenantId = tenantId;
+    }
+
+    if (fromParam === "business" || (user as any).tenantId) {
+      res.redirect(`${env.clientUrl}/business/dashboard#token=${encodeURIComponent(token)}`);
+    } else {
+      res.redirect(`${env.clientUrl}/${hasProfile ? "dashboard" : "health-profile"}#token=${encodeURIComponent(token)}`);
+    }
   } catch {
     res.redirect(`${env.clientUrl}/login?error=google_auth_failed`);
   }
