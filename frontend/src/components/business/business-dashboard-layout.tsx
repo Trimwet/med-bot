@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom'
 import { DarkModeProvider } from '@/components/business/dark-mode-context'
 import { BusinessSidebar } from '@/components/business/business-sidebar'
 import { BusinessNavbar } from '@/components/business/business-navbar'
-import { BusinessFooter } from '@/components/business/business-footer'
 
 export const BusinessDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -25,9 +24,6 @@ export const BusinessDashboardLayout = () => {
               <Outlet />
             </main>
           </div>
-        </div>
-        <div className={`transition-all duration-300 ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-64'}`}>
-          <BusinessFooter />
         </div>
       </div>
     </DarkModeProvider>
