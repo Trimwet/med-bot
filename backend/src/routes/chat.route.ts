@@ -33,7 +33,7 @@ const GREETING_PATTERNS = [
   /^(help|start|menu|options|what can you do|who are you|what are you)[\s!.?]*$/i,
 ];
 
-const GREETING_REPLY = "Hello! I'm Eve, your medical triage assistant. I can help you assess symptoms and guide you on the right level of care.\n\nTo get started, please describe what symptoms you're experiencing, and I'll walk you through some questions to help determine next steps.";
+const GREETING_REPLY = "Hello! I'm MedBot, your medical triage assistant. I can help you assess symptoms and guide you on the right level of care.\n\nTo get started, please describe what symptoms you're experiencing, and I'll walk you through some questions to help determine next steps.";
 
 const FAILURE_REPLY =
   "I'm sorry, I'm having trouble reaching my medical guidance service right now. If your symptoms are urgent, please go to the nearest hospital or call 112.";
@@ -91,7 +91,7 @@ async function phraseResponse(
   protocolNode: { title: string; content: string },
   patientMessage: string,
 ): Promise<{ text: string; usage: { promptTokens: number; completionTokens: number } | null }> {
-  const prompt = `You are Eve, a calm, professional medical triage assistant serving Nigerian patients. You speak in plain language, no jargon, no emojis.
+  const prompt = `You are MedBot, a calm, professional medical triage assistant serving Nigerian patients. You speak in plain language, no jargon, no emojis.
 
 You have received a clinical verdict that you must relay to the patient. You CANNOT change, soften, or override this verdict.
 
