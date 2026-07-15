@@ -9,6 +9,7 @@ import {
   MoreVertical,
   RefreshCw,
 } from 'lucide-react'
+import { DateDropdown } from '@/components/ui/date-dropdown'
 import {
   BarChart,
   Bar,
@@ -108,7 +109,6 @@ const weeklyTrendData = [
 ]
 
 export const BusinessDashboardHome = () => {
-  const [dateRange] = useState('May 14 - May 20, 2026')
   const theme = useChartTheme()
 
   return (
@@ -122,12 +122,7 @@ export const BusinessDashboardHome = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-[#1e2028] rounded-lg text-sm font-medium text-gray-700 dark:text-[#a0a4ad] hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors">
-            <Calendar className="w-4 h-4" />
-            <span className="hidden sm:inline">{dateRange}</span>
-            <span className="sm:hidden">May 14 - 20</span>
-            ▾
-          </button>
+          <DateDropdown />
           <button className="flex items-center gap-2 px-4 py-2.5 bg-[#073B4C] text-white rounded-lg text-sm font-semibold hover:bg-[#0A202A] transition-colors">
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export Data</span>

@@ -1,4 +1,5 @@
-import { Calendar, Download, Printer, ClipboardList, AlertTriangle, UserCog, Users, AlertCircle } from 'lucide-react'
+import { Download, Printer, ClipboardList, AlertTriangle, UserCog, Users, AlertCircle } from 'lucide-react'
+import { DateDropdown } from '@/components/ui/date-dropdown'
 
 const weeklyStats = [
   { label: 'Total Assessments', value: '1,245', change: '+12%', icon: ClipboardList, iconColor: 'text-[#073B4C] dark:text-[#00A8A8]' },
@@ -46,10 +47,7 @@ export const BusinessReports = () => {
             Generate and download reports for analysis and record keeping.
           </p>
         </div>
-        <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-[#1e2028] rounded-lg text-xs text-gray-600 dark:text-[#6b7080] hover:bg-gray-50 dark:hover:bg-[#1a1d25]">
-          <Calendar className="w-3.5 h-3.5" />
-          May 1 - May 31, 2026 ▾
-        </button>
+        <DateDropdown />
       </div>
 
       {/* Weekly Report */}
