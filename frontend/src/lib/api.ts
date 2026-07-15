@@ -100,6 +100,20 @@ export function resendLoginOtp(email: string) {
   })
 }
 
+export function forgotPassword(email: string) {
+  return request<{ message: string; emailSent?: boolean }>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export function resetPassword(email: string, otp: string, newPassword: string) {
+  return request<{ message: string }>('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ email, otp, newPassword }),
+  })
+}
+
 export function getGoogleAuthUrl() {
   return `${API_URL}/api/auth/google`
 }
