@@ -170,42 +170,6 @@ const SessionUsage = ({ stats }: { stats: UsageStats }) => {
   )
 }
 
-const ThinkingDisplay = ({ visibleThinking }: { visibleThinking: string }) => {
-  return (
-    <div className="w-full">
-      {THINKING_STEPS.map((step, si) => {
-        const textLower = visibleThinking.toLowerCase()
-        const isComplete = textLower.includes(step.keyword)
-        const isPending = si > 0 && !THINKING_STEPS.slice(0, si).some(s => textLower.includes(s.keyword))
-        const status: 'complete' | 'active' | 'pending' = isComplete ? 'complete' : isPending ? 'pending' : 'active'
-        const Icon = step.icon
-
-        return (
-          <div key={si} className={`flex gap-2 text-sm ${
-            status === 'active' ? 'text-gray-800 dark:text-gray-100' : status === 'complete' ? 'text-gray-500 dark:text-gray-400' : 'text-gray-300 dark:text-gray-600'
-          }`}>
-            <div className="relative mt-0.5">
-              <Icon className={`w-4 h-4 ${status === 'active' ? 'animate-pulse' : ''}`} />
-              {si < THINKING_STEPS.length - 1 && (
-                <div className="absolute top-6 bottom-0 left-1/2 -mx-px w-px bg-gray-200 dark:bg-gray-700" />
-              )}
-            </div>
-            <div className="flex-1 pb-4">
-              <div className="text-xs font-medium">{step.label}</div>
-              {status === 'active' && (
-                <div className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed whitespace-pre-wrap mt-1">
-                  {visibleThinking}
-                  <span className="inline-block w-1.5 h-3.5 bg-gray-400 dark:bg-gray-500 ml-0.5 align-text-bottom animate-pulse" />
-                </div>
-              )}
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 const ReasoningDisplay = ({ reasoning }: { reasoning: string }) => {
   const steps = reasoning.split('\n\n').filter(Boolean)
 
@@ -641,13 +605,19 @@ export const CustomerDashboardHome = () => {
 
               {/* Live thinking */}
               {phase === 'thinking' && (
-                <div className="flex flex-col items-start w-full">
-                  <div className="w-full pl-1">
-                    <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 mb-3">
-                      <Brain className="w-3.5 h-3.5 animate-pulse" />
-                      <span className="font-medium">Thinking…</span>
+                <div className="flex items-start gap-2 w-full">
+                  <div className="w-7 h-7 rounded-full bg-[#073B4C] flex items-center justify-center shrink-0">
+                    <Brain className="w-3.5 h-3.5 text-white animate-pulse" />
+                  </div>
+                  <div className="bg-gray-100 dark:bg-[#1a1d25] rounded-2xl rounded-tl-sm px-4 py-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                      <span>Thinking</span>
+                      <span className="flex gap-0.5">
+                        <span className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </span>
                     </div>
-                    <ThinkingDisplay visibleThinking={visibleThinking} />
                   </div>
                 </div>
               )}
