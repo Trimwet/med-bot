@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Mail, Calendar, CheckCircle, XCircle } from 'lucide-react'
+import { Mail, CheckCircle, XCircle, Search, UserCheck, UserX, Users, MoreVertical } from 'lucide-react'
 import { adminApi } from './admin-api'
 
 interface UserData {
@@ -12,9 +12,23 @@ interface UserData {
   updatedAt?: string
 }
 
+type Filter = 'all' | 'verified' | 'unverified'
+
+const initials = (name?: string, email?: string) => {
+  if (name?.trim()) {
+    const parts = name.trim().split(' ')
+    return parts.length > 1
+      ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+      : parts[0].slice(0, 2).toUpperCase()
+  }
+  return (email || '??').slice(0, 2).toUpperCase()
+}
+
 export const AdminUsers = () => {
   const [users, setUsers] = useState<UserData[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<Filter>('all')
 
   useEffect(() => {
     adminApi.getUsers()
@@ -23,10 +37,28 @@ export const AdminUsers = () => {
       .finally(() => setLoading(false))
   }, [])
 
+  const filtered = users.filter((u) => {
+    const matchSearch =
+      !search ||
+      (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase())
+    const matchFilter =
+      filter === 'all' ||
+      (filter === 'verified' && u.isVerified) ||
+      (filter === 'unverified' && !u.isVerified)
+    return matchSearch && matchFilter
+  })
+
+  const verifiedCount = users.filter((u) => u.isVerified).length
+  const unverifiedCount = users.length - verifiedCount
+
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-10 w-48 bg-gray-100 dark:bg-[#1a1d25] rounded-lg" />
+      <div className="space-y-6 animate-pulse">
+        <div className="h-8 w-36 bg-gray-100 dark:bg-[#1a1d25] rounded-lg" />
+        <div className="grid grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-gray-100 dark:bg-[#1a1d25] rounded-xl" />)}
+        </div>
         <div className="h-64 bg-gray-100 dark:bg-[#1a1d25] rounded-xl" />
       </div>
     )
@@ -34,62 +66,152 @@ export const AdminUsers = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-[#e8eaed]">Users</h1>
-        <p className="text-sm text-gray-500 dark:text-[#6b7080] mt-0.5">{users.length} registered users</p>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">Users</h1>
+          <p className="text-sm text-gray-500 dark:text-[#6b7080] mt-1">{users.length} registered accounts</p>
+        </div>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: 'Total Users', value: users.length, icon: Users, color: '#073B4C' },
+          { label: 'Verified', value: verifiedCount, icon: UserCheck, color: '#22C55E' },
+          { label: 'Pending Verification', value: unverifiedCount, icon: UserX, color: '#F59E0B' },
+        ].map((item) => {
+          const Icon = item.icon
+          return (
+            <div key={item.label} className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-5 flex items-center gap-4 transition-colors">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${item.color}15` }}>
+                <Icon className="w-4 h-4" style={{ color: item.color }} />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed] tabular-nums tracking-tight">{item.value}</p>
+                <p className="text-xs text-gray-500 dark:text-[#6b7080]">{item.label}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#525666]" />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-lg text-sm text-gray-900 dark:text-[#cdd0d5] placeholder-gray-400 dark:placeholder-[#525666] focus:outline-none focus:ring-2 focus:ring-[#073B4C]/30 transition-colors"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-[#1a1d25] rounded-lg p-1">
+          {(['all', 'verified', 'unverified'] as Filter[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${
+                filter === f
+                  ? 'bg-[#073B4C] text-white shadow-sm'
+                  : 'text-gray-500 dark:text-[#6b7080] hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
       <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 dark:border-[#1e2028] bg-gray-50 dark:bg-[#1a1d25]">
-                <th className="text-left px-5 py-3 font-semibold text-gray-700 dark:text-[#a0a4ad]">Name</th>
-                <th className="text-left px-5 py-3 font-semibold text-gray-700 dark:text-[#a0a4ad]">Email</th>
-                <th className="text-center px-5 py-3 font-semibold text-gray-700 dark:text-[#a0a4ad]">Verified</th>
-                <th className="text-left px-5 py-3 font-semibold text-gray-700 dark:text-[#a0a4ad]">Tenant ID</th>
-                <th className="text-right px-5 py-3 font-semibold text-gray-700 dark:text-[#a0a4ad]">Joined</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">User</th>
+                <th className="text-center px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Status</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide hidden md:table-cell">Tenant</th>
+                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Joined</th>
+                <th className="px-3 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-[#1e2028]">
-              {users.map((u) => (
-                <tr key={u._id} className="hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors">
-                  <td className="px-5 py-4">
-                    <span className="font-medium text-gray-900 dark:text-[#e8eaed]">
-                      {u.name || 'Unnamed'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-[#a0a4ad]">
-                      <Mail className="w-3.5 h-3.5" />
-                      <span>{u.email}</span>
+              {filtered.map((u) => (
+                <tr key={u._id} className="hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors group">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#073B4C]/10 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-semibold text-[#073B4C]">{initials(u.name, u.email)}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900 dark:text-[#e8eaed] truncate">{u.name || 'Unnamed User'}</p>
+                        <p className="text-xs text-gray-400 dark:text-[#525666] flex items-center gap-1 truncate">
+                          <Mail className="w-3 h-3 shrink-0" />
+                          {u.email}
+                        </p>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-center">
+                  <td className="px-5 py-3.5 text-center">
                     {u.isVerified ? (
-                      <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        <CheckCircle className="w-3 h-3" />
+                        Verified
+                      </span>
                     ) : (
-                      <XCircle className="w-4 h-4 text-gray-300 dark:text-[#525666] mx-auto" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                        <XCircle className="w-3 h-3" />
+                        Pending
+                      </span>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-gray-500 dark:text-[#6b7080] font-mono text-xs">
-                    {u.tenantId ? `${u.tenantId.slice(0, 16)}...` : '-'}
+                  <td className="px-5 py-3.5 hidden md:table-cell">
+                    {u.tenantId ? (
+                      <code className="text-xs font-mono text-gray-400 dark:text-[#525666] bg-gray-50 dark:bg-[#1a1d25] px-2 py-0.5 rounded">
+                        {u.tenantId.slice(0, 14)}…
+                      </code>
+                    ) : (
+                      <span className="text-xs text-gray-300 dark:text-[#2a2d35]">—</span>
+                    )}
                   </td>
-                  <td className="px-5 py-4 text-right text-gray-400 dark:text-[#525666] tabular-nums">
-                    {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}
+                  <td className="px-5 py-3.5 text-right text-xs text-gray-400 dark:text-[#525666] tabular-nums">
+                    {u.createdAt
+                      ? new Date(u.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' })
+                      : '-'}
+                  </td>
+                  <td className="px-3 py-3.5">
+                    <button className="p-1.5 text-gray-300 dark:text-[#525666] hover:text-gray-500 dark:hover:text-[#a0a4ad] hover:bg-gray-100 dark:hover:bg-[#1e2028] rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
                   </td>
                 </tr>
               ))}
-              {users.length === 0 && (
+              {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center text-sm text-gray-400 dark:text-[#525666]">
-                    No users found
+                  <td colSpan={5} className="px-5 py-16 text-center">
+                    <Users className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
+                    <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
+                      {search ? `No users matching "${search}"` : 'No users found'}
+                    </p>
+                    {search && (
+                      <button onClick={() => setSearch('')} className="mt-2 text-xs text-[#073B4C] dark:text-[#00A8A8] hover:underline">
+                        Clear search
+                      </button>
+                    )}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+        {filtered.length > 0 && (
+          <div className="px-5 py-3 border-t border-gray-100 dark:border-[#1e2028]">
+            <p className="text-xs text-gray-400 dark:text-[#525666]">Showing {filtered.length} of {users.length} users</p>
+          </div>
+        )}
       </div>
     </div>
   )

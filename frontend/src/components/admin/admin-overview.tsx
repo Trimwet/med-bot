@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import {
   Activity,
   Users,
-  FileText,
   AlertTriangle,
   Clock,
   CheckCircle,
@@ -12,6 +11,7 @@ import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
+  MoreVertical,
 } from 'lucide-react'
 import {
   BarChart,
@@ -51,13 +51,18 @@ const VERDICT_COLORS: Record<string, string> = {
   self_care: '#22C55E',
   consult: '#F59E0B',
   emergency: '#EF4444',
-  self_care: '#073B4C',
 }
 
 const VERDICT_LABELS: Record<string, string> = {
   self_care: 'Self Care',
   consult: 'Consult',
   emergency: 'Emergency',
+}
+
+const VERDICT_BADGE: Record<string, string> = {
+  emergency: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  consult: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  self_care: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
 }
 
 export const AdminOverview = () => {
@@ -101,55 +106,25 @@ export const AdminOverview = () => {
   }
 
   const kpis = [
-    {
-      label: 'Total Sessions',
-      value: stats?.totalSessions ?? 0,
-      icon: Activity,
-      color: '#073B4C',
-      trend: '+12%',
-      up: true,
-    },
-    {
-      label: 'Active Now',
-      value: stats?.activeSessions ?? 0,
-      icon: Clock,
-      color: '#00A8A8',
-      trend: '+5%',
-      up: true,
-    },
-    {
-      label: 'Total Users',
-      value: stats?.totalUsers ?? 0,
-      icon: Users,
-      color: '#6366F1',
-      trend: '+8%',
-      up: true,
-    },
-    {
-      label: 'Emergency Cases',
-      value: stats?.emergencySessions ?? 0,
-      icon: AlertTriangle,
-      color: '#EF4444',
-      trend: '-3%',
-      up: false,
-    },
+    { label: 'Total Sessions', value: stats?.totalSessions ?? 0, icon: Activity, color: '#073B4C', trend: '+12%', up: true },
+    { label: 'Active Now', value: stats?.activeSessions ?? 0, icon: Clock, color: '#00A8A8', trend: '+5%', up: true },
+    { label: 'Total Users', value: stats?.totalUsers ?? 0, icon: Users, color: '#6366F1', trend: '+8%', up: true },
+    { label: 'Emergency Cases', value: stats?.emergencySessions ?? 0, icon: AlertTriangle, color: '#EF4444', trend: '-3%', up: false },
   ]
 
-  const verdictEntries = stats?.verdictBreakdown
-    ? Object.entries(stats.verdictBreakdown)
-    : []
+  const verdictEntries = stats?.verdictBreakdown ? Object.entries(stats.verdictBreakdown) : []
   const maxVerdict = Math.max(...verdictEntries.map(([, v]) => v), 1)
+  const totalVerdicts = verdictEntries.reduce((s, [, v]) => s + v, 0)
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#e8eaed] tracking-tight">Admin Overview</h1>
-          <p className="text-sm text-gray-500 dark:text-[#6b7080] mt-1">Platform-wide metrics and activity</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#e8eaed] tracking-tight">Overview</h1>
+          <p className="text-sm text-gray-500 dark:text-[#6b7080] mt-1">Platform-wide metrics and live activity</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Time Range Selector */}
           <div className="flex items-center bg-gray-100 dark:bg-[#1a1d25] rounded-lg p-1">
             {TIME_RANGES.map((range) => (
               <button
@@ -182,16 +157,11 @@ export const AdminOverview = () => {
               className="group bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-5 transition-all hover:dark:border-white/[0.1]"
             >
               <div className="flex items-center justify-between mb-4">
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${kpi.color}15` }}
-                >
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${kpi.color}15` }}>
                   <Icon className="w-4 h-4" style={{ color: kpi.color }} />
                 </div>
                 <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  kpi.up
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                  kpi.up ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                 }`}>
                   {kpi.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                   {kpi.trend}
@@ -219,10 +189,7 @@ export const AdminOverview = () => {
               key={item.label}
               className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4 flex items-center gap-4 transition-all hover:dark:border-white/[0.1]"
             >
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                style={{ backgroundColor: `${item.color}15` }}
-              >
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${item.color}15` }}>
                 <Icon className="w-4 h-4" style={{ color: item.color }} />
               </div>
               <div>
@@ -238,13 +205,15 @@ export const AdminOverview = () => {
 
       {/* Charts Row */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Session Growth */}
         <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Session Growth</h3>
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Session Growth</h3>
+              <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Daily volume over last 30 days</p>
+            </div>
             <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-[#525666]">
               <RefreshCw className="w-3 h-3" />
-              Last 30 days
+              Live
             </div>
           </div>
           <div className="h-44">
@@ -257,51 +226,31 @@ export const AdminOverview = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke={theme.grid.stroke} strokeDasharray={theme.grid.strokeDasharray} />
-                <XAxis
-                  dataKey="date"
-                  tick={theme.axis}
-                  tickFormatter={(v) => {
-                    const d = new Date(v)
-                    return `${d.getMonth() + 1}/${d.getDate()}`
-                  }}
-                />
+                <XAxis dataKey="date" tick={theme.axis} tickFormatter={(v) => { const d = new Date(v); return `${d.getMonth() + 1}/${d.getDate()}` }} />
                 <YAxis tick={theme.axis} allowDecimals={false} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: theme.cursor }} />
-                <Area
-                  type="monotone"
-                  dataKey="count"
-                  stroke={theme.areaStroke}
-                  fill="url(#adminSessionGrad)"
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ fill: theme.activeDotFill, stroke: theme.activeDotStroke, strokeWidth: 2, r: 4 }}
-                />
+                <Area type="monotone" dataKey="count" stroke={theme.areaStroke} fill="url(#adminSessionGrad)" strokeWidth={2.5} dot={false} activeDot={{ fill: theme.activeDotFill, stroke: theme.activeDotStroke, strokeWidth: 2, r: 4 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* User Growth */}
         <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">User Growth</h3>
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">User Growth</h3>
+              <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">New registrations per day</p>
+            </div>
             <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-[#525666]">
               <RefreshCw className="w-3 h-3" />
-              Last 30 days
+              Live
             </div>
           </div>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyUsers} barCategoryGap="20%" barGap={4}>
                 <CartesianGrid stroke={theme.grid.stroke} strokeDasharray={theme.grid.strokeDasharray} />
-                <XAxis
-                  dataKey="date"
-                  tick={theme.axis}
-                  tickFormatter={(v) => {
-                    const d = new Date(v)
-                    return `${d.getMonth() + 1}/${d.getDate()}`
-                  }}
-                />
+                <XAxis dataKey="date" tick={theme.axis} tickFormatter={(v) => { const d = new Date(v); return `${d.getMonth() + 1}/${d.getDate()}` }} />
                 <YAxis tick={theme.axis} allowDecimals={false} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: theme.cursor }} />
                 <Bar dataKey="count" fill={theme.bar} radius={[4, 4, 0, 0]} maxBarSize={36} />
@@ -311,90 +260,96 @@ export const AdminOverview = () => {
         </div>
       </div>
 
-      {/* Bottom Row: Verdict Breakdown + Recent Sessions */}
+      {/* Bottom Row */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Verdict Breakdown */}
         <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Verdict Breakdown</h3>
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Verdict Breakdown</h3>
+              <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">{totalVerdicts} total decisions</p>
+            </div>
           </div>
           <div className="space-y-4">
             {verdictEntries.map(([verdict, count]) => {
-              const percent = Math.round((count / maxVerdict) * 100)
+              const pct = totalVerdicts > 0 ? Math.round((count / totalVerdicts) * 100) : 0
+              const barPct = Math.round((count / maxVerdict) * 100)
               const color = VERDICT_COLORS[verdict] || '#6366F1'
               return (
                 <div key={verdict}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">
-                      {VERDICT_LABELS[verdict] || verdict}
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed] tabular-nums">
-                      {count}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                      <span className="text-sm font-medium text-gray-700 dark:text-[#a0a4ad]">{VERDICT_LABELS[verdict] || verdict}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 dark:text-[#525666]">{pct}%</span>
+                      <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed] tabular-nums w-8 text-right">{count}</span>
+                    </div>
                   </div>
                   <div className="w-full h-1.5 bg-gray-100 dark:bg-[#1a1d25] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${percent}%`, backgroundColor: color }}
-                    />
+                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${barPct}%`, backgroundColor: color }} />
                   </div>
                 </div>
               )
             })}
             {verdictEntries.length === 0 && (
-              <p className="text-sm text-gray-400 dark:text-[#525666] text-center py-6">No verdict data</p>
+              <div className="py-8 text-center">
+                <Activity className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-2" />
+                <p className="text-sm text-gray-400 dark:text-[#525666]">No verdict data yet</p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Recent Sessions */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Recent Sessions</h3>
-            <button className="text-xs font-medium text-[#073B4C] dark:text-[#00A8A8] hover:underline">
-              View all
-            </button>
+        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-[#1e2028]">
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Recent Sessions</h3>
+              <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Latest triage activity</p>
+            </div>
+            <button className="text-xs font-medium text-[#073B4C] dark:text-[#00A8A8] hover:underline">View all</button>
           </div>
-          <div className="space-y-1">
+
+          <div className="hidden sm:grid grid-cols-[1fr_auto_auto] gap-4 px-5 py-2.5 border-b border-gray-100 dark:border-[#1e2028] text-[10px] font-semibold text-gray-400 dark:text-[#525666] uppercase tracking-wider">
+            <span>Session ID</span>
+            <span className="text-right">Verdict</span>
+            <span></span>
+          </div>
+
+          <div className="divide-y divide-gray-100 dark:divide-[#1e2028]">
             {stats?.recentSessions?.slice(0, 6).map((s) => (
-              <div
-                key={s.sessionId}
-                className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-[#e8eaed] truncate">
-                    {s.sessionId.slice(0, 12)}...
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-[#525666]">
-                    {new Date(s.createdAt).toLocaleDateString()}
+              <div key={s.sessionId} className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2 sm:gap-4 px-5 py-3.5 items-center hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors group">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-[#e8eaed] font-mono truncate">{s.sessionId.slice(0, 16)}…</p>
+                  <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">
+                    {new Date(s.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short' })}
+                    {' · '}
+                    {new Date(s.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                      s.verdict === 'emergency'
-                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                        : s.verdict === 'consult'
-                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                        : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                    }`}
-                  >
-                    {s.verdict || 'pending'}
-                  </span>
-                </div>
+                <span className={`text-[10px] px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${VERDICT_BADGE[s.verdict] || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                  {VERDICT_LABELS[s.verdict] || s.verdict || 'pending'}
+                </span>
+                <button className="p-1 text-gray-300 dark:text-[#525666] hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
               </div>
             ))}
             {(!stats?.recentSessions || stats.recentSessions.length === 0) && (
-              <p className="text-sm text-gray-400 dark:text-[#525666] text-center py-6">No recent sessions</p>
+              <div className="px-5 py-12 text-center">
+                <Clock className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-2" />
+                <p className="text-sm text-gray-400 dark:text-[#525666]">No sessions recorded yet</p>
+              </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Footer status */}
-      <div className="flex items-center justify-center gap-1.5 py-2 text-xs text-gray-400 dark:text-[#525666]">
-        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-        Live — auto-refreshing
+          <div className="flex items-center justify-center gap-1.5 px-5 py-3 border-t border-gray-100 dark:border-[#1e2028] text-xs text-gray-400 dark:text-[#525666]">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            Live — auto-refreshing
+          </div>
+        </div>
       </div>
     </div>
   )

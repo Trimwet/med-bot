@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   User,
   Lock,
@@ -334,6 +335,7 @@ const SECTIONS: Record<string, React.ComponentType> = {
 export const CustomerSettings = () => {
   const [activeNav, setActiveNav] = useState('profile')
   const [mobileView, setMobileView] = useState<'nav' | 'detail'>('nav')
+  const navigate = useNavigate()
 
   const selectNav = (id: string) => {
     setActiveNav(id)
@@ -344,6 +346,13 @@ export const CustomerSettings = () => {
 
   const sidebar = (
     <div className="py-4 px-3">
+      <button
+        onClick={() => navigate('/dashboard')}
+        className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 px-3 transition-colors"
+      >
+        <ChevronRight className="w-4 h-4 rotate-180" />
+        Back to Dashboard
+      </button>
       <p className="px-3 mb-3 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Settings</p>
       <nav className="space-y-0.5">
         {NAV_ITEMS.map((item) => {
@@ -373,7 +382,14 @@ export const CustomerSettings = () => {
       {mobileView === 'nav' && (
         <>
           <div className="h-14 flex items-center px-4 border-b border-gray-100 dark:border-gray-800 shrink-0 md:hidden">
-            <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Settings</h1>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            >
+              <ChevronRight className="w-4 h-4 rotate-180" />
+              Back
+            </button>
+            <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100 ml-3">Settings</h1>
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto md:hidden">
             {sidebar}
