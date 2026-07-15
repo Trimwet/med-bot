@@ -1,6 +1,15 @@
-import { Calendar, Users, ClipboardList, AlertTriangle, FileText, Download } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Calendar, Users, ClipboardList, AlertTriangle, FileText, Download, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TrendBadge } from '@/components/business/kpi-cards'
+
+const datePresets = [
+  { label: 'Today', start: new Date(2026, 4, 20), end: new Date(2026, 4, 20) },
+  { label: 'Last 7 Days', start: new Date(2026, 4, 14), end: new Date(2026, 4, 20) },
+  { label: 'This Month', start: new Date(2026, 4, 1), end: new Date(2026, 4, 20) },
+  { label: 'Last Month', start: new Date(2026, 3, 1), end: new Date(2026, 3, 30) },
+  { label: 'Last 30 Days', start: new Date(2026, 3, 21), end: new Date(2026, 4, 20) },
+]
 
 const stats = [
   { label: 'Total Patients', value: '2,456', change: '+12%', trend: 'up' as const, icon: Users, subtitle: '168 new patients' },
@@ -33,6 +42,21 @@ const cardStyle = cn(
 const sectionTitle = 'text-sm font-semibold tracking-tight text-gray-900 dark:text-white'
 
 export const PatientInsights = () => {
+  const [dateRange, setDateRange] = useState({ start: new Date(2026, 4, 1), end: new Date(2026, 4, 20) })
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showDatePicker) return
+    const handler = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowDatePicker(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showDatePicker])
+
+  const formatDate = (d: Date) => `${d.toLocaleString('en-US', { month: 'short' })} ${d.getDate()}`
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -43,10 +67,38 @@ export const PatientInsights = () => {
             Understand patient health patterns and risk factors across the clinical network.
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] px-3 py-2 text-xs font-medium text-gray-600 dark:text-[#6b7080] transition-colors hover:border-gray-300 dark:hover:border-[#2a2d35]">
-          <Calendar className="h-3.5 w-3.5" />
-          May 14 - May 20, 2026 ▾
-        </button>
+        <div className="relative" ref={pickerRef}>
+          <button
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] px-3 py-2 text-xs font-medium text-gray-600 dark:text-[#6b7080] transition-colors hover:border-gray-300 dark:hover:border-[#2a2d35]"
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            {formatDate(dateRange.start)} - {formatDate(dateRange.end)}, {dateRange.end.getFullYear()} ▾
+          </button>
+          {showDatePicker && (
+            <div className="absolute right-0 top-full mt-1 w-56 rounded-xl border border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] shadow-lg z-50 overflow-hidden">
+              <div className="p-2 space-y-0.5">
+                {datePresets.map((preset) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => {
+                      setDateRange({ start: preset.start, end: preset.end })
+                      setShowDatePicker(false)
+                    }}
+                    className={cn(
+                      'w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors',
+                      dateRange.start.getTime() === preset.start.getTime() && dateRange.end.getTime() === preset.end.getTime()
+                        ? 'bg-[#073B4C] text-white'
+                        : 'text-gray-600 dark:text-[#a1a1aa] hover:bg-gray-100 dark:hover:bg-[#1a1d25]'
+                    )}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stat Cards */}
