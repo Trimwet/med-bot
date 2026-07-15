@@ -27,6 +27,7 @@ const ENV_SPEC: EnvVar[] = [
   { key: "REDIS_URL", required: false, default: "" },
   { key: "ERROR_WEBHOOK_URL", required: false, default: "" },
   { key: "FISH_AUDIO_API_KEY", required: false, default: "" },
+  { key: "OPENROUTER_API_KEY", required: false, default: "" },
 ];
 
 function parseDotEnv(content: string): Record<string, string> {
@@ -104,4 +105,5 @@ export const env = {
   redisUrl: raw.REDIS_URL,
   errorWebhookUrl: raw.ERROR_WEBHOOK_URL,
   fishAudioApiKey: raw.FISH_AUDIO_API_KEY,
+  openrouterApiKey: raw.OPENROUTER_API_KEY,
 } as const;
