@@ -27,6 +27,14 @@ const EMERGENCY_PATTERNS = [
 const EMERGENCY_REPLY =
   "Your symptoms may need urgent attention. Please call 112 in Nigeria now or go to the nearest emergency department. Do not rely on this chat for emergency care.";
 
+const GREETING_PATTERNS = [
+  /^(hi|hello|hey|good morning|good afternoon|good evening|howdy|sup|yo|hiya|what's up|wassup|greetings)[\s!.?]*$/i,
+  /^(thank|thanks|thank you|okay|ok|alright|got it|noted|understood|bye|goodbye|see you|take care|cheers)[\s!.?]*$/i,
+  /^(help|start|menu|options|what can you do|who are you|what are you)[\s!.?]*$/i,
+];
+
+const GREETING_REPLY = "Hello! I'm Eve, your medical triage assistant. I can help you assess symptoms and guide you on the right level of care.\n\nTo get started, please describe what symptoms you're experiencing, and I'll walk you through some questions to help determine next steps.";
+
 const FAILURE_REPLY =
   "I'm sorry, I'm having trouble reaching my medical guidance service right now. If your symptoms are urgent, please go to the nearest hospital or call 112.";
 
@@ -150,6 +158,15 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       });
       await updateSessionGraphState(sessionId, userId, { verdict: "emergency", status: "closed" });
       res.json({ reply: EMERGENCY_REPLY, saved: true, urgency: "emergency" });
+      return;
+    }
+
+    // ── Greetings / Acknowledgements (skip triage pipeline) ──────
+    if (GREETING_PATTERNS.some((p) => p.test(message.trim()))) {
+      await appendMessage(sessionId, userId, {
+        role: "assistant", content: GREETING_REPLY, timestamp: new Date().toISOString(),
+      });
+      res.json({ reply: GREETING_REPLY, saved: true });
       return;
     }
 
