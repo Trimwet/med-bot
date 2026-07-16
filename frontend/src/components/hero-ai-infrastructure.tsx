@@ -56,7 +56,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
               as="a"
               animationNum={6}
               href="#contact"
-              className="cursor-pointer bg-[#007A7A] text-white px-6 py-3 rounded-sm font-semibold flex items-center gap-2 hover:bg-[#005F5F] transition font-display"
+              className="cursor-pointer bg-teal text-white px-6 py-3 rounded-sm font-semibold flex items-center gap-2 hover:bg-teal/80 transition font-display"
             >
               Start Symptom Check <ArrowRight size={18} />
             </TimelineAnimation>

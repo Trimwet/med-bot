@@ -53,6 +53,8 @@ interface CustomerSidebarProps {
 export const CustomerSidebar = ({ isOpen, onClose }: CustomerSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false)
   const [historySearch, setHistorySearch] = useState('')
+  const [searchExpanded, setSearchExpanded] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const filteredHistory = assessmentHistory
     .map((group) => ({
@@ -146,6 +148,68 @@ export const CustomerSidebar = ({ isOpen, onClose }: CustomerSidebarProps) => {
             </NavLink>
           ))}
         </nav>
+
+        {/* Quick Actions - Search */}
+        <div className={`shrink-0 mt-3 ${collapsed ? 'px-2' : 'px-3'}`}>
+          <div className={`border-t border-line ${collapsed ? 'pt-2' : 'pt-3 pb-1'}`}>
+            {!collapsed && !searchExpanded && (
+              <button
+                onClick={() => setSearchExpanded(true)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-ink hover:bg-ink/5 transition-colors duration-150 w-full"
+              >
+                <Search className="w-[18px] h-[18px] shrink-0" />
+                Search
+              </button>
+            )}
+
+            {!collapsed && searchExpanded && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-ink/5 rounded-xl transition-all duration-300">
+                <Search className="w-[18px] h-[18px] shrink-0 text-muted" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onBlur={() => {
+                    if (!searchQuery) setSearchExpanded(false)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setSearchQuery('')
+                      setSearchExpanded(false)
+                    }
+                  }}
+                  placeholder="Search assessments..."
+                  className="flex-1 bg-transparent text-sm text-ink placeholder-muted/60 outline-none"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('')
+                      setSearchExpanded(false)
+                    }}
+                    className="text-muted hover:text-ink transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {collapsed && (
+              <button
+                onClick={() => {
+                  setCollapsed(false)
+                  setTimeout(() => setSearchExpanded(true), 100)
+                }}
+                title="Search"
+                className="flex items-center justify-center w-10 h-10 mx-auto rounded-xl text-muted hover:text-ink hover:bg-ink/5 transition-colors duration-150"
+              >
+                <Search className="w-[18px] h-[18px]" />
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Assessment History (only when expanded) */}
         {!collapsed && (

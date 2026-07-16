@@ -28,9 +28,9 @@ const EMERGENCY_REPLY =
   "Your symptoms may need urgent attention. Please call 112 in Nigeria now or go to the nearest emergency department. Do not rely on this chat for emergency care.";
 
 const GREETING_PATTERNS = [
-  /^(hi|hello|hey|good morning|good afternoon|good evening|howdy|sup|yo|hiya|what's up|wassup|greetings)[\s!.?]*$/i,
+  /^(hi|hello|hey|ey|yo|hiya|howdy|sup|wassup|what'?s up|greetings|good morning|good afternoon|good evening)[\s!.?]*$/i,
   /^(thank|thanks|thank you|okay|ok|alright|got it|noted|understood|bye|goodbye|see you|take care|cheers)[\s!.?]*$/i,
-  /^(help|start|menu|options|what can you do|who are you|what are you)[\s!.?]*$/i,
+  /^(help|start|menu|options|what can you (do|help)|who are you|what are you|what do you do)[\s!.?]*$/i,
 ];
 
 const GREETING_REPLY = "Hello! I'm MedBot, your medical triage assistant. I can help you assess symptoms and guide you on the right level of care.\n\nTo get started, please describe what symptoms you're experiencing, and I'll walk you through some questions to help determine next steps.";
@@ -80,6 +80,28 @@ Return {"severityScore": number, "durationHours": number, "reportedSymptoms": st
     if (!raw) return { data: null, usage };
     return { data: JSON.parse(raw), usage };
   } catch (err) {
+    // Fallback to OpenRouter if DeepSeek is unavailable
+    try {
+      const orKey = env.openrouterApiKey;
+      if (orKey) {
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${orKey}`,
+          },
+          body: JSON.stringify({
+            model: "deepseek/deepseek-v4-flash",
+            temperature: 0.1,
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" },
+          }),
+        });
+        const data = await res.json() as any;
+        const raw = data.choices?.[0]?.message?.content;
+        if (raw) return { data: JSON.parse(raw), usage: null };
+      }
+    } catch { /* fall through */ }
     logger.warn("structured extraction failed", { error: (err as Error).message });
     return { data: null, usage: null };
   }
@@ -114,8 +136,67 @@ Phrase the verdict in a helpful, clear way. Explain what the patient should do n
       : null;
     return { text: completion.choices[0]?.message?.content ?? guidanceText, usage };
   } catch {
+    // Fallback to OpenRouter if DeepSeek is unavailable
+    try {
+      const orKey = env.openrouterApiKey;
+      if (orKey) {
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${orKey}`,
+          },
+          body: JSON.stringify({
+            model: "deepseek/deepseek-v4-flash",
+            temperature: 0.3,
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+        const data = await res.json() as any;
+        const text = data.choices?.[0]?.message?.content;
+        if (text) return { text, usage: null };
+      }
+    } catch { /* fall through */ }
     return { text: guidanceText, usage: null };
   }
+}
+
+async function generateClarifyingQuestion(patientMessage: string): Promise<string> {
+  const prompt = `You are MedBot, a calm and professional medical triage assistant. A patient has described their issue but you need more detail to assess it properly.
+
+Patient said: "${patientMessage}"
+
+Ask exactly ONE focused follow-up question to help clarify their symptoms. Be specific, warm, and concise. No preamble or explanation — just the question.`;
+
+  try {
+    const completion = await deepseek.chat.completions.create({
+      model: env.deepseekChatModel,
+      temperature: 0.3,
+      messages: [{ role: "user", content: prompt }],
+    });
+    const text = completion.choices[0]?.message?.content;
+    if (text) return text;
+  } catch { /* fall through to OpenRouter */ }
+
+  try {
+    const orKey = env.openrouterApiKey;
+    if (orKey) {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${orKey}` },
+        body: JSON.stringify({
+          model: "deepseek/deepseek-v4-flash",
+          temperature: 0.3,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      const data = await res.json() as any;
+      const text = data.choices?.[0]?.message?.content;
+      if (text) return text;
+    }
+  } catch { /* fall through */ }
+
+  return "Could you describe your symptoms in more detail? For example, how long have you been feeling this way, and how severe is it on a scale of 1 to 10?";
 }
 
 export const chatRoute = Router();
@@ -204,19 +285,18 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
     });
 
     // ── Confidence Routing ────────────────────────────────────────
+    // Low confidence: ask the AI to generate a smart clarifying question
+    // instead of returning a hardcoded dead-end reply.
     if (traversalResult.confidence === "low") {
-      const reply = "I'm having trouble matching your symptoms to a known pattern. Could you rephrase or describe what you're feeling in more detail? If this is urgent, please call 112.";
-      await appendMessage(sessionId, userId, { role: "assistant", content: reply, timestamp: new Date().toISOString() });
-      res.json({ reply, saved: true });
-      return;
-    }
-
-    if (traversalResult.confidence === "moderate") {
-      const question = protocolQuestions[0] ?? "Can you tell me more about your symptoms?";
+      const question = await generateClarifyingQuestion(message);
       await appendMessage(sessionId, userId, { role: "assistant", content: question, timestamp: new Date().toISOString() });
       res.json({ reply: question, saved: true, clarifying: true });
       return;
     }
+
+    // Moderate confidence falls through to the full AI pipeline below.
+    // The AI will extract what it can with defaults and phrase an appropriate
+    // response — it may naturally ask for more detail if data is thin.
 
     // ── History recall ───────────────────────────────────────────
     let historyContext = "";
@@ -229,7 +309,7 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
       // non-blocking
     }
 
-    // ── High confidence: extract, evaluate, respond ───────────────
+    // ── AI pipeline (moderate + high confidence): extract, evaluate, respond ─
     const extracted = await extractStructuredData(historyContext ? `${message}\n\n${historyContext}` : message, {
       title: traversalResult.title,
       content: traversalResult.title,

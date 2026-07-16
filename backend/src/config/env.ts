@@ -16,6 +16,11 @@ const ENV_SPEC: EnvVar[] = [
   { key: "DEEPSEEK_CHAT_MODEL", required: false, default: "deepseek-chat" },
   { key: "DEEPSEEK_EMBEDDING_MODEL", required: false, default: "text-embedding-3-small" },
   { key: "EMBEDDING_DIMENSION", required: false, default: "1536" },
+  // OpenAI is used for embeddings — DeepSeek has no embeddings endpoint.
+  // OPENAI_API_KEY is required for real vector search; without it the system
+  // falls back to keyword search (still functional after the routing fix).
+  { key: "OPENAI_API_KEY", required: false, default: "" },
+  { key: "OPENAI_BASE_URL", required: false, default: "https://api.openai.com/v1" },
   { key: "BREVO_API_KEY", required: false, default: "dev-brevo-key" },
   { key: "SENDER_EMAIL", required: false, default: "dev@example.com" },
   { key: "GOOGLE_CLIENT_ID", required: false, default: "" },
@@ -94,6 +99,8 @@ export const env = {
   deepseekChatModel: raw.DEEPSEEK_CHAT_MODEL,
   deepseekEmbeddingModel: raw.DEEPSEEK_EMBEDDING_MODEL,
   embeddingDimension: Number(raw.EMBEDDING_DIMENSION),
+  openaiApiKey: raw.OPENAI_API_KEY,
+  openaiBaseUrl: raw.OPENAI_BASE_URL,
   brevoApiKey: raw.BREVO_API_KEY,
   senderEmail: raw.SENDER_EMAIL,
   googleClientId: raw.GOOGLE_CLIENT_ID,

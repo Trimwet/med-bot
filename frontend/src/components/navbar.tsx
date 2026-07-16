@@ -141,7 +141,7 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
             <a
               href="#"
               onClick={(e) => { e.preventDefault(); onSignup?.() }}
-              className="px-5 py-2 text-[14px] font-semibold text-white bg-navy rounded-full transition-all duration-150 hover:bg-navy-deep hover:shadow-md hover:shadow-navy/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              className="px-5 py-2 text-[14px] font-semibold text-white bg-teal rounded-full transition-all duration-150 hover:bg-teal/80 hover:shadow-md hover:shadow-teal/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
             >
               Sign Up
             </a>
@@ -245,7 +245,7 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
                 <a
                   href="#"
                   onClick={(e) => { e.preventDefault(); onSignup?.(); closeMobile() }}
-                  className="block w-full text-center px-5 py-3 text-[15px] font-semibold text-white bg-navy rounded-full transition-all duration-150 hover:bg-navy-deep hover:shadow-md hover:shadow-navy/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                  className="block w-full text-center px-5 py-3 text-[15px] font-semibold text-white bg-teal rounded-full transition-all duration-150 hover:bg-teal/80 hover:shadow-md hover:shadow-teal/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
                 >
                   Sign Up
                 </a>
