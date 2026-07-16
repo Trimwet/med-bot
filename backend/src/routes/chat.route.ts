@@ -3,14 +3,10 @@ import { authMiddleware } from "@/middleware/auth.middleware";
 import { logger } from "@/lib/logger";
 import { getOrCreateSession, appendMessage, updateSessionGraphState } from "@/services/session.service";
 import { hasConsented } from "@/services/consent.service";
-import { vectorSearch, getProtocolQuestions } from "../../agents/triage/tools/vectorSearch";
-import { clinicalRule } from "../../agents/triage/tools/clinicalRule";
-import { scheduleFollowup } from "../../agents/triage/tools/scheduleFollowup";
-import type { ClinicalInput } from "@/db/schema";
+import { vectorSearch } from "../../agents/triage/tools/vectorSearch";
 import { getEffectiveMultiplier, computeTokenCost, deductTokens } from "@/services/tenant.service";
 import { recordTokenUsage } from "@/services/tokenLedger.service";
-import { saveSessionSummary, findRelevantHistory } from "@/services/sessionSummary.service";
-import OpenAI from "openai";
+import { saveSessionSummary } from "@/services/sessionSummary.service";
 import { env } from "@/config/env";
 
 const MAX_MESSAGE_LENGTH = 4_000;
@@ -21,11 +17,11 @@ const EMERGENCY_PATTERNS = [
   /suicid(?:e|al)|kill myself|harm myself/i,
   /unconscious|passed out|fainted/i,
   /stroke|face droop|slurred speech/i,
-  /severe bleeding|coughing blood|vomiting blood/i,
+  /severe bleeding|cough\w* (up )?blood|vomit\w* blood|throwing up blood|blood\w* vomit\w*/i,
 ];
 
 const EMERGENCY_REPLY =
-  "Your symptoms may need urgent attention. Please call 112 in Nigeria now or go to the nearest emergency department. Do not rely on this chat for emergency care.";
+  "[serious] Your symptoms may need urgent attention. Please call 112 in Nigeria now or go to the nearest emergency department. Do not rely on this chat for emergency care.";
 
 const GREETING_PATTERNS = [
   /^(hi|hello|hey|ey|yo|hiya|howdy|sup|wassup|what'?s up|greetings|good morning|good afternoon|good evening)[\s!.?]*$/i,
@@ -33,174 +29,265 @@ const GREETING_PATTERNS = [
   /^(help|start|menu|options|what can you (do|help)|who are you|what are you|what do you do)[\s!.?]*$/i,
 ];
 
-const GREETING_REPLY = "Hello! I'm MedBot, your medical triage assistant. I can help you assess symptoms and guide you on the right level of care.\n\nTo get started, please describe what symptoms you're experiencing, and I'll walk you through some questions to help determine next steps.";
+const GREETING_REPLY = "[warm] Hello! I'm MedBot, your medical triage assistant. I can help you assess symptoms and guide you on the right level of care. To get started, please describe what symptoms you're experiencing, and I'll walk you through some questions to help determine next steps.";
 
 const FAILURE_REPLY =
-  "I'm sorry, I'm having trouble reaching my medical guidance service right now. If your symptoms are urgent, please go to the nearest hospital or call 112.";
+  "[gentle] I'm sorry, I'm having trouble reaching my medical guidance service right now. If your symptoms are urgent, please go to the nearest hospital or call 112.";
 
-const deepseek = new OpenAI({
-  apiKey: env.deepseekApiKey,
-  baseURL: env.deepseekBaseUrl,
-});
+const CONSENT_REPLY =
+  "[calm] Before I can ask about your symptoms, I need your consent to collect and process your health data in accordance with the Nigeria Data Protection Regulation (NDPR). You can grant consent by sending a POST to /api/consent or tapping I Agree in your account settings. Your data will only be used for triage purposes and will never be shared without your explicit permission. Until you consent, I cannot proceed with the triage.";
 
-async function extractStructuredData(
-  patientMessage: string,
-  protocolNode: { title: string; content: string; metadata: { triageQuestions?: string[]; redFlags?: string[] } }
-): Promise<{ data: { severityScore: number; durationHours: number; reportedSymptoms: string[] } | null; usage: { promptTokens: number; completionTokens: number } | null }> {
-  const questions = protocolNode.metadata.triageQuestions?.join("\n") ?? "";
-  const redFlags = protocolNode.metadata.redFlags?.join(", ") ?? "";
+const FALLBACK_REPLY =
+  "[concerned] I'm not sure I understand your symptoms. Could you describe them differently, or if you're worried, please visit a clinic or call 112.";
 
-  const prompt = `You are a medical data extractor. Given a patient message and a clinical protocol, extract the following fields as JSON. Return ONLY valid JSON with no markdown or explanation.
-
-Protocol: ${protocolNode.title}
-Protocol context: ${protocolNode.content.slice(0, 300)}
-Triage questions: ${questions}
-Known red flags: ${redFlags}
-
-Patient message: "${patientMessage}"
-
-Extract:
-- "severityScore": number 1-10 (the patient's reported pain/severity scale, or estimate from description. Default 5 if unclear.)
-- "durationHours": number (how long symptoms have lasted in hours. Default 24 if unclear.)
-- "reportedSymptoms": string[] (list of symptoms mentioned by the patient, including any red flags)
-
-Return {"severityScore": number, "durationHours": number, "reportedSymptoms": string[]}`;
-
-  try {
-    const completion = await deepseek.chat.completions.create({
-      model: env.deepseekChatModel,
-      temperature: 0.1,
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
-    });
-    const usage = completion.usage
-      ? { promptTokens: completion.usage.prompt_tokens, completionTokens: completion.usage.completion_tokens }
-      : null;
-    const raw = completion.choices[0]?.message?.content;
-    if (!raw) return { data: null, usage };
-    return { data: JSON.parse(raw), usage };
-  } catch (err) {
-    // Fallback to OpenRouter if DeepSeek is unavailable
-    try {
-      const orKey = env.openrouterApiKey;
-      if (orKey) {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${orKey}`,
-          },
-          body: JSON.stringify({
-            model: "deepseek/deepseek-v4-flash",
-            temperature: 0.1,
-            messages: [{ role: "user", content: prompt }],
-            response_format: { type: "json_object" },
-          }),
-        });
-        const data = await res.json() as any;
-        const raw = data.choices?.[0]?.message?.content;
-        if (raw) return { data: JSON.parse(raw), usage: null };
-      }
-    } catch { /* fall through */ }
-    logger.warn("structured extraction failed", { error: (err as Error).message });
-    return { data: null, usage: null };
-  }
+function ensureEmotionTag(text: string): string {
+  if (/^\[([a-zA-Z\s]+)\]/.test(text)) return text;
+  return "[calm] " + text;
 }
 
-async function phraseResponse(
-  verdict: string,
-  guidanceText: string,
-  protocolNode: { title: string; content: string },
-  patientMessage: string,
-): Promise<{ text: string; usage: { promptTokens: number; completionTokens: number } | null }> {
-  const prompt = `You are MedBot, a calm, professional medical triage assistant serving Nigerian patients. You speak in plain language, no jargon, no emojis.
-
-You have received a clinical verdict that you must relay to the patient. You CANNOT change, soften, or override this verdict.
-
-Verdict: ${verdict}
-Guidance: ${guidanceText}
-Protocol: ${protocolNode.title}
-
-Patient said: "${patientMessage}"
-
-Phrase the verdict in a helpful, clear way. Explain what the patient should do next based on the guidance. Keep it concise (2-4 sentences). End with a reminder that this is not a substitute for professional medical care.`;
-
-  try {
-    const completion = await deepseek.chat.completions.create({
-      model: env.deepseekChatModel,
-      temperature: 0.3,
-      messages: [{ role: "user", content: prompt }],
-    });
-    const usage = completion.usage
-      ? { promptTokens: completion.usage.prompt_tokens, completionTokens: completion.usage.completion_tokens }
-      : null;
-    return { text: completion.choices[0]?.message?.content ?? guidanceText, usage };
-  } catch {
-    // Fallback to OpenRouter if DeepSeek is unavailable
-    try {
-      const orKey = env.openrouterApiKey;
-      if (orKey) {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${orKey}`,
-          },
-          body: JSON.stringify({
-            model: "deepseek/deepseek-v4-flash",
-            temperature: 0.3,
-            messages: [{ role: "user", content: prompt }],
-          }),
-        });
-        const data = await res.json() as any;
-        const text = data.choices?.[0]?.message?.content;
-        if (text) return { text, usage: null };
-      }
-    } catch { /* fall through */ }
-    return { text: guidanceText, usage: null };
+function forceLaughTag(text: string, originalMessage: string): string {
+  const isJokeRequest = /joke|funny|laugh|humor|humour|hilarious|comedy/i.test(originalMessage);
+  if (isJokeRequest && !text.startsWith("[laugh]") && !text.startsWith("[chuckling]")) {
+    return "[laugh] " + text.replace(/^\[([a-zA-Z\s]+)\]\s*/, '');
   }
+  return text;
 }
 
-async function generateClarifyingQuestion(patientMessage: string): Promise<string> {
-  const prompt = `You are MedBot, a calm and professional medical triage assistant. A patient has described their issue but you need more detail to assess it properly.
+const SYSTEM_PROMPT = `You are MedBot, a calm, professional medical triage assistant serving Nigerian patients. You speak in plain language, no jargon, no emojis.
 
-Patient said: "${patientMessage}"
+You help patients triage their symptoms and determine the right level of care.
+- Ask clarifying questions to understand severity, duration, and location of symptoms
+- Flag emergency symptoms (chest pain, difficulty breathing, suicidal thoughts, stroke signs, severe bleeding) and direct to 112 immediately
+- Provide clear next steps: self-care, see a GP, urgent care, or emergency
+- Never diagnose or prescribe medication
 
-Ask exactly ONE focused follow-up question to help clarify their symptoms. Be specific, warm, and concise. No preamble or explanation — just the question.`;
+Always recommend professional medical consultation for serious concerns. Never replace emergency services.
 
-  try {
-    const completion = await deepseek.chat.completions.create({
-      model: env.deepseekChatModel,
+You have access to tools:
+- vectorSearch: search the knowledge graph for a matching protocol based on symptoms
+- clinicalRule: evaluate extracted symptoms against clinical rules for a verdict
+- scheduleFollowup: schedule a follow-up email
+
+Use vectorSearch when a patient describes symptoms to find the relevant protocol, then ask clarifying questions. When you have enough info, use clinicalRule to get a verdict, then provide a clear response.
+
+# Voice Emotion Tags (Fish Audio)
+
+Your responses are read aloud via text-to-speech. Prefix your text with emotion tags in square brackets to control how the voice sounds. Place the tag at the very beginning of your response.
+
+Use these tags based on context:
+- [calm] — default for routine triage questions and instructions
+- [empathetic] — when acknowledging a patient's pain, worry, or distress
+- [reassuring] — when comforting or de-escalating anxiety
+- [serious] — when discussing red flags, emergencies, or urgent symptoms
+- [excited] — when sharing positive news or good outcomes
+- [concerned] — when symptoms sound worrying but not yet emergency
+- [gentle] — when delivering difficult or sensitive information
+- [confident] — when giving clear next steps or verdicts
+- [whispering] — for very sensitive or private health topics
+- [warm] — for greetings and friendly conversation
+- [laugh] — when something is genuinely funny or lighthearted
+- [chuckling] — for mild amusement, a small smile in the voice
+
+Examples:
+[empathetic] I understand this must be worrying for you. Let me ask a few questions to help figure out what's going on.
+[serious] Chest pain can be a sign of something serious. Please call 112 right now or go to the nearest emergency department.
+[calm] To help me understand better, can you tell me how long you have had this headache?
+[reassuring] Don't worry, most headaches are not serious. Let me ask a few questions to check.
+[warm] Hello! I'm MedBot, your medical triage assistant. How can I help you today?
+[laugh] Ha, well that's a first! But seriously, let's talk about what's going on with your health.
+[chuckling] That's quite a story! Now, back to your symptoms though.
+
+RULES FOR EMOTION TAGS:
+- The tag MUST be the VERY FIRST thing in your response, followed by a single space, then your message.
+- NEVER put a tag in the middle or end of your response.
+- Only ONE tag per response.
+- Do not use any other markdown formatting — no bold, no bullet points, no numbered lists. Write in plain conversational sentences.`;
+
+async function runEveAgent(messages: { role: string; content: string }[], activeNodeId?: string): Promise<{ reply: string; nodeId?: string }> {
+  const openrouterKey = env.openrouterApiKey;
+  if (!openrouterKey) throw new Error("OPENROUTER_API_KEY not configured");
+
+  const tools = [
+    {
+      type: "function" as const,
+      function: {
+        name: "vectorSearch",
+        description: "Search the medical knowledge graph for a protocol matching the patient's symptoms",
+        parameters: {
+          type: "object",
+          properties: {
+            patientMessage: { type: "string", description: "The patient's description of their symptoms" },
+            activeNodeId: { type: "string", description: "Current graph node ID for context-aware traversal" },
+          },
+          required: ["patientMessage"],
+        },
+      },
+    },
+    {
+      type: "function" as const,
+      function: {
+        name: "clinicalRule",
+        description: "Evaluate structured patient symptom data against the clinical rule layer",
+        parameters: {
+          type: "object",
+          properties: {
+            severityScale: { type: "number", description: "1-10 severity scale" },
+            durationHours: { type: "number", description: "How long symptoms have lasted" },
+            associatedSymptoms: { type: "array", items: { type: "string" } },
+            redFlags: { type: "array", items: { type: "string" } },
+            nodeId: { type: "string" },
+          },
+          required: ["severityScale", "durationHours", "nodeId"],
+        },
+      },
+    },
+    {
+      type: "function" as const,
+      function: {
+        name: "scheduleFollowup",
+        description: "Schedule a follow-up check-in for a patient",
+        parameters: {
+          type: "object",
+          properties: {
+            sessionId: { type: "string" },
+            userId: { type: "string" },
+            delayHours: { type: "number" },
+            messageTemplate: { type: "string", enum: ["post_triage_checkin", "missed_followup"] },
+          },
+          required: ["sessionId", "userId", "delayHours", "messageTemplate"],
+        },
+      },
+    },
+  ];
+
+  let activeNode = activeNodeId;
+  const conversation: any[] = [
+    {
+      role: "system",
+      content: SYSTEM_PROMPT,
+    },
+    ...messages,
+  ];
+
+  for (let turn = 0; turn < 5; turn++) {
+    const body = {
+      model: "deepseek/deepseek-v4-flash",
+      messages: conversation,
+      tools,
+      tool_choice: "auto" as const,
       temperature: 0.3,
-      messages: [{ role: "user", content: prompt }],
-    });
-    const text = completion.choices[0]?.message?.content;
-    if (text) return text;
-  } catch { /* fall through to OpenRouter */ }
+      max_tokens: 1024,
+    };
 
-  try {
-    const orKey = env.openrouterApiKey;
-    if (orKey) {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    let res: Response | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 1000 * attempt));
+      res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${orKey}` },
-        body: JSON.stringify({
-          model: "deepseek/deepseek-v4-flash",
-          temperature: 0.3,
-          messages: [{ role: "user", content: prompt }],
-        }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${openrouterKey}` },
+        body: JSON.stringify(body),
       });
-      const data = await res.json() as any;
-      const text = data.choices?.[0]?.message?.content;
-      if (text) return text;
+      if (res.ok) break;
+      const errBody = await res.text();
+      // Retry on 5xx / 429 / 403 (rate-limit / overloaded)
+      if (res.status >= 500 || res.status === 429 || res.status === 403) {
+        logger.warn("OpenRouter transient error, retrying", { status: res.status, attempt });
+        continue;
+      }
+      throw new Error(`OpenRouter error ${res.status}: ${errBody}`);
     }
-  } catch { /* fall through */ }
+    if (!res || !res.ok) {
+      const errBody = res ? await res.text() : "no response";
+      throw new Error(`OpenRouter error ${res?.status}: ${errBody}`);
+    }
 
-  return "Could you describe your symptoms in more detail? For example, how long have you been feeling this way, and how severe is it on a scale of 1 to 10?";
+    const data = await res.json() as any;
+    const choice = data.choices?.[0];
+    if (!choice) throw new Error("No response from OpenRouter");
+
+    const finishReason = choice.finish_reason;
+    const msg = choice.message;
+
+    conversation.push(msg);
+
+    if (finishReason === "stop") {
+      return { reply: msg?.content || "", nodeId: activeNode };
+    }
+
+    if (finishReason === "tool_calls" && msg?.tool_calls) {
+      for (const tc of msg.tool_calls) {
+        const args = JSON.parse(tc.function.arguments);
+        let result: any;
+        if (tc.function.name === "vectorSearch") {
+          result = await vectorSearch({ patientMessage: args.patientMessage, activeNodeId: args.activeNodeId || activeNode });
+          activeNode = result.nodeId || activeNode;
+        } else if (tc.function.name === "clinicalRule") {
+          const { clinicalRule: ruleFn } = await import("../../agents/triage/tools/clinicalRule");
+          result = await ruleFn(args);
+        } else {
+          result = { ok: true };
+        }
+        conversation.push({
+          role: "tool",
+          tool_call_id: tc.id,
+          content: JSON.stringify(result),
+        });
+      }
+      continue;
+    }
+
+    return { reply: msg?.content || "", nodeId: activeNode };
+  }
+
+  return { reply: "I'm not sure I can help with that. Could you describe your symptoms in more detail?", nodeId: activeNode };
 }
 
 export const chatRoute = Router();
 
+// ── Shared pre-checks (emergency, greeting, consent, vector search) ──
+async function preChecks(
+  req: any,
+  sessionId: string,
+  message: string,
+): Promise<{ earlyReturn?: any; session?: any; activeNodeId?: string; userId?: string; userMsg?: any }> {
+  const userId = req.user?.id;
+  if (!userId) return { earlyReturn: { status: 401, body: { error: "UNAUTHORIZED", message: "A user token is required" } } };
+
+  const tenantId = req.headers["x-tenant-id"] as string | undefined;
+  const session = await getOrCreateSession(sessionId, userId, tenantId);
+  const userMsg = { role: "user" as const, content: message, timestamp: new Date().toISOString() };
+  await appendMessage(sessionId, userId, userMsg);
+
+  if (EMERGENCY_PATTERNS.some((p) => p.test(message))) {
+    await appendMessage(sessionId, userId, { role: "assistant", content: EMERGENCY_REPLY, timestamp: new Date().toISOString() });
+    await updateSessionGraphState(sessionId, userId, { verdict: "emergency", status: "closed" });
+    return { earlyReturn: { status: 200, body: { reply: EMERGENCY_REPLY, saved: true, urgency: "emergency" } }, session, userId, userMsg };
+  }
+
+  if (GREETING_PATTERNS.some((p) => p.test(message.trim()))) {
+    await appendMessage(sessionId, userId, { role: "assistant", content: GREETING_REPLY, timestamp: new Date().toISOString() });
+    return { earlyReturn: { status: 200, body: { reply: GREETING_REPLY, saved: true } }, session, userId, userMsg };
+  }
+
+  const consented = await hasConsented(userId);
+  if (!consented) {
+    await appendMessage(sessionId, userId, { role: "assistant", content: CONSENT_REPLY, timestamp: new Date().toISOString() });
+    return { earlyReturn: { status: 200, body: { reply: CONSENT_REPLY, saved: true, consentRequired: true } }, session, userId, userMsg };
+  }
+
+  const traversalResult = await vectorSearch({ patientMessage: message, activeNodeId: session.activeNodeId });
+  const activeNodeId = traversalResult.nodeId || session.activeNodeId;
+
+  if (!activeNodeId) {
+    await appendMessage(sessionId, userId, { role: "assistant", content: FALLBACK_REPLY, timestamp: new Date().toISOString() });
+    return { earlyReturn: { status: 200, body: { reply: FALLBACK_REPLY, saved: true } }, session, userId, userMsg };
+  }
+
+  await updateSessionGraphState(sessionId, userId, { activeNodeId, lastFiringScore: traversalResult.score });
+  return { session, activeNodeId, userId, userMsg };
+}
+
+// ── POST /chat (non-streaming) ────────────────────────────────────
 chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
   const { sessionId, message } = req.body;
 
@@ -219,230 +306,266 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
 
   try {
     logger.info("chat turn received", { sessionId });
+    const checks = await preChecks(req, sessionId, message);
+    if (checks.earlyReturn) { res.status(checks.earlyReturn.status).json(checks.earlyReturn.body); return; }
 
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      res.status(401).json({ error: "UNAUTHORIZED", message: "A user token is required" });
-      return;
-    }
+    const messagesForAgent = [...(checks.session!.messages || []), checks.userMsg].map((m: any) => ({ role: m.role, content: m.content }));
+    const agentResult = await runEveAgent(messagesForAgent, checks.activeNodeId);
 
-    const tenantId = req.headers["x-tenant-id"] as string | undefined;
-    const session = await getOrCreateSession(sessionId, userId, tenantId);
+    if (!agentResult.reply) throw new Error("Agent returned empty response");
+    agentResult.reply = ensureEmotionTag(agentResult.reply);
+    agentResult.reply = forceLaughTag(agentResult.reply, message);
 
-    const userMsg = { role: "user" as const, content: message, timestamp: new Date().toISOString() };
-    await appendMessage(sessionId, userId, userMsg);
+    await appendMessage(sessionId, checks.userId!, { role: "assistant", content: agentResult.reply, timestamp: new Date().toISOString() });
+    await updateSessionGraphState(sessionId, checks.userId!, { activeNodeId: agentResult.nodeId || checks.activeNodeId });
 
-    // ── Safety Floor ──────────────────────────────────────────────
-    if (EMERGENCY_PATTERNS.some((p) => p.test(message))) {
-      await appendMessage(sessionId, userId, {
-        role: "assistant", content: EMERGENCY_REPLY, timestamp: new Date().toISOString(),
-      });
-      await updateSessionGraphState(sessionId, userId, { verdict: "emergency", status: "closed" });
-      res.json({ reply: EMERGENCY_REPLY, saved: true, urgency: "emergency" });
-      return;
-    }
+    saveSessionSummary(sessionId, checks.userId!, checks.session!.tenantId, { ...checks.session!, activeNodeId: checks.activeNodeId })
+      .catch((err) => logger.warn("session summary save failed", { sessionId, error: (err as Error).message }));
 
-    // ── Greetings / Acknowledgements (skip triage pipeline) ──────
-    if (GREETING_PATTERNS.some((p) => p.test(message.trim()))) {
-      await appendMessage(sessionId, userId, {
-        role: "assistant", content: GREETING_REPLY, timestamp: new Date().toISOString(),
-      });
-      res.json({ reply: GREETING_REPLY, saved: true });
-      return;
-    }
-
-    // ── Consent Check ─────────────────────────────────────────────
-    const consented = await hasConsented(userId);
-    if (!consented) {
-      const consentMsg = "Before I can ask about your symptoms, I need your consent to collect and process your health data in accordance with the Nigeria Data Protection Regulation (NDPR).\n\nYou can grant consent by sending a POST to **/api/consent** (or tapping \"I Agree\" in your account settings). Your data will only be used for triage purposes and will never be shared without your explicit permission.\n\nUntil you consent, I cannot proceed with the triage.";
-      await appendMessage(sessionId, userId, { role: "assistant", content: consentMsg, timestamp: new Date().toISOString() });
-      res.json({ reply: consentMsg, saved: true, consentRequired: true });
-      return;
-    }
-
-    // ── Graph Traversal (via Eve agent tool) ──────────────────────
-    let activeNodeId = session.activeNodeId;
-    const traversalResult = await vectorSearch({
-      patientMessage: message,
-      activeNodeId,
-    });
-
-    activeNodeId = traversalResult.nodeId;
-
-    if (!activeNodeId) {
-      const fallback = "I'm not sure I understand your symptoms. Could you describe them differently, or if you're worried, please visit a clinic or call 112.";
-      await appendMessage(sessionId, userId, { role: "assistant", content: fallback, timestamp: new Date().toISOString() });
-      res.json({ reply: fallback, saved: true });
-      return;
-    }
-
-    const protocolQuestions = await getProtocolQuestions(activeNodeId);
-
-    // Save the active node
-    await updateSessionGraphState(sessionId, userId, {
-      activeNodeId,
-      lastFiringScore: traversalResult.score,
-    });
-
-    // ── Confidence Routing ────────────────────────────────────────
-    // Low confidence: ask the AI to generate a smart clarifying question
-    // instead of returning a hardcoded dead-end reply.
-    if (traversalResult.confidence === "low") {
-      const question = await generateClarifyingQuestion(message);
-      await appendMessage(sessionId, userId, { role: "assistant", content: question, timestamp: new Date().toISOString() });
-      res.json({ reply: question, saved: true, clarifying: true });
-      return;
-    }
-
-    // Moderate confidence falls through to the full AI pipeline below.
-    // The AI will extract what it can with defaults and phrase an appropriate
-    // response — it may naturally ask for more detail if data is thin.
-
-    // ── History recall ───────────────────────────────────────────
-    let historyContext = "";
-    try {
-      const relevant = await findRelevantHistory(userId, message);
-      if (relevant.length > 0) {
-        historyContext = "\nPatient history:\n" + relevant.map((h) => `- ${h.summaryText}`).join("\n");
-      }
-    } catch {
-      // non-blocking
-    }
-
-    // ── AI pipeline (moderate + high confidence): extract, evaluate, respond ─
-    const extracted = await extractStructuredData(historyContext ? `${message}\n\n${historyContext}` : message, {
-      title: traversalResult.title,
-      content: traversalResult.title,
-      metadata: { triageQuestions: protocolQuestions, redFlags: [] },
-    });
-
-    const clinicalInput: ClinicalInput = {
-      severityScale: extracted.data?.severityScore ?? 5,
-      durationHours: extracted.data?.durationHours ?? 24,
-      associatedSymptoms: extracted.data?.reportedSymptoms ?? [],
-      redFlags: extracted.data?.reportedSymptoms ?? [],
-    };
-
-    // Evaluate via the agent tool
-    let clinicalResult;
-    try {
-      clinicalResult = await clinicalRule({
-        severityScale: clinicalInput.severityScale,
-        durationHours: clinicalInput.durationHours,
-        associatedSymptoms: clinicalInput.associatedSymptoms,
-        redFlags: clinicalInput.redFlags,
-        nodeId: activeNodeId,
-      });
-    } catch (ruleErr) {
-      // Fire error webhook — the one alert the plan requires
-      logger.error("Clinical Rule Layer error", { sessionId, nodeId: activeNodeId, error: (ruleErr as Error).message });
-      if (env.errorWebhookUrl) {
-        fetch(env.errorWebhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            event: "clinical_rule_error",
-            sessionId,
-            nodeId: activeNodeId,
-            error: (ruleErr as Error).message,
-            timestamp: new Date().toISOString(),
-          }),
-        }).catch(() => {}); // fire-and-forget
-      }
-      throw ruleErr;
-    }
-
-    const phrased = await phraseResponse(clinicalResult.severity, clinicalResult.guidanceText ?? clinicalResult.nextStep, { title: traversalResult.title, content: traversalResult.title }, message);
-
-    await appendMessage(sessionId, userId, { role: "assistant", content: phrased.text, timestamp: new Date().toISOString() });
-
-    const shouldClose = clinicalResult.severity === "emergency";
-    await updateSessionGraphState(sessionId, userId, {
-      verdict: clinicalResult.severity,
-      lastFiringScore: clinicalResult.score,
-      extractedAnswers: {
-        severityScore: clinicalInput.severityScale,
-        durationHours: clinicalInput.durationHours,
-        reportedSymptoms: clinicalInput.associatedSymptoms,
-      },
-      ...(shouldClose ? { status: "closed" } : {}),
-    });
-
-    // Schedule follow-up for closed sessions (async, non-blocking)
-    if (shouldClose) {
-      scheduleFollowup({
-        sessionId,
-        userId,
-        delayHours: 24,
-        messageTemplate: "post_triage_checkin",
-      }).catch((err) => logger.warn("followup schedule failed", { sessionId, error: (err as Error).message }));
-    }
-
-    // Save session summary (async, non-blocking)
-    saveSessionSummary(sessionId, userId, session.tenantId, {
-      ...session,
-      activeNodeId,
-      verdict: clinicalResult.severity,
-      extractedAnswers: {
-        severityScore: clinicalInput.severityScale,
-        durationHours: clinicalInput.durationHours,
-        reportedSymptoms: clinicalInput.associatedSymptoms,
-      },
-    }).catch((err) => logger.warn("session summary save failed", { sessionId, error: (err as Error).message }));
-
-    // Non-blocking metering
-    if (session.tenantId) {
-      const pTokens = extracted.usage?.promptTokens ?? 0;
-      const cTokens = extracted.usage?.completionTokens ?? 0;
-      const pTokensPhrase = phrased.usage?.promptTokens ?? 0;
-      const cTokensPhrase = phrased.usage?.completionTokens ?? 0;
-      const totalPrompt = pTokens + pTokensPhrase || Math.ceil(message.length / 4);
-      const totalCompletion = cTokens + cTokensPhrase || Math.ceil(phrased.text.length / 4);
-
-      getEffectiveMultiplier(session.tenantId)
+    if (checks.session!.tenantId) {
+      const totalTokens = Math.ceil((message.length + agentResult.reply.length) / 4);
+      getEffectiveMultiplier(checks.session!.tenantId)
         .then((eff) => {
-          const cost = computeTokenCost(totalPrompt, totalCompletion, eff.multiplier);
-          return deductTokens(session.tenantId!, Math.ceil(cost))
-            .then(() => recordTokenUsage({
-              tenantId: session.tenantId!,
-              sessionId,
-              promptTokens: totalPrompt,
-              completionTokens: totalCompletion,
-              multiplierApplied: eff.multiplier,
-              costNgn: cost,
-            }));
+          const cost = computeTokenCost(totalTokens, totalTokens, eff.multiplier);
+          return deductTokens(checks.session!.tenantId!, Math.ceil(cost))
+            .then(() => recordTokenUsage({ tenantId: checks.session!.tenantId!, sessionId, promptTokens: totalTokens, completionTokens: totalTokens, multiplierApplied: eff.multiplier, costNgn: cost }));
         })
         .catch((err) => logger.warn("metering failed", { sessionId, error: (err as Error).message }));
     }
 
-    res.json({
-      reply: phrased.text,
-      saved: true,
-      verdict: clinicalResult.severity,
-      matchedRedFlags: clinicalResult.matchedRedFlags.length > 0 ? clinicalResult.matchedRedFlags : undefined,
-      score: clinicalResult.score,
-    });
-
+    res.json({ reply: agentResult.reply, saved: true });
   } catch (err) {
     try {
       const uid = (req as any).user?.id;
-      if (uid) {
-        await appendMessage(sessionId, uid, {
-          role: "assistant", content: FAILURE_REPLY, timestamp: new Date().toISOString(),
-        });
-      }
-    } catch { /* ignore persistence errors in fallback */ }
+      if (uid) await appendMessage(sessionId, uid, { role: "assistant", content: FAILURE_REPLY, timestamp: new Date().toISOString() });
+    } catch {}
 
     const errorMsg = (err as Error).message;
     logger.warn("chat route failed, returning fallback", { sessionId, error: errorMsg });
-
-    // In dev, include the error detail so you can debug without checking logs
     const isDev = env.nodeEnv === "development";
-    res.json({
-      reply: FAILURE_REPLY,
-      saved: true,
-      warning: "service_unavailable",
-      ...(isDev && { debug: errorMsg }),
-    });
+    res.json({ reply: FAILURE_REPLY, saved: true, warning: "service_unavailable", ...(isDev && { debug: errorMsg }) });
+  }
+});
+
+// ── POST /chat/stream (SSE streaming) ─────────────────────────────
+chatRoute.post("/chat/stream", authMiddleware, async (req, res, next) => {
+  const { sessionId, message } = req.body;
+
+  if (!sessionId || typeof sessionId !== "string") {
+    res.status(400).json({ error: "VALIDATION_ERROR", message: "sessionId is required" });
+    return;
+  }
+  if (!message || typeof message !== "string" || message.trim().length === 0) {
+    res.status(400).json({ error: "VALIDATION_ERROR", message: "message is required" });
+    return;
+  }
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    res.status(400).json({ error: "VALIDATION_ERROR", message: `message must be ${MAX_MESSAGE_LENGTH} characters or fewer` });
+    return;
+  }
+
+  try {
+    logger.info("chat stream received", { sessionId });
+    const checks = await preChecks(req, sessionId, message);
+    if (checks.earlyReturn) { res.status(checks.earlyReturn.status).json(checks.earlyReturn.body); return; }
+
+    // Set SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+
+    const openrouterKey = env.openrouterApiKey;
+    if (!openrouterKey) throw new Error("OPENROUTER_API_KEY not configured");
+
+    const messagesForAgent = [...(checks.session!.messages || []), checks.userMsg].map((m: any) => ({ role: m.role, content: m.content }));
+
+    const tools = [
+      { type: "function" as const, function: { name: "vectorSearch", description: "Search the knowledge graph", parameters: { type: "object", properties: { patientMessage: { type: "string" }, activeNodeId: { type: "string" } }, required: ["patientMessage"] } } },
+      { type: "function" as const, function: { name: "clinicalRule", description: "Evaluate symptoms", parameters: { type: "object", properties: { severityScale: { type: "number" }, durationHours: { type: "number" }, associatedSymptoms: { type: "array", items: { type: "string" } }, redFlags: { type: "array", items: { type: "string" } }, nodeId: { type: "string" } }, required: ["severityScale", "durationHours", "nodeId"] } } },
+      { type: "function" as const, function: { name: "scheduleFollowup", description: "Schedule follow-up", parameters: { type: "object", properties: { sessionId: { type: "string" }, userId: { type: "string" }, delayHours: { type: "number" }, messageTemplate: { type: "string", enum: ["post_triage_checkin", "missed_followup"] } }, required: ["sessionId", "userId", "delayHours", "messageTemplate"] } } },
+    ];
+
+    let activeNode = checks.activeNodeId;
+    const conversation: any[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+      ...messagesForAgent,
+    ];
+
+    let fullReply = "";
+    let tagInjected = false;
+    const isJokeRequest = /joke|funny|laugh|humor|humour|hilarious|comedy/i.test(message);
+
+    for (let turn = 0; turn < 5; turn++) {
+      const body = {
+        model: "deepseek/deepseek-v4-flash",
+        messages: conversation,
+        tools,
+        tool_choice: "auto" as const,
+        temperature: 0.3,
+        max_tokens: 1024,
+        stream: true,
+      };
+
+      let apiRes: Response | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) await new Promise(r => setTimeout(r, 1000 * attempt));
+        apiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${openrouterKey}` },
+          body: JSON.stringify(body),
+        });
+        if (apiRes.ok) break;
+        const errBody = await apiRes.text();
+        if (apiRes.status >= 500 || apiRes.status === 429 || apiRes.status === 403) {
+          logger.warn("OpenRouter transient error, retrying", { status: apiRes.status, attempt });
+          continue;
+        }
+        throw new Error(`OpenRouter error ${apiRes.status}: ${errBody}`);
+      }
+      if (!apiRes || !apiRes.ok) {
+        const errBody = apiRes ? await apiRes.text() : "no response";
+        throw new Error(`OpenRouter error ${apiRes?.status}: ${errBody}`);
+      }
+
+      // Process SSE stream
+      const reader = apiRes.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let turnText = "";
+      let toolCalls: Map<number, { id: string; name: string; arguments: string }> = new Map();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") continue;
+
+          let parsed: any;
+          try { parsed = JSON.parse(data); } catch { continue; }
+
+          const choice = parsed.choices?.[0];
+          if (!choice) continue;
+
+          const delta = choice.delta;
+          if (!delta) continue;
+
+          // Text content
+          if (delta.content) {
+            let chunk = delta.content;
+            if (!tagInjected) {
+              if (fullReply.length === 0 && !chunk.trimStart().startsWith("[")) {
+                const forcedTag = isJokeRequest ? "[laugh] " : "[calm] ";
+                chunk = forcedTag + chunk;
+              }
+              tagInjected = true;
+            }
+            turnText += chunk;
+            fullReply += chunk;
+            // Send SSE event to client
+            res.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);
+          }
+
+          // Tool calls (accumulate arguments)
+          if (delta.tool_calls) {
+            for (const tc of delta.tool_calls) {
+              const idx = tc.index ?? 0;
+              if (!toolCalls.has(idx)) {
+                toolCalls.set(idx, { id: tc.id || "", name: tc.function?.name || "", arguments: "" });
+              }
+              const existing = toolCalls.get(idx)!;
+              if (tc.id) existing.id = tc.id;
+              if (tc.function?.name) existing.name = tc.function.name;
+              if (tc.function?.arguments) existing.arguments += tc.function.arguments;
+            }
+          }
+
+          if (choice.finish_reason === "stop") break;
+        }
+        if (lines.some(l => l.startsWith("data: ") && l.slice(6).trim() === "[DONE]")) break;
+      }
+
+      // Handle tool calls
+      if (toolCalls.size > 0) {
+        const assistantMsg: any = { role: "assistant", content: turnText || null };
+        assistantMsg.tool_calls = Array.from(toolCalls.values()).map(tc => ({
+          id: tc.id,
+          type: "function",
+          function: { name: tc.name, arguments: tc.arguments },
+        }));
+        conversation.push(assistantMsg);
+
+        for (const tc of toolCalls.values()) {
+          const args = JSON.parse(tc.arguments);
+          let result: any;
+          if (tc.name === "vectorSearch") {
+            result = await vectorSearch({ patientMessage: args.patientMessage, activeNodeId: args.activeNodeId || activeNode });
+            activeNode = result.nodeId || activeNode;
+          } else if (tc.name === "clinicalRule") {
+            const { clinicalRule: ruleFn } = await import("../../agents/triage/tools/clinicalRule");
+            result = await ruleFn(args);
+          } else {
+            result = { ok: true };
+          }
+          conversation.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result) });
+        }
+        continue; // next turn
+      }
+
+      // No tool calls — we're done
+      break;
+    }
+
+    // Send done signal
+    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+    res.end();
+
+    // Persist after streaming
+    if (fullReply) {
+      await appendMessage(sessionId, checks.userId!, { role: "assistant", content: fullReply, timestamp: new Date().toISOString() });
+      await updateSessionGraphState(sessionId, checks.userId!, { activeNodeId: activeNode || checks.activeNodeId });
+
+      saveSessionSummary(sessionId, checks.userId!, checks.session!.tenantId, { ...checks.session!, activeNodeId: checks.activeNodeId })
+        .catch((err) => logger.warn("session summary save failed", { sessionId, error: (err as Error).message }));
+
+      if (checks.session!.tenantId) {
+        const totalTokens = Math.ceil((message.length + fullReply.length) / 4);
+        getEffectiveMultiplier(checks.session!.tenantId)
+          .then((eff) => {
+            const cost = computeTokenCost(totalTokens, totalTokens, eff.multiplier);
+            return deductTokens(checks.session!.tenantId!, Math.ceil(cost))
+              .then(() => recordTokenUsage({ tenantId: checks.session!.tenantId!, sessionId, promptTokens: totalTokens, completionTokens: totalTokens, multiplierApplied: eff.multiplier, costNgn: cost }));
+          })
+          .catch((err) => logger.warn("metering failed", { sessionId, error: (err as Error).message }));
+      }
+    }
+  } catch (err) {
+    const errorMsg = (err as Error).message;
+    logger.warn("chat stream failed", { sessionId, error: errorMsg });
+
+    // Try to send error as SSE before ending
+    try {
+      if (!res.headersSent) {
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        res.flushHeaders();
+      }
+      res.write(`data: ${JSON.stringify({ delta: FAILURE_REPLY, done: true })}\n\n`);
+      res.end();
+    } catch {}
+
+    const uid = (req as any).user?.id;
+    if (uid) {
+      try { await appendMessage(sessionId, uid, { role: "assistant", content: FAILURE_REPLY, timestamp: new Date().toISOString() }); } catch {}
+    }
   }
 });

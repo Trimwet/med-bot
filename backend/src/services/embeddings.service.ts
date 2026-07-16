@@ -1,37 +1,32 @@
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 import { env } from "@/config/env";
 
-// Embeddings must go through OpenAI — DeepSeek has no embeddings endpoint,
-// and "text-embedding-3-small" is an OpenAI-only model. Without an
-// OPENAI_API_KEY these calls will fail fast, and callers (knowledgeGraph
-// .service.ts) fall back to keyword search.
-const client = new OpenAI({
-  apiKey: env.openaiApiKey,
-  baseURL: env.openaiBaseUrl,
-});
+// Google AI Studio gemini-embedding-001 — free tier, 3072 dimensions.
+const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
 
 function assertConfigured() {
-  if (!env.openaiApiKey) {
+  if (!env.geminiApiKey) {
     throw new Error(
-      "OPENAI_API_KEY is not set — embeddings are unavailable, falling back to keyword search"
+      "GEMINI_API_KEY is not set — embeddings unavailable, falling back to keyword search"
     );
   }
 }
 
 export async function embedText(text: string): Promise<number[]> {
   assertConfigured();
-  const response = await client.embeddings.create({
-    model: env.deepseekEmbeddingModel,
-    input: text,
+  const res = await ai.models.embedContent({
+    model: "gemini-embedding-001",
+    contents: text,
   });
-  return response.data[0].embedding;
+  return res.embeddings[0].values;
 }
 
 export async function embedBatch(texts: string[]): Promise<number[][]> {
   assertConfigured();
-  const response = await client.embeddings.create({
-    model: env.deepseekEmbeddingModel,
-    input: texts,
-  });
-  return response.data.map((d) => d.embedding);
+  const results = await Promise.all(
+    texts.map((t) =>
+      ai.models.embedContent({ model: "gemini-embedding-001", contents: t })
+    )
+  );
+  return results.map((r) => r.embeddings[0].values);
 }

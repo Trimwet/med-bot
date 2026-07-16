@@ -1,32 +1,32 @@
 import { useState, useRef } from 'react'
-import { MessageSquare, Zap, ClipboardList, Brain, Shield } from 'lucide-react'
+import { Stethoscope, Gauge, ArrowsLeftRight, BookOpenText, ShieldCheck } from '@phosphor-icons/react'
 import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
 const features = [
   {
-    icon: MessageSquare,
-    title: 'Symptom Triage',
-    desc: 'Guided chat or voice conversation asks the right clinical questions, every time',
-  },
-  {
-    icon: Zap,
+    icon: Gauge,
     title: 'Urgency Scoring',
     desc: 'Sorts patients by acuity level so your team knows who needs attention first',
+  },
+  {
+    icon: Stethoscope,
+    title: 'Symptom Triage',
+    desc: 'Guided chat or voice conversation asks the right clinical questions, every time',
     highlight: true,
   },
   {
-    icon: ClipboardList,
+    icon: ArrowsLeftRight,
     title: 'Clinical Handoff',
     desc: 'Every conversation lands in your queue as a summary, an acuity tag, and actionable flags',
   },
   {
-    icon: Brain,
+    icon: BookOpenText,
     title: 'Evidence-Based Logic',
     desc: 'Built with clinical protocols and always improving from real-world outcomes',
   },
   {
-    icon: Shield,
+    icon: ShieldCheck,
     title: 'HIPAA Compliant',
     desc: 'Privacy-first architecture with end-to-end encryption and audit trails',
   },
@@ -123,7 +123,7 @@ const FeatureCard = ({ icon: Icon, title, desc, highlight }: any) => {
             : "bg-teal/20 text-teal group-hover:bg-teal/20 group-hover:text-[#9CA3AF]",
         )}
       >
-        <Icon className="size-6" />
+        <Icon weight="bold" className="size-6" />
       </div>
       <h3 className="relative z-10 text-xl font-bold mb-2 text-white tracking-tight">
         {title}

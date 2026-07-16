@@ -152,7 +152,76 @@ export function sendChatMessage(sessionId: string, message: string) {
   })
 }
 
-export async function fetchTtsAudio(text: string): Promise<Blob> {
+export interface StreamCallbacks {
+  onToken: (delta: string) => void
+  onDone: () => void
+  onError: (error: Error) => void
+}
+
+export function sendChatMessageStream(
+  sessionId: string,
+  message: string,
+  callbacks: StreamCallbacks,
+): AbortController {
+  const controller = new AbortController()
+  const token = localStorage.getItem('token')
+
+  fetch(`${API_URL}/chat/stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ sessionId, message }),
+    signal: controller.signal,
+  }).then(async (res) => {
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new ApiError(data.message || 'Stream request failed', res.status)
+    }
+
+    // Check if response is JSON (non-streaming early return: greeting, emergency, consent)
+    const contentType = res.headers.get('content-type')
+    if (contentType?.includes('application/json')) {
+      const data = await res.json()
+      if (data.reply) callbacks.onToken(data.reply)
+      callbacks.onDone()
+      return
+    }
+
+    // Otherwise process as SSE stream
+    const reader = res.body!.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const data = line.slice(6).trim()
+
+        try {
+          const parsed = JSON.parse(data)
+          if (parsed.delta) callbacks.onToken(parsed.delta)
+          if (parsed.done) { callbacks.onDone(); return }
+        } catch {}
+      }
+    }
+    callbacks.onDone()
+  }).catch((err) => {
+    if (err.name !== 'AbortError') callbacks.onError(err)
+  })
+
+  return controller
+}
+
+export async function fetchTtsAudio(text: string, speed: number = 1): Promise<Blob> {
   const token = localStorage.getItem('token')
   const res = await fetch(`${API_URL}/api/voice/tts`, {
     method: 'POST',
@@ -160,7 +229,7 @@ export async function fetchTtsAudio(text: string): Promise<Blob> {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ text, format: 'mp3' }),
+    body: JSON.stringify({ text, format: 'mp3', speed }),
   })
   if (!res.ok) throw new ApiError('TTS request failed', res.status)
   return res.blob()

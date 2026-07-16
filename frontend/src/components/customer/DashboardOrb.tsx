@@ -4,12 +4,18 @@ type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking'
 
 interface DashboardOrbProps {
   state?: OrbState
+  /** Pass a MutableRefObject so audio-level changes never cause re-renders */
+  reactivityRef?: React.MutableRefObject<number>
+  /** Fallback scalar reactivity (only used when reactivityRef is absent) */
   reactivity?: number
   size?: number
   onClick?: () => void
 }
 
-function useCloudAnimation(state: OrbState, reactivity: number) {
+function useCloudAnimation(
+  state: OrbState,
+  reactivityRef: React.MutableRefObject<number>,
+) {
   const cloud1Ref = useRef<HTMLDivElement>(null)
   const cloud2Ref = useRef<HTMLDivElement>(null)
   const cloud3Ref = useRef<HTMLDivElement>(null)
@@ -17,6 +23,13 @@ function useCloudAnimation(state: OrbState, reactivity: number) {
   const highlightRef = useRef<HTMLDivElement>(null)
   const timeRef = useRef(0)
   const rafRef = useRef<number>(0)
+  // keep state in a ref so the rAF closure always sees current value
+  // without needing to restart the loop
+  const stateRef = useRef(state)
+
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
 
   useEffect(() => {
     const c1 = cloud1Ref.current
@@ -26,13 +39,14 @@ function useCloudAnimation(state: OrbState, reactivity: number) {
     const h = highlightRef.current
     if (!c1 && !c2 && !c3) return
 
-    const speed = state === 'listening' ? 0.014 : state === 'speaking' ? 0.018 : 0.005
-    const amp = state === 'idle' ? 3 : 6
-
     const tick = () => {
+      const s = stateRef.current
+      const r = reactivityRef.current
+
+      const speed = s === 'listening' ? 0.014 : s === 'speaking' ? 0.018 : 0.005
+      const amp = s === 'idle' ? 3 : 6
       timeRef.current += speed
       const t = timeRef.current
-      const r = reactivity
 
       if (c1) {
         const dx = Math.sin(t * 0.9 + r * 2.5) * amp
@@ -64,13 +78,19 @@ function useCloudAnimation(state: OrbState, reactivity: number) {
 
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [state, reactivity])
+    // Only start/stop the loop once on mount — state changes go via stateRef
+  }, [reactivityRef])
 
   return { cloud1Ref, cloud2Ref, cloud3Ref, cloud4Ref, highlightRef }
 }
 
-export function DashboardOrb({ state = 'idle', reactivity = 0, size = 180, onClick }: DashboardOrbProps) {
-  const { cloud1Ref, cloud2Ref, cloud3Ref, cloud4Ref, highlightRef } = useCloudAnimation(state, reactivity)
+export function DashboardOrb({ state = 'idle', reactivityRef, reactivity = 0, size = 180, onClick }: DashboardOrbProps) {
+  // If a ref is provided, use it; otherwise wrap the scalar in a stable ref
+  const scalarRef = useRef(reactivity)
+  useEffect(() => { scalarRef.current = reactivity }, [reactivity])
+  const resolvedRef = reactivityRef ?? scalarRef
+
+  const { cloud1Ref, cloud2Ref, cloud3Ref, cloud4Ref, highlightRef } = useCloudAnimation(state, resolvedRef)
   const isActive = state !== 'idle'
 
   const glowIntensity = isActive ? 0.4 + reactivity * 0.3 : 0.18

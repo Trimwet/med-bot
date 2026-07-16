@@ -5,7 +5,7 @@ import {
   ArrowUp,
   Paperclip,
   Mic,
-  Phone,
+  
   Plus,
   Share2,
   Copy,
@@ -27,7 +27,6 @@ import {
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ApiError, sendChatMessage, fetchTtsAudio } from '@/lib/api'
-import VoiceCall from './VoiceCall'
 import SplitText from '@/components/ui/SplitText'
 
 const GREETING_MESSAGES = [
@@ -247,7 +246,6 @@ export const CustomerDashboardHome = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [recording, setRecording] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
-  const [callActive, setCallActive] = useState(false)
 
   useEffect(() => {
     if (!wave || !waveRef.current) return
@@ -407,13 +405,6 @@ export const CustomerDashboardHome = () => {
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">New</span>
-          </button>
-          <button
-            onClick={() => setCallActive(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#073B4C] dark:text-teal hover:bg-[#073B4C]/5 dark:hover:bg-teal/10 transition-colors"
-            aria-label="Start voice call"
-          >
-            <Phone className="w-[18px] h-[18px]" />
           </button>
           <button
             className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -713,16 +704,6 @@ export const CustomerDashboardHome = () => {
         </div>
       </div>
 
-      {/* Voice Call overlay */}
-      {callActive && (
-        <VoiceCall
-          sessionId={sessionIdRef.current}
-          onClose={() => setCallActive(false)}
-          onMessage={(msg) => {
-            setMessages((prev) => [...prev, { sender: msg.role === 'user' ? 'user' : 'assistant', text: msg.text }])
-          }}
-        />
-      )}
     </div>
   )
 }

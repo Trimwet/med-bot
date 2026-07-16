@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Plus,
   Search,
@@ -15,6 +15,7 @@ import {
   Menu,
   X,
 } from 'lucide-react'
+import { getRecentSessions, type RecentSession } from '@/lib/recent-sessions'
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Chat', href: '/dashboard' },
@@ -23,21 +24,23 @@ const NAV_ITEMS = [
   { icon: Library, label: 'Health Library', href: '/dashboard/health-library' },
 ]
 
-const CONVERSATIONS = [
-  'Weekend trip planning',
-  'Recipe ideas for the week',
-  'Book recommendations',
-  'Home workout plan',
-]
-
 export const CustomerDashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [selectedChat, setSelectedChat] = useState<string | null>(null)
+  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
   const location = useLocation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const activeSessionId = searchParams.get('session')
 
   const isExpanded = !collapsed || mobileOpen
+
+  useEffect(() => {
+    setRecentSessions(getRecentSessions())
+    const refresh = () => setRecentSessions(getRecentSessions())
+    window.addEventListener('recent-sessions-updated', refresh)
+    return () => window.removeEventListener('recent-sessions-updated', refresh)
+  }, [location.pathname])
 
   // Keep backend alive — ping every 4 min to prevent Render cold start
   useEffect(() => {
@@ -142,22 +145,25 @@ export const CustomerDashboardLayout = () => {
               Recent
             </p>
             <div className="space-y-0.5">
-              {CONVERSATIONS.map((chat) => (
+              {recentSessions.length === 0 && (
+                <p className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">No recent chats</p>
+              )}
+              {recentSessions.map((session) => (
                 <button
-                  key={chat}
+                  key={session.sessionId}
                   onClick={() => {
-                    setSelectedChat(chat)
+                    navigate(`/dashboard?session=${session.sessionId}`)
                     setMobileOpen(false)
                   }}
                   className={`
                     w-full text-left px-3 py-2 rounded-lg text-sm truncate transition-colors
-                    ${selectedChat === chat
+                    ${activeSessionId === session.sessionId
                       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
                       : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                     }
                   `}
                 >
-                  {chat}
+                  {session.firstMessage || 'New chat'}
                 </button>
               ))}
             </div>

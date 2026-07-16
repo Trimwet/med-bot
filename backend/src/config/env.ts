@@ -15,7 +15,9 @@ const ENV_SPEC: EnvVar[] = [
   { key: "DEEPSEEK_BASE_URL", required: false, default: "https://api.deepseek.com" },
   { key: "DEEPSEEK_CHAT_MODEL", required: false, default: "deepseek-chat" },
   { key: "DEEPSEEK_EMBEDDING_MODEL", required: false, default: "text-embedding-3-small" },
-  { key: "EMBEDDING_DIMENSION", required: false, default: "1536" },
+  { key: "EMBEDDING_DIMENSION", required: false, default: "3072" },
+  // Google AI Studio — used for free gemini-embedding-001 embeddings (3072-dim).
+  { key: "GEMINI_API_KEY", required: false, default: "" },
   // OpenAI is used for embeddings — DeepSeek has no embeddings endpoint.
   // OPENAI_API_KEY is required for real vector search; without it the system
   // falls back to keyword search (still functional after the routing fix).
@@ -32,6 +34,7 @@ const ENV_SPEC: EnvVar[] = [
   { key: "REDIS_URL", required: false, default: "" },
   { key: "ERROR_WEBHOOK_URL", required: false, default: "" },
   { key: "FISH_AUDIO_API_KEY", required: false, default: "" },
+  { key: "FISH_AUDIO_VOICE_ID", required: false, default: "" },
   { key: "OPENROUTER_API_KEY", required: false, default: "" },
 ];
 
@@ -112,5 +115,7 @@ export const env = {
   redisUrl: raw.REDIS_URL,
   errorWebhookUrl: raw.ERROR_WEBHOOK_URL,
   fishAudioApiKey: raw.FISH_AUDIO_API_KEY,
+  fishAudioVoiceId: raw.FISH_AUDIO_VOICE_ID,
   openrouterApiKey: raw.OPENROUTER_API_KEY,
+  geminiApiKey: raw.GEMINI_API_KEY,
 } as const;

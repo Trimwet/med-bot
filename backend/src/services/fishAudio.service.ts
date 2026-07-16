@@ -24,7 +24,7 @@ export async function textToSpeech(options: TTSOptions): Promise<Buffer> {
     throw new Error("Text is required for TTS synthesis");
   }
 
-  const payload = {
+  const payload: Record<string, any> = {
     text: text.slice(0, 5000),
     format,
     temperature: 0.7,
@@ -38,6 +38,10 @@ export async function textToSpeech(options: TTSOptions): Promise<Buffer> {
     normalize: true,
     latency: "balanced" as const,
   };
+
+  if (env.fishAudioVoiceId) {
+    payload.reference_id = env.fishAudioVoiceId;
+  }
 
   const response = await fetch(FISH_API_URL, {
     method: "POST",
