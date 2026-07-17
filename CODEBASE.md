@@ -333,7 +333,7 @@ Platform super-admin dashboard for managing tenants, users, protocols, and analy
 
 4. **Streaming chat** — `/chat/stream` uses Server-Sent Events (SSE) for token-by-token delivery. Non-streaming early returns (greetings, emergencies, consent) as JSON.
 
-5. **Emergency detection** — 30+ regex patterns catch life-threatening emergencies before they reach the AI.
+5. **Emergency detection** — 30+ regex patterns catch life-threatening emergencies before they reach the AI.cd
 
 6. **Token billing** — Every AI interaction metered. Costs computed per prompt + completion tokens, with per-tenant multipliers by subscription tier.
 

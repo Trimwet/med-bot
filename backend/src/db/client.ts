@@ -14,7 +14,7 @@ export async function getDb(): Promise<Db> {
   if (db) return db;
   client = new MongoClient(env.mongodbUri, {
     tls: true,
-    serverSelectionTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 30000,
     family: 4,
   });
   await client.connect();
