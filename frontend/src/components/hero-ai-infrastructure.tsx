@@ -9,6 +9,16 @@ const ROTATING_WORDS = [
   'Ready to Assist',
   'By Your Side',
   'Just a Message Away',
+  'Never Off Duty',
+  'Listening Closely',
+  'Built for You',
+  'Smarter Every Day',
+  'On Call 24/7',
+  'Powered by Science',
+  'Here When It Matters',
+  'Your Health Partner',
+  'Always in Your Corner',
+  'Faster Than a Waiting Room',
 ]
 
 interface HeroAiInfrastructureProps {
@@ -47,59 +57,67 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
           <TimelineAnimation
             timelineRef={timelineRef}
             animationNum={4}
-            className="text-[1.75rem] sm:text-3xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.15] max-w-2xl my-4 font-display"
+            className="text-[1.75rem] sm:text-3xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.2] max-w-2xl my-4 font-display"
           >
-            <SplitText
-              text="Your AI Medical"
-              className="block"
-              delay={50}
-              duration={1.25}
-              ease="power3.out"
-              splitType="chars"
-              from={{ opacity: 0, y: 40 }}
-              to={{ opacity: 1, y: 0 }}
-              threshold={0.1}
-              rootMargin="-100px"
-              textAlign="center"
-              tag="span"
-            />
-            <SplitText
-              text="Assistant is"
-              className="block"
-              delay={50}
-              duration={1.25}
-              ease="power3.out"
-              splitType="chars"
-              from={{ opacity: 0, y: 40 }}
-              to={{ opacity: 1, y: 0 }}
-              threshold={0.1}
-              rootMargin="-100px"
-              textAlign="center"
-              tag="span"
-            />
-            <span className="text-teal block relative h-[1.2em] overflow-hidden">
-              {ROTATING_WORDS.map((word, i) => (
-                <SplitText
-                  key={word}
-                  text={word}
-                  className={`block transition-all duration-500 ${
-                    i === wordIndex
-                      ? 'opacity-100 translate-y-0 relative'
-                      : 'opacity-0 translate-y-full absolute inset-0'
-                  }`}
-                  delay={30}
-                  duration={0.8}
-                  ease="power3.out"
-                  splitType="chars"
-                  from={{ opacity: 0, y: 30 }}
-                  to={{ opacity: 1, y: 0 }}
-                  threshold={0.1}
-                  rootMargin="-100px"
-                  textAlign="center"
-                  tag="span"
-                />
-              ))}
-            </span>
+            {/* Line 1: "Your AI" */}
+            <div className="block text-center">
+              <SplitText
+                text="Your AI"
+                delay={50}
+                duration={1.25}
+                ease="power3.out"
+                splitType="chars"
+                from={{ opacity: 0, y: 40 }}
+                to={{ opacity: 1, y: 0 }}
+                threshold={0.1}
+                rootMargin="-100px"
+                textAlign="center"
+                tag="span"
+              />
+            </div>
+            {/* Line 2: "Medical Assistant" — kept together so the two words never split */}
+            <div className="block text-center">
+              <SplitText
+                text="Medical Assistant"
+                delay={50}
+                duration={1.25}
+                ease="power3.out"
+                splitType="chars"
+                from={{ opacity: 0, y: 40 }}
+                to={{ opacity: 1, y: 0 }}
+                threshold={0.1}
+                rootMargin="-100px"
+                textAlign="center"
+                tag="span"
+              />
+            </div>
+            {/* Line 3: "is" + rotating teal word side-by-side */}
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <span>is</span>
+              <span className="text-teal relative h-[1.2em] overflow-hidden inline-block min-w-[6rem] sm:min-w-[10rem] md:min-w-[14rem]">
+                {ROTATING_WORDS.map((word, i) => (
+                  <SplitText
+                    key={word}
+                    text={word}
+                    className={`block transition-all duration-500 ${
+                      i === wordIndex
+                        ? 'opacity-100 translate-y-0 relative'
+                        : 'opacity-0 translate-y-full absolute inset-0'
+                    }`}
+                    delay={30}
+                    duration={0.8}
+                    ease="power3.out"
+                    splitType="chars"
+                    from={{ opacity: 0, y: 30 }}
+                    to={{ opacity: 1, y: 0 }}
+                    threshold={0.1}
+                    rootMargin="-100px"
+                    textAlign="center"
+                    tag="span"
+                  />
+                ))}
+              </span>
+            </div>
           </TimelineAnimation>
 
           <TimelineAnimation

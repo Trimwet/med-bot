@@ -182,37 +182,37 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl"
+              transition={{ type: "spring", damping: 32, stiffness: 320 }}
+              className="absolute inset-y-0 right-0 w-[80vw] max-w-[300px] bg-white shadow-xl flex flex-col"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-6 h-16 border-b border-line">
+              <div className="flex items-center justify-between px-4 h-14 border-b border-line">
                 <a
                   href="/"
-                  className="flex items-center gap-2.5"
+                  className="flex items-center gap-2"
                   aria-label="MedBot – Go to homepage"
                   onClick={closeMobile}
                 >
                   <img
                     src="/assets/Logo.jpeg"
                     alt=""
-                    className="h-8 w-auto rounded-md"
+                    className="h-6 w-auto rounded"
                   />
-                  <span className="font-display font-extrabold text-lg tracking-tight text-navy">
+                  <span className="font-display font-bold text-[15px] tracking-tight text-navy">
                     MedBot
                   </span>
                 </a>
                 <button
                   onClick={closeMobile}
                   aria-label="Close menu"
-                  className="w-10 h-10 flex items-center justify-center rounded-lg text-muted hover:text-ink hover:bg-ink/5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-ink/5 transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Links */}
-              <nav className="px-6 py-6 space-y-1" aria-label="Mobile navigation">
+              <nav className="flex-1 px-3 py-4 space-y-0.5" aria-label="Mobile navigation">
                 {NAV_LINKS.map(({ label, href }) => {
                   const isActive = activeSection === href
                   return (
@@ -221,10 +221,10 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
                       href={href}
                       onClick={closeMobile}
                       className={cn(
-                        "block px-4 py-3 text-[15px] font-medium rounded-xl transition-colors duration-150",
+                        "block px-3 py-2 text-[13px] font-medium rounded-md transition-colors duration-150",
                         isActive
-                          ? "bg-teal/10 text-teal"
-                          : "text-ink hover:bg-ink/5"
+                          ? "bg-teal/8 text-teal"
+                          : "text-ink/70 hover:text-ink hover:bg-ink/4"
                       )}
                     >
                       {label}
@@ -234,18 +234,18 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
               </nav>
 
               {/* Actions */}
-              <div className="px-6 pb-8 pt-2 space-y-3 border-t border-line">
+              <div className="px-3 py-4 border-t border-line space-y-2">
                 <a
                   href="#"
                   onClick={(e) => { e.preventDefault(); onLogin?.(); closeMobile() }}
-                  className="block w-full text-center px-5 py-3 text-[15px] font-medium text-ink border border-line rounded-full hover:bg-ink/5 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                  className="block w-full text-center px-4 py-1.5 text-[13px] font-medium text-ink border border-line rounded-md hover:bg-ink/5 transition-colors duration-150"
                 >
                   Log In
                 </a>
                 <a
                   href="#"
                   onClick={(e) => { e.preventDefault(); onSignup?.(); closeMobile() }}
-                  className="block w-full text-center px-5 py-3 text-[15px] font-semibold text-white bg-teal rounded-full transition-all duration-150 hover:bg-teal/80 hover:shadow-md hover:shadow-teal/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+                  className="block w-full text-center px-4 py-1.5 text-[13px] font-semibold text-white bg-teal rounded-md transition-all duration-150 hover:bg-teal/80"
                 >
                   Sign Up
                 </a>

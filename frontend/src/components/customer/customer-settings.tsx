@@ -348,7 +348,7 @@ export const CustomerSettings = () => {
     <div className="py-4 px-3">
       <button
         onClick={() => navigate('/dashboard')}
-        className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 px-3 transition-colors"
+        className="hidden md:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 px-3 transition-colors"
       >
         <ChevronRight className="w-4 h-4 rotate-180" />
         Back to Dashboard
