@@ -5,7 +5,6 @@ import {
   ArrowUp,
   Paperclip,
   Mic,
-  
   Plus,
   Share2,
   Copy,
@@ -24,9 +23,15 @@ import {
   Volume2,
   VolumeX,
   Loader2,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  X,
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ApiError, sendChatMessage, fetchTtsAudio } from '@/lib/api'
+import { cn } from '@/lib/utils'
 import SplitText from '@/components/ui/SplitText'
 
 const GREETING_MESSAGES = [
@@ -39,6 +44,10 @@ const GREETING_MESSAGES = [
 ]
 
 const MAX_TEXTAREA_HEIGHT = 160
+
+function stripEmotionTag(text: string): string {
+  return text.replace(/^\[(?:calm|warm|empathetic|serious|laugh|chuckling|concerned|reassuring|urgent|neutral|confident|gentle)\]\s*/i, '')
+}
 
 const THINKING_STEPS = [
   { icon: Search, label: 'Searching medical sources', keyword: 'analyz' },
@@ -91,6 +100,12 @@ const streamTokens = (text: string, onToken: (chunk: string) => void, onDone: ()
 }
 
 const formatNumber = (n: number) => new Intl.NumberFormat('en-US', { notation: 'compact' }).format(n)
+
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
 
 const SessionUsage = ({ stats }: { stats: UsageStats }) => {
   const [open, setOpen] = useState(false)
@@ -216,7 +231,7 @@ function StreamingBubble({ fullText, visibleText }: { fullText: string; visibleT
       className="max-w-[85%] sm:max-w-[80%] px-4 py-3 rounded-2xl rounded-bl-md text-sm leading-relaxed break-words bg-white border border-gray-200 text-gray-800 shadow-sm"
       style={minHeight ? { minHeight: `${minHeight}px` } : undefined}
     >
-      {visibleText}
+      {stripEmotionTag(visibleText)}
       <span className="inline-block w-1.5 h-4 bg-gray-400 ml-0.5 align-text-bottom animate-pulse" />
     </div>
   )
@@ -242,10 +257,21 @@ export const CustomerDashboardHome = () => {
   const [greetingIndex, setGreetingIndex] = useState(() => Math.floor(Math.random() * GREETING_MESSAGES.length))
   const [wave, setWave] = useState(false)
   const waveRef = useRef<HTMLSpanElement>(null)
-  const [playingIndex, setPlayingIndex] = useState<number | null>(null)
+  const [audioState, setAudioState] = useState<{
+    messageIndex: number | null
+    playing: boolean
+    currentTime: number
+    duration: number
+    speed: number
+    loading: boolean
+  }>({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: 1, loading: false })
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioTimeRef = useRef<number>(0)
   const [recording, setRecording] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const thinkingStartRef = useRef<number | null>(null)
+  const [thinkingDuration, setThinkingDuration] = useState<number | null>(null)
+  const [thinkingOpen, setThinkingOpen] = useState(false)
 
   useEffect(() => {
     if (!wave || !waveRef.current) return
@@ -283,6 +309,18 @@ export const CustomerDashboardHome = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, visibleThinking, visibleResponse, phase])
 
+  useEffect(() => {
+    if (phase === 'thinking') {
+      thinkingStartRef.current = Date.now()
+      setThinkingDuration(null)
+      setThinkingOpen(true)
+    } else if (thinkingStartRef.current !== null) {
+      setThinkingDuration(Math.ceil((Date.now() - thinkingStartRef.current) / 1000))
+      thinkingStartRef.current = null
+      setTimeout(() => setThinkingOpen(false), 1000)
+    }
+  }, [phase])
+
   // Rotate greeting messages every 6 seconds while no messages are present
   useEffect(() => {
     if (messages.length > 0 || phase !== 'idle') return
@@ -291,6 +329,76 @@ export const CustomerDashboardHome = () => {
     }, 6000)
     return () => clearInterval(timer)
   }, [messages.length, phase])
+
+  // Audio time ticker
+  useEffect(() => {
+    if (!audioState.playing || !audioRef.current) return
+    const ticker = setInterval(() => {
+      if (audioRef.current) {
+        audioTimeRef.current = audioRef.current.currentTime
+        setAudioState((s) => ({ ...s, currentTime: audioRef.current!.currentTime }))
+      }
+    }, 250)
+    return () => clearInterval(ticker)
+  }, [audioState.playing])
+
+  const triggerAudio = useCallback(async (msgIndex: number, text: string) => {
+    if (audioState.messageIndex === msgIndex) {
+      if (audioRef.current?.paused) {
+        audioRef.current.play()
+        setAudioState((s) => ({ ...s, playing: true }))
+      } else {
+        audioRef.current?.pause()
+        setAudioState((s) => ({ ...s, playing: false }))
+      }
+      return
+    }
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    setAudioState({ messageIndex: msgIndex, playing: false, currentTime: 0, duration: 0, speed: 1, loading: true })
+    try {
+      const blob = await fetchTtsAudio(text)
+      const url = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audio.playbackRate = 1
+      audioRef.current = audio
+      audio.onloadedmetadata = () => {
+        setAudioState((s) => ({ ...s, duration: audio.duration, loading: false }))
+      }
+      audio.onended = () => {
+        setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: 1, loading: false })
+        audioRef.current = null
+      }
+      audio.onerror = () => {
+        setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: 1, loading: false })
+        audioRef.current = null
+      }
+      await audio.play()
+      setAudioState((s) => ({ ...s, playing: true }))
+    } catch {
+      setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: 1, loading: false })
+    }
+  }, [audioState.messageIndex])
+
+  const closeAudio = useCallback(() => {
+    audioRef.current?.pause()
+    audioRef.current = null
+    setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: 1, loading: false })
+  }, [])
+
+  const seekAudio = useCallback((seconds: number) => {
+    if (!audioRef.current) return
+    audioRef.current.currentTime = Math.max(0, Math.min(audioRef.current.duration || 0, audioRef.current.currentTime + seconds))
+  }, [])
+
+  const cycleSpeed = useCallback(() => {
+    const speeds = [0.75, 1, 1.25, 1.5]
+    const next = speeds[(speeds.indexOf(audioState.speed) + 1) % speeds.length]
+    if (audioRef.current) audioRef.current.playbackRate = next
+    setAudioState((s) => ({ ...s, speed: next }))
+  }, [audioState.speed])
 
   const estimateTokens = (text: string) => Math.ceil(text.length / 4)
 
@@ -473,7 +581,7 @@ export const CustomerDashboardHome = () => {
                         : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-md shadow-sm'
                     }`}
                   >
-                    {msg.text}
+                    {msg.sender === 'assistant' ? stripEmotionTag(msg.text) : msg.text}
                   </div>
 
                   {/* Message actions */}
@@ -481,7 +589,7 @@ export const CustomerDashboardHome = () => {
                     <button
                       onClick={async () => {
                         try {
-                          await navigator.clipboard.writeText(msg.text)
+                          await navigator.clipboard.writeText(stripEmotionTag(msg.text))
                           setCopiedIndex(i)
                           setTimeout(() => setCopiedIndex((cur) => (cur === i ? null : cur)), 1500)
                         } catch {}
@@ -499,7 +607,7 @@ export const CustomerDashboardHome = () => {
                     {msg.sender === 'user' ? (
                       <button
                         onClick={() => {
-                          setInput(msg.text)
+                          setInput(stripEmotionTag(msg.text))
                           requestAnimationFrame(() => { textareaRef.current?.focus(); adjustHeight() })
                         }}
                         className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -510,33 +618,11 @@ export const CustomerDashboardHome = () => {
                     ) : (
                       <>
                         <button
-                          onClick={async () => {
-                            if (playingIndex === i) {
-                              audioRef.current?.pause()
-                              audioRef.current = null
-                              setPlayingIndex(null)
-                              return
-                            }
-                            if (audioRef.current) {
-                              audioRef.current.pause()
-                            }
-                            setPlayingIndex(i)
-                            try {
-                              const blob = await fetchTtsAudio(msg.text)
-                              const url = URL.createObjectURL(blob)
-                              const audio = new Audio(url)
-                              audioRef.current = audio
-                              audio.onended = () => { setPlayingIndex(null); audioRef.current = null }
-                              audio.onerror = () => { setPlayingIndex(null); audioRef.current = null }
-                              await audio.play()
-                            } catch {
-                              setPlayingIndex(null)
-                            }
-                          }}
+                          onClick={() => triggerAudio(i, msg.text)}
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           aria-label="Listen to response"
                         >
-                          {playingIndex === i ? (
+                          {audioState.messageIndex === i && audioState.playing ? (
                             <VolumeX className="w-3.5 h-3.5" />
                           ) : (
                             <Volume2 className="w-3.5 h-3.5" />
@@ -596,21 +682,16 @@ export const CustomerDashboardHome = () => {
 
               {/* Live thinking */}
               {phase === 'thinking' && (
-                <div className="flex items-start gap-2 w-full">
-                  <div className="w-7 h-7 rounded-full bg-[#073B4C] flex items-center justify-center shrink-0">
-                    <Brain className="w-3.5 h-3.5 text-white animate-pulse" />
-                  </div>
-                  <div className="bg-gray-100 dark:bg-[#1a1d25] rounded-2xl rounded-tl-sm px-4 py-3">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                      <span>Thinking</span>
-                      <span className="flex gap-0.5">
-                        <span className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                <Collapsible open={thinkingOpen} onOpenChange={setThinkingOpen}>
+                  <CollapsibleTrigger className="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <span className="inline-block w-2 h-2 rounded-full bg-teal animate-[dot-bounce_0.6s_ease-in-out_infinite]" />
+                    <span className="text-sm bg-[length:250%_100%] bg-clip-text text-transparent [background-image:linear-gradient(90deg,#6b7280_0%,#d1d5db_50%,#6b7280_100%)] dark:[background-image:linear-gradient(90deg,#6b7280_0%,#9ca3af_50%,#6b7280_100%)] animate-[shimmer-text_1.5s_linear_infinite]">Thinking...</span>
+                    <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", thinkingOpen && "rotate-180")} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Analyzing your message and checking medical protocols...</p>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
 
               {/* Live response */}
@@ -630,6 +711,98 @@ export const CustomerDashboardHome = () => {
       {(usage.messagesSent > 0 || usage.messagesReceived > 0) && (
         <div className="bg-white dark:bg-[#0f1117] border-t border-gray-100 dark:border-gray-800 px-3 sm:px-6 shrink-0">
           <SessionUsage stats={usage} />
+        </div>
+      )}
+
+      {/* Audio Player */}
+      {audioState.messageIndex !== null && (
+        <div className="bg-white dark:bg-[#0f1117] border-t border-gray-100 dark:border-gray-800 px-3 sm:px-6 pt-3 pb-2 shrink-0">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center gap-2 sm:gap-3 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl px-3 sm:px-4 py-2.5 shadow-sm">
+              {/* Play / Pause */}
+              <button
+                onClick={() => {
+                  if (!audioRef.current) return
+                  if (audioRef.current.paused) {
+                    audioRef.current.play()
+                    setAudioState((s) => ({ ...s, playing: true }))
+                  } else {
+                    audioRef.current.pause()
+                    setAudioState((s) => ({ ...s, playing: false }))
+                  }
+                }}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-[#073B4C] dark:bg-teal text-white hover:bg-[#0A202A] dark:hover:bg-teal/80 transition-colors shrink-0"
+                aria-label={audioState.playing ? 'Pause' : 'Play'}
+              >
+                {audioState.loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : audioState.playing ? (
+                  <Pause className="w-4 h-4" fill="currentColor" />
+                ) : (
+                  <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
+                )}
+              </button>
+
+              {/* Rewind 15s */}
+              <button
+                onClick={() => seekAudio(-15)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0"
+                aria-label="Rewind 15 seconds"
+              >
+                <SkipBack className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Progress bar */}
+              <div className="flex-1 flex items-center gap-2 min-w-0">
+                <span className="text-[11px] font-mono text-gray-400 dark:text-gray-500 tabular-nums shrink-0 w-8 text-right">
+                  {formatTime(audioState.currentTime)}
+                </span>
+                <div className="flex-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden cursor-pointer group relative"
+                  onClick={(e) => {
+                    if (!audioRef.current || !audioRef.current.duration) return
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+                    audioRef.current.currentTime = pct * audioRef.current.duration
+                  }}
+                >
+                  <div
+                    className="h-full bg-[#073B4C] dark:bg-teal rounded-full transition-[width] duration-100"
+                    style={{ width: audioState.duration ? `${(audioState.currentTime / audioState.duration) * 100}%` : '0%' }}
+                  />
+                </div>
+                <span className="text-[11px] font-mono text-gray-400 dark:text-gray-500 tabular-nums shrink-0 w-8">
+                  {formatTime(audioState.duration)}
+                </span>
+              </div>
+
+              {/* Forward 15s */}
+              <button
+                onClick={() => seekAudio(15)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0"
+                aria-label="Forward 15 seconds"
+              >
+                <SkipForward className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Speed */}
+              <button
+                onClick={cycleSpeed}
+                className="min-w-[36px] h-8 flex items-center justify-center rounded-full text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0 tabular-nums"
+                aria-label="Playback speed"
+              >
+                {audioState.speed}x
+              </button>
+
+              {/* Close */}
+              <button
+                onClick={closeAudio}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0"
+                aria-label="Close player"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
