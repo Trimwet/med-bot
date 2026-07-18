@@ -8,17 +8,14 @@ const ROTATING_WORDS = [
   'Here to Help',
   'Ready to Assist',
   'By Your Side',
-  'Just a Message Away',
   'Never Off Duty',
   'Listening Closely',
   'Built for You',
   'Smarter Every Day',
   'On Call 24/7',
-  'Powered by Science',
-  'Here When It Matters',
+  'Science-Backed',
   'Your Health Partner',
-  'Always in Your Corner',
-  'Faster Than a Waiting Room',
+  'Here For You',
 ]
 
 interface HeroAiInfrastructureProps {
@@ -91,32 +88,32 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
                 tag="span"
               />
             </div>
-            {/* Line 3: "is" + rotating teal word side-by-side */}
-            <div className="flex items-center justify-center gap-2 flex-wrap">
+            {/* Line 3: "is" on its own line, rotating teal word on the next — both full-width so no clipping */}
+            <div className="block text-center">
               <span>is</span>
-              <span className="text-teal relative h-[1.2em] overflow-hidden inline-block min-w-[6rem] sm:min-w-[10rem] md:min-w-[14rem]">
-                {ROTATING_WORDS.map((word, i) => (
-                  <SplitText
-                    key={word}
-                    text={word}
-                    className={`block transition-all duration-500 ${
-                      i === wordIndex
-                        ? 'opacity-100 translate-y-0 relative'
-                        : 'opacity-0 translate-y-full absolute inset-0'
-                    }`}
-                    delay={30}
-                    duration={0.8}
-                    ease="power3.out"
-                    splitType="chars"
-                    from={{ opacity: 0, y: 30 }}
-                    to={{ opacity: 1, y: 0 }}
-                    threshold={0.1}
-                    rootMargin="-100px"
-                    textAlign="center"
-                    tag="span"
-                  />
-                ))}
-              </span>
+            </div>
+            <div className="block text-center text-teal relative h-[1.2em] overflow-hidden">
+              {ROTATING_WORDS.map((word, i) => (
+                <SplitText
+                  key={word}
+                  text={word}
+                  className={`block transition-all duration-500 ${
+                    i === wordIndex
+                      ? 'opacity-100 translate-y-0 relative'
+                      : 'opacity-0 translate-y-full absolute inset-0'
+                  }`}
+                  delay={30}
+                  duration={0.8}
+                  ease="power3.out"
+                  splitType="chars"
+                  from={{ opacity: 0, y: 30 }}
+                  to={{ opacity: 1, y: 0 }}
+                  threshold={0.1}
+                  rootMargin="-100px"
+                  textAlign="center"
+                  tag="span"
+                />
+              ))}
             </div>
           </TimelineAnimation>
 
@@ -130,7 +127,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             personalized recommendations powered by clinical knowledge and AI.
           </TimelineAnimation>
 
-          <div className="flex flex-col sm:flex-row gap-3 items-center justify-center w-full px-2 sm:px-0">
+          <div className="flex flex-row gap-3 items-center justify-center w-full px-2 sm:px-0">
             <TimelineAnimation
               timelineRef={timelineRef}
               as="a"
