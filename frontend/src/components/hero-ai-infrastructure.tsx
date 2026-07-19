@@ -39,7 +39,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
       className="relative min-h-screen flex flex-col bg-white text-ink w-full"
     >
       <div className="relative z-10 grow flex flex-col lg:flex-row items-center justify-center px-4 sm:px-8 pt-24 pb-16 gap-14 lg:gap-12 max-w-7xl mx-auto w-full overflow-hidden">
-        <div className="flex-1 flex flex-col items-center text-center">
+        <div className="flex-1 flex flex-col items-center text-center px-5 sm:px-0">
           <TimelineAnimation
             timelineRef={timelineRef}
             animationNum={3}
@@ -121,13 +121,13 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             timelineRef={timelineRef}
             as="p"
             animationNum={5}
-            className="text-muted text-sm sm:text-base md:text-lg max-w-xl mb-6 font-light px-2 sm:px-0"
+            className="text-muted text-sm sm:text-base md:text-lg max-w-xl mb-6 font-light"
           >
             Describe your symptoms, get instant guidance, and receive
             personalized recommendations powered by clinical knowledge and AI.
           </TimelineAnimation>
 
-          <div className="flex flex-row gap-3 items-center justify-center w-full px-5 sm:px-0">
+          <div className="flex flex-row gap-3 items-center justify-center w-full">
             <TimelineAnimation
               timelineRef={timelineRef}
               as="a"
