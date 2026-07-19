@@ -127,13 +127,13 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             personalized recommendations powered by clinical knowledge and AI.
           </TimelineAnimation>
 
-          <div className="flex flex-row gap-3 items-center justify-center w-full">
+          <div className="flex flex-row gap-3 items-center justify-center w-full px-5 sm:px-0">
             <TimelineAnimation
               timelineRef={timelineRef}
               as="a"
               animationNum={6}
               href="#contact"
-              className="cursor-pointer bg-teal text-white px-5 py-2.5 rounded-sm font-semibold flex items-center gap-2 hover:bg-teal/80 transition font-display text-sm whitespace-nowrap w-full sm:w-auto justify-center"
+              className="cursor-pointer bg-teal text-white px-5 py-2.5 rounded-sm font-semibold flex items-center gap-2 hover:bg-teal/80 transition font-display text-sm whitespace-nowrap justify-center"
             >
               Start Symptom Check <ArrowRight size={16} />
             </TimelineAnimation>
@@ -142,7 +142,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
               as="button"
               animationNum={7}
               onClick={onPartners}
-              className="cursor-pointer relative bg-transparent hover:bg-ink/5 transition px-5 py-2.5 rounded-sm font-semibold border border-ink/20 text-ink font-display text-sm whitespace-nowrap w-full sm:w-auto justify-center"
+              className="cursor-pointer relative bg-transparent hover:bg-ink/5 transition px-5 py-2.5 rounded-sm font-semibold border border-ink/20 text-ink font-display text-sm whitespace-nowrap justify-center"
             >
               For Healthcare Partners
             </TimelineAnimation>
