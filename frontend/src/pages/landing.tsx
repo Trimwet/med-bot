@@ -14,7 +14,7 @@ interface LandingPageProps {
 
 export const LandingPage = ({ onLogin, onSignup, onPartners }: LandingPageProps) => {
   return (
-    <div className="bg-white">
+    <div className="bg-white overflow-hidden">
       <Navbar onLogin={onLogin} onSignup={onSignup} />
       <div id="hero">
         <HeroAiInfrastructure onPartners={onPartners} />

@@ -26,7 +26,7 @@ function AnimatedStat({ value, suffix = '', decimals = 0, label, labelWidth, val
 
   return (
     <div ref={ref}>
-      <div className="text-3xl font-semibold mb-1 tracking-tighter flex items-baseline" style={{ minWidth: valueWidth }}>
+      <div className="text-3xl font-semibold mb-1 tracking-tighter flex items-baseline max-w-full" style={{ minWidth: `min(${valueWidth}px, 100%)` }}>
         <NumberFlow
           value={target}
           format={{ minimumFractionDigits: decimals, maximumFractionDigits: decimals }}
@@ -34,7 +34,7 @@ function AnimatedStat({ value, suffix = '', decimals = 0, label, labelWidth, val
         />
         {suffix && <span>{suffix}</span>}
       </div>
-      <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-widest" style={{ minWidth: labelWidth }}>
+      <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-widest max-w-full" style={{ minWidth: `min(${labelWidth}px, 100%)` }}>
         {label}
       </div>
     </div>
@@ -73,7 +73,7 @@ export const StatsSection = () => {
     <section className="pb-16 px-6 bg-[#0A202A] text-white relative overflow-hidden">
       <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(0,168,168,0.06)_0%,transparent_70%)] pointer-events-none"></div>
       <div className="max-w-7xl mx-auto relative">
-        <div className="grid lg:grid-cols-2 gap-24 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-center">
           <div className="space-y-10">
             <span className="inline-flex px-4 py-1.5 text-xs font-semibold border border-teal/40 rounded-full text-teal uppercase tracking-[0.2em] bg-teal/10">
               Impact

@@ -41,7 +41,7 @@ const footerLinks = [
 
 export const DetailedFooter = () => {
   return (
-    <footer className="w-full bg-[#0A202A] text-white border-t border-white/5">
+    <footer className="w-full bg-[#0A202A] text-white border-t border-white/5 overflow-hidden">
       {/* CTA Banner */}
       <div className="border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 py-16 md:py-20 text-center">

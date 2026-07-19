@@ -100,7 +100,7 @@ export const CompareSection = () => {
   const categories = [...new Set(features.map((f) => f.category))]
 
   return (
-    <section className="py-24 px-6 bg-paper-soft relative">
+    <section className="py-24 px-6 bg-paper-soft relative overflow-hidden">
       <div className="max-w-5xl mx-auto">
         {/* Table */}
         <div className="bg-white rounded-xl border border-line shadow-sm overflow-x-auto">

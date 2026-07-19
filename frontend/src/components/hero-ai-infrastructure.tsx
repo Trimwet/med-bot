@@ -36,7 +36,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
   return (
     <section
       ref={timelineRef}
-      className="relative min-h-screen flex flex-col bg-white text-ink w-full"
+      className="relative min-h-screen flex flex-col bg-white text-ink w-full overflow-hidden"
     >
       <div className="relative z-10 grow flex flex-col lg:flex-row items-center justify-center px-6 sm:px-8 lg:px-12 pt-24 pb-16 gap-14 lg:gap-12 max-w-7xl mx-auto w-full">
         <div className="flex-1 flex flex-col items-center text-center min-w-0">
@@ -127,13 +127,13 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             personalized recommendations powered by clinical knowledge and AI.
           </TimelineAnimation>
 
-          <div className="flex flex-row gap-3 items-center justify-center w-full">
+          <div className="flex flex-wrap gap-3 items-center justify-center w-full">
             <TimelineAnimation
               timelineRef={timelineRef}
               as="a"
               animationNum={6}
               href="#contact"
-              className="cursor-pointer bg-teal text-white px-5 py-2.5 rounded-sm font-semibold flex items-center gap-2 hover:bg-teal/80 transition font-display text-sm whitespace-nowrap justify-center"
+              className="cursor-pointer bg-teal text-white px-5 py-2.5 rounded-sm font-semibold flex items-center gap-2 hover:bg-teal/80 transition font-display text-sm sm:whitespace-nowrap justify-center"
             >
               Start Symptom Check <ArrowRight size={16} />
             </TimelineAnimation>
@@ -142,7 +142,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
               as="button"
               animationNum={7}
               onClick={onPartners}
-              className="cursor-pointer relative bg-transparent hover:bg-ink/5 transition px-5 py-2.5 rounded-sm font-semibold border border-ink/20 text-ink font-display text-sm whitespace-nowrap justify-center"
+              className="cursor-pointer relative bg-transparent hover:bg-ink/5 transition px-5 py-2.5 rounded-sm font-semibold border border-ink/20 text-ink font-display text-sm sm:whitespace-nowrap justify-center"
             >
               For Healthcare Partners
             </TimelineAnimation>
