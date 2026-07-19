@@ -293,9 +293,9 @@ export const CustomerDashboardLayout = () => {
               {consentLoading ? 'RECORDING...' : 'I AGREE'}
             </button>
 
-            <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-3">
-              You must agree to continue. You can revoke consent at any time.
-            </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-3">
+                You must agree to continue. You can revoke consent at any time in Settings.
+              </p>
           </div>
         </div>
       )}
