@@ -127,7 +127,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             personalized recommendations powered by clinical knowledge and AI.
           </TimelineAnimation>
 
-          <div className="flex flex-row gap-3 items-center justify-center w-full px-2 sm:px-0">
+          <div className="flex flex-row gap-3 items-center justify-center w-full px-5 sm:px-0">
             <TimelineAnimation
               timelineRef={timelineRef}
               as="a"
