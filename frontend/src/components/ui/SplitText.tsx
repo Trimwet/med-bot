@@ -173,7 +173,7 @@ const SplitText = ({
     willChange: 'transform, opacity'
   }
   const classes = `split-parent ${className}`
-  const Tag = (tag || 'p') as keyof JSX.IntrinsicElements
+  const Tag = (tag || 'p') as React.ElementType
 
   return (
     <Tag ref={ref} style={style} className={classes}>

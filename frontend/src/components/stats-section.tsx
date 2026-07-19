@@ -29,7 +29,7 @@ function AnimatedStat({ value, suffix = '', decimals = 0, label, labelWidth, val
       <div className="text-3xl font-semibold mb-1 tracking-tighter flex items-baseline" style={{ minWidth: valueWidth }}>
         <NumberFlow
           value={target}
-          decimals={decimals}
+          format={{ minimumFractionDigits: decimals, maximumFractionDigits: decimals }}
           className="text-3xl font-semibold tracking-tighter tabular-nums"
         />
         {suffix && <span>{suffix}</span>}

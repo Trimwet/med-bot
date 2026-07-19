@@ -328,7 +328,8 @@ export default function VoiceCall({ sessionId, onClose, onMessage }: VoiceCallPr
 
     recognition.onerror = (event) => {
       recognitionActiveRef.current = false
-      if (event.error !== 'aborted' && phaseRef.current !== 'idle' && phaseRef.current !== 'processing') {
+      const err = (event as any).error
+      if (err !== 'aborted' && phaseRef.current !== 'idle' && phaseRef.current !== 'processing') {
         setTimeout(() => startListeningRef.current(), 500)
       }
     }
