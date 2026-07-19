@@ -14,8 +14,10 @@ import {
   ChevronsRight,
   Menu,
   X,
+  ShieldCheck,
 } from 'lucide-react'
 import { getRecentSessions, type RecentSession } from '@/lib/recent-sessions'
+import { hasConsented, grantConsent } from '@/lib/api'
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Chat', href: '/dashboard' },
@@ -28,6 +30,9 @@ export const CustomerDashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
+  const [consented, setConsented] = useState<boolean | null>(null)
+  const [consentLoading, setConsentLoading] = useState(false)
+  const [consentError, setConsentError] = useState('')
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -41,6 +46,25 @@ export const CustomerDashboardLayout = () => {
     window.addEventListener('recent-sessions-updated', refresh)
     return () => window.removeEventListener('recent-sessions-updated', refresh)
   }, [location.pathname])
+
+  useEffect(() => {
+    hasConsented()
+      .then((res) => setConsented(res.consented))
+      .catch(() => setConsented(false))
+  }, [])
+
+  async function handleGrantConsent() {
+    setConsentLoading(true)
+    setConsentError('')
+    try {
+      await grantConsent()
+      setConsented(true)
+    } catch {
+      setConsentError('Failed to record consent. Please try again.')
+    } finally {
+      setConsentLoading(false)
+    }
+  }
 
   // Keep backend alive — ping every 4 min to prevent Render cold start
   useEffect(() => {
@@ -234,6 +258,47 @@ export const CustomerDashboardLayout = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* Consent gate overlay */}
+      {consented === false && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0f1117] rounded-2xl shadow-xl max-w-md w-full p-8">
+            <div className="text-center mb-6">
+              <div className="mx-auto w-12 h-12 rounded-full bg-teal/10 flex items-center justify-center mb-4">
+                <ShieldCheck className="w-6 h-6 text-teal" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 font-display mb-2">
+                Your Privacy Matters
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Before we can collect and process your health data, we need your consent under the Nigeria Data Protection Regulation (NDPR).
+              </p>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 mb-6 space-y-3 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p><span className="font-semibold text-gray-900 dark:text-gray-100">What we collect:</span> Health symptoms, medical history, and profile information you provide.</p>
+              <p><span className="font-semibold text-gray-900 dark:text-gray-100">How it's used:</span> Solely for AI-powered triage and health guidance.</p>
+              <p><span className="font-semibold text-gray-900 dark:text-gray-100">Your rights:</span> You can revoke consent at any time in your account settings. Your data will never be shared without your explicit permission.</p>
+            </div>
+
+            {consentError && (
+              <p className="text-sm text-red-500 text-center mb-4">{consentError}</p>
+            )}
+
+            <button
+              onClick={handleGrantConsent}
+              disabled={consentLoading}
+              className="w-full py-3 rounded-lg bg-[#0A202A] dark:bg-white text-white dark:text-gray-900 font-semibold text-sm hover:bg-[#0A202A]/80 dark:hover:bg-gray-100 transition-colors font-display disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {consentLoading ? 'RECORDING...' : 'I AGREE'}
+            </button>
+
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-3">
+              You must agree to continue. You can revoke consent at any time.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

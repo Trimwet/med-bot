@@ -228,6 +228,7 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
   const code = typeof req.query.code === "string" ? req.query.code : undefined;
   const state = typeof req.query.state === "string" ? req.query.state : undefined;
   if (!code || !validOAuthState(req, state)) {
+    console.error("[google-auth] State validation failed or code missing:", { hasCode: !!code, hasState: !!state });
     res.redirect(`${env.clientUrl}/login?error=google_auth_failed`);
     return;
   }
@@ -314,7 +315,8 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
     } else {
       res.redirect(`${env.clientUrl}/${hasProfile ? "dashboard" : "health-profile"}#token=${encodeURIComponent(token)}`);
     }
-  } catch {
+  } catch (err: any) {
+    console.error("[google-auth] Callback error:", err?.message || err);
     res.redirect(`${env.clientUrl}/login?error=google_auth_failed`);
   }
 });

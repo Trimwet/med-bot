@@ -4,9 +4,11 @@ import { logger } from "@/lib/logger";
 import { getOrCreateSession, appendMessage, updateSessionGraphState } from "@/services/session.service";
 import { hasConsented } from "@/services/consent.service";
 import { vectorSearch } from "../../agents/triage/tools/vectorSearch";
+import { scheduleFollowup } from "../../agents/triage/tools/scheduleFollowup";
 import { getEffectiveMultiplier, computeTokenCost, deductTokens } from "@/services/tenant.service";
 import { recordTokenUsage } from "@/services/tokenLedger.service";
 import { saveSessionSummary } from "@/services/sessionSummary.service";
+import { sendErrorWebhook } from "@/lib/webhook";
 import { env } from "@/config/env";
 
 const MAX_MESSAGE_LENGTH = 4_000;
@@ -103,7 +105,7 @@ RULES FOR EMOTION TAGS:
 - Only ONE tag per response.
 - Do not use any other markdown formatting — no bold, no bullet points, no numbered lists. Write in plain conversational sentences.`;
 
-async function runEveAgent(messages: { role: string; content: string }[], activeNodeId?: string): Promise<{ reply: string; nodeId?: string }> {
+async function runEveAgent(messages: { role: string; content: string }[], activeNodeId?: string, sessionId?: string, userId?: string): Promise<{ reply: string; nodeId?: string }> {
   const openrouterKey = env.openrouterApiKey;
   if (!openrouterKey) throw new Error("OPENROUTER_API_KEY not configured");
 
@@ -224,6 +226,12 @@ async function runEveAgent(messages: { role: string; content: string }[], active
         } else if (tc.function.name === "clinicalRule") {
           const { clinicalRule: ruleFn } = await import("../../agents/triage/tools/clinicalRule");
           result = await ruleFn(args);
+        } else if (tc.function.name === "scheduleFollowup") {
+          if (sessionId && userId) {
+            result = await scheduleFollowup({ sessionId, userId, delayHours: args.delayHours, messageTemplate: args.messageTemplate });
+          } else {
+            result = { scheduled: false, error: "Missing session or user context" };
+          }
         } else {
           result = { ok: true };
         }
@@ -310,7 +318,7 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
     if (checks.earlyReturn) { res.status(checks.earlyReturn.status).json(checks.earlyReturn.body); return; }
 
     const messagesForAgent = [...(checks.session!.messages || []), checks.userMsg].map((m: any) => ({ role: m.role, content: m.content }));
-    const agentResult = await runEveAgent(messagesForAgent, checks.activeNodeId);
+    const agentResult = await runEveAgent(messagesForAgent, checks.activeNodeId, sessionId, checks.userId);
 
     if (!agentResult.reply) throw new Error("Agent returned empty response");
     agentResult.reply = ensureEmotionTag(agentResult.reply);
@@ -342,6 +350,7 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
 
     const errorMsg = (err as Error).message;
     logger.warn("chat route failed, returning fallback", { sessionId, error: errorMsg });
+    sendErrorWebhook(err, { sessionId, route: "POST /chat" });
     const isDev = env.nodeEnv === "development";
     res.json({ reply: FAILURE_REPLY, saved: true, warning: "service_unavailable", ...(isDev && { debug: errorMsg }) });
   }
@@ -512,6 +521,12 @@ chatRoute.post("/chat/stream", authMiddleware, async (req, res, next) => {
           } else if (tc.name === "clinicalRule") {
             const { clinicalRule: ruleFn } = await import("../../agents/triage/tools/clinicalRule");
             result = await ruleFn(args);
+          } else if (tc.name === "scheduleFollowup") {
+            if (sessionId && checks.userId) {
+              result = await scheduleFollowup({ sessionId, userId: checks.userId, delayHours: args.delayHours, messageTemplate: args.messageTemplate });
+            } else {
+              result = { scheduled: false, error: "Missing session or user context" };
+            }
           } else {
             result = { ok: true };
           }
@@ -550,6 +565,7 @@ chatRoute.post("/chat/stream", authMiddleware, async (req, res, next) => {
   } catch (err) {
     const errorMsg = (err as Error).message;
     logger.warn("chat stream failed", { sessionId, error: errorMsg });
+    sendErrorWebhook(err, { sessionId, route: "POST /chat/stream" });
 
     // Try to send error as SSE before ending
     try {

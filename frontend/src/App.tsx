@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 import { LandingPage } from '@/pages/landing'
 import { AuthPage } from '@/components/auth-page'
 import { DisclaimerPage } from '@/components/disclaimer-page'
@@ -50,7 +50,7 @@ function AppRoutes() {
     }
   }, [])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const params = new URLSearchParams(location.hash.slice(1))
     const token = params.get('token')
     if (token) {

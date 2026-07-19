@@ -63,17 +63,38 @@ function keywordEdgeScore(query: string, label: string): number {
 
 const VECTOR_INDEX_NAME = "vector_index";
 
-// Cache whether the Atlas $vectorSearch index is usable, so we don't
-// retry (and pay the latency for) a failing aggregation on every message
-// once we already know it's unavailable (e.g. local dev / free tier).
-let atlasVectorSearchAvailable: boolean | null = null;
+// In-memory cache of knowledge documents for the fallback path.
+// Reloaded periodically so the system eventually picks up new protocols
+// without a restart.
+let cachedDocs: KnowledgeDocument[] | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 60_000; // refresh every 60 seconds
+
+async function getCachedDocs(): Promise<KnowledgeDocument[]> {
+  const now = Date.now();
+  if (cachedDocs && now - cacheTimestamp < CACHE_TTL_MS) {
+    return cachedDocs;
+  }
+  const db = await getDb();
+  cachedDocs = await db.collection<KnowledgeDocument>(COLLECTIONS.knowledge).find({}).toArray();
+  cacheTimestamp = now;
+  return cachedDocs;
+}
+
+// Retry $vectorSearch after this many milliseconds if it previously failed.
+const VECTOR_RETRY_MS = 300_000; // 5 minutes
+let lastVectorFailure = 0;
 
 async function tryAtlasVectorSearch(
   queryEmbedding: number[],
   category: ProtocolCategory,
   limit: number
 ): Promise<{ node: KnowledgeDocument; score: number }[] | null> {
-  if (atlasVectorSearchAvailable === false) return null;
+  // If $vectorSearch recently failed, skip retry until the cooldown expires
+  // so we don't pay the latency penalty on every request.
+  if (lastVectorFailure > 0 && Date.now() - lastVectorFailure < VECTOR_RETRY_MS) {
+    return null;
+  }
 
   try {
     const db = await getDb();
@@ -105,18 +126,24 @@ async function tryAtlasVectorSearch(
       ])
       .toArray();
 
-    atlasVectorSearchAvailable = true;
+    // Success — reset failure timestamp
+    lastVectorFailure = 0;
+    if (results.length > 0) {
+      logger.info("Atlas $vectorSearch succeeded", { count: results.length });
+    }
 
-    // vectorSearchScore is already a 0-1-ish cosine-derived score, comparable
-    // to our in-memory cosineSimilarity output.
     return results.map((r) => {
       const { score, ...node } = r as unknown as KnowledgeDocument & { score: number };
       return { node: node as KnowledgeDocument, score };
     });
   } catch (err) {
-    atlasVectorSearchAvailable = false;
+    lastVectorFailure = Date.now();
+    const message = (err as Error).message;
+    const isMissingIndex = message.includes("not found") || message.includes("does not exist") || message.includes("index not found");
     logger.warn("Atlas $vectorSearch unavailable, falling back to in-memory search", {
-      message: (err as Error).message,
+      message,
+      reason: isMissingIndex ? "vector_index_not_deployed" : "transient_error",
+      willRetryInMs: VECTOR_RETRY_MS,
     });
     return null;
   }
@@ -149,10 +176,9 @@ export async function globalVectorSearch(
     }
   }
 
-  // Fallback path: brute-force in-memory scan. Used when the Atlas index
-  // isn't deployed yet (local dev, lower Atlas tier) or embeddings are down.
-  const db = await getDb();
-  const allNodes = await db.collection<KnowledgeDocument>(COLLECTIONS.knowledge).find({}).toArray();
+  // Fallback path: in-memory search using cached documents.
+  // Used when the Atlas index isn't deployed (M0 cluster) or embeddings are down.
+  const allNodes = await getCachedDocs();
 
   let candidates = allNodes.filter((n) => n.isLatest !== false && (n.category === category || n.category === "general"));
   if (candidates.length < 2) {

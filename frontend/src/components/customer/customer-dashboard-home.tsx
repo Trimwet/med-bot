@@ -1,6 +1,6 @@
 // @ts-nocheck -- interactive dashboard is being migrated from mock data to the API.
-import { useState, useCallback, useRef, useEffect, useLayoutEffect, useMemo } from 'react'
-import { prepare, layout } from '@chenglou/pretext'
+import { useState, useCallback, useRef, useEffect } from 'react'
+
 import {
   ArrowUp,
   Paperclip,
@@ -84,12 +84,17 @@ type UsageStats = {
   outputTokens: number
 }
 
-const streamTokens = (text: string, onToken: (chunk: string) => void, onDone: () => void, delay = 30) => {
-  const chunks = text.match(/.{1,5}/g) || [text]
+// Streams text chunk by chunk, calling onUpdate with the full accumulated text each tick.
+// Passing full text (not deltas) means React can safely drop intermediate renders
+// without losing content — critical for stable markdown rendering.
+const streamTokens = (text: string, onUpdate: (full: string) => void, onDone: () => void, delay = 20) => {
+  const chunks = text.match(/.{1,8}/g) || [text]
   let i = 0
+  let acc = ''
   const timer = setInterval(() => {
     if (i < chunks.length) {
-      onToken(chunks[i])
+      acc += chunks[i]
+      onUpdate(acc)
       i++
     } else {
       clearInterval(timer)
@@ -209,29 +214,65 @@ const ReasoningDisplay = ({ reasoning }: { reasoning: string }) => {
   )
 }
 
-function StreamingBubble({ fullText, visibleText }: { fullText: string; visibleText: string }) {
-  const bubbleRef = useRef<HTMLDivElement>(null)
-  const [minHeight, setMinHeight] = useState<number | null>(null)
-
-  useLayoutEffect(() => {
-    if (!bubbleRef.current || minHeight !== null) return
-    const width = bubbleRef.current.offsetWidth
-    if (width <= 0) return
-    const contentWidth = width - 32
-    try {
-      const prepared = prepare(fullText, '400 14px Inter, sans-serif')
-      const { height } = layout(prepared, contentWidth, 1.625)
-      setMinHeight(Math.ceil(height) + 24)
-    } catch {}
-  }, [fullText, minHeight])
-
+function Markdown({ text }: { text: string }) {
+  const renderInline = (str: string, key: number) => {
+    const parts = str.split(/(\*\*[^*\n]+\*\*|\*[^*\n]+\*|`[^`\n]+`)/g)
+    return (
+      <span key={key}>
+        {parts.map((part, i) => {
+          if (part.startsWith('**') && part.endsWith('**') && part.length > 4)
+            return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
+          if (part.startsWith('*') && part.endsWith('*') && part.length > 2)
+            return <em key={i}>{part.slice(1, -1)}</em>
+          if (part.startsWith('`') && part.endsWith('`') && part.length > 2)
+            return <code key={i} className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-[0.85em] font-mono">{part.slice(1, -1)}</code>
+          return part
+        })}
+      </span>
+    )
+  }
+  const blocks = text.split(/\n\n+/)
   return (
-    <div
-      ref={bubbleRef}
-      className="max-w-[85%] sm:max-w-[80%] px-4 py-3 rounded-2xl rounded-bl-md text-sm leading-relaxed break-words bg-white border border-gray-200 text-gray-800 shadow-sm"
-      style={minHeight ? { minHeight: `${minHeight}px` } : undefined}
-    >
-      {stripEmotionTag(visibleText)}
+    <div className="space-y-2 [&>*:last-child]:mb-0">
+      {blocks.map((block, bi) => {
+        const lines = block.split('\n')
+        if (lines[0]?.match(/^\d+\.\s/)) {
+          return (
+            <ol key={bi} className="list-decimal list-outside ml-4 space-y-1">
+              {lines.filter(l => l.match(/^\d+\.\s/)).map((line, li) => (
+                <li key={li}>{renderInline(line.replace(/^\d+\.\s+/, ''), li)}</li>
+              ))}
+            </ol>
+          )
+        }
+        if (lines[0]?.match(/^[-*]\s/)) {
+          return (
+            <ul key={bi} className="list-disc list-outside ml-4 space-y-1">
+              {lines.filter(l => l.match(/^[-*]\s/)).map((line, li) => (
+                <li key={li}>{renderInline(line.replace(/^[-*]\s+/, ''), li)}</li>
+              ))}
+            </ul>
+          )
+        }
+        return (
+          <p key={bi} className="leading-relaxed">
+            {lines.map((line, li) => (
+              <span key={li}>
+                {renderInline(line, li)}
+                {li < lines.length - 1 && <br />}
+              </span>
+            ))}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
+
+function StreamingBubble({ visibleText }: { visibleText: string }) {
+  return (
+    <div className="max-w-[85%] sm:max-w-[80%] px-4 py-3 rounded-2xl rounded-bl-md text-sm leading-relaxed break-words bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 shadow-sm transition-[min-height] duration-300 ease-out">
+      <Markdown text={stripEmotionTag(visibleText)} />
       <span className="inline-block w-1.5 h-4 bg-gray-400 ml-0.5 align-text-bottom animate-pulse" />
     </div>
   )
@@ -459,19 +500,22 @@ export const CustomerDashboardHome = () => {
       setVisibleResponse('')
       streamTokens(
         result.reply,
-        (chunk) => setVisibleResponse((p) => p + chunk),
+        (full) => setVisibleResponse(full),
         () => {
-          setMessages((prev) => [...prev, { sender: 'assistant', text: result.reply }])
-          setUsage((prev) => ({
-            ...prev,
-            messagesReceived: prev.messagesReceived + 1,
-            outputTokens: prev.outputTokens + estimateTokens(result.reply),
-          }))
-          setVisibleThinking('')
-          setVisibleResponse('')
-          setPhase('idle')
+          // Brief delay so the streaming bubble fades into the permanent message
+          setTimeout(() => {
+            setMessages((prev) => [...prev, { sender: 'assistant', text: result.reply }])
+            setUsage((prev) => ({
+              ...prev,
+              messagesReceived: prev.messagesReceived + 1,
+              outputTokens: prev.outputTokens + estimateTokens(result.reply),
+            }))
+            setVisibleThinking('')
+            setVisibleResponse('')
+            setPhase('idle')
+          }, 80)
         },
-        15
+        // default delay 20ms
       )
     } catch (err) {
       const reply = err instanceof ApiError && err.status === 401
@@ -578,10 +622,12 @@ export const CustomerDashboardHome = () => {
                     className={`max-w-[85%] sm:max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed break-words ${
                       msg.sender === 'user'
                         ? 'bg-[#073B4C] text-white rounded-br-md'
-                        : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-md shadow-sm'
+                        : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-md shadow-sm animate-[fade-in_0.3s_ease-out]'
                     }`}
                   >
-                    {msg.sender === 'assistant' ? stripEmotionTag(msg.text) : msg.text}
+                    {msg.sender === 'assistant'
+                      ? <Markdown text={stripEmotionTag(msg.text)} />
+                      : msg.text}
                   </div>
 
                   {/* Message actions */}
@@ -685,7 +731,7 @@ export const CustomerDashboardHome = () => {
                 <Collapsible open={thinkingOpen} onOpenChange={setThinkingOpen}>
                   <CollapsibleTrigger className="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                     <span className="inline-block w-2 h-2 rounded-full bg-teal animate-[dot-bounce_0.6s_ease-in-out_infinite]" />
-                    <span className="text-sm bg-[length:250%_100%] bg-clip-text text-transparent [background-image:linear-gradient(90deg,#6b7280_0%,#d1d5db_50%,#6b7280_100%)] dark:[background-image:linear-gradient(90deg,#6b7280_0%,#9ca3af_50%,#6b7280_100%)] animate-[shimmer-text_1.5s_linear_infinite]">Thinking...</span>
+                    <span className="text-sm bg-[length:200%_100%] bg-clip-text text-transparent [background-image:linear-gradient(90deg,transparent_0%,#374151_50%,transparent_100%)] dark:[background-image:linear-gradient(90deg,transparent_0%,#d1d5db_50%,transparent_100%)] animate-[shimmer-text_2s_ease-in-out_infinite]">Thinking...</span>
                     <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", thinkingOpen && "rotate-180")} />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
@@ -695,9 +741,9 @@ export const CustomerDashboardHome = () => {
               )}
 
               {/* Live response */}
-              {phase === 'responding' && (
-                <div className="flex flex-col items-start">
-                  <StreamingBubble fullText={fullResponseRef.current} visibleText={visibleResponse} />
+              {phase === 'responding' && visibleResponse && (
+                <div className="flex flex-col items-start animate-[fade-in_0.2s_ease-out]">
+                  <StreamingBubble visibleText={visibleResponse} />
                 </div>
               )}
 

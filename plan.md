@@ -1,348 +1,389 @@
-MedBot
-Final System Architecture & Business Blueprint
-AI-Powered Medical Triage & Patient Engagement Platform — Nigeria
+# MedBot — Build Summary & Current State
 
-Technology Stack
-Node.js  ·  Express  ·  MongoDB Atlas  ·  Eve Agent Framework  ·  DeepSeek LLM  ·  Redis / BullMQ  ·  Termii / Twilio  ·  Vercel
-July 2026  —  Version 1.0  —  CONFIDENTIAL
+> **Last updated:** July 18, 2026  
+> **Stack:** React 19 + Vite 8 (frontend) · Express + MongoDB Atlas + TypeScript 7 (backend)  
+> **Deployment:** Frontend → Vercel · Backend → Render · Database → MongoDB Atlas
 
+---
 
-1.  Executive Summary
-MedBot is a multi-tenant, AI-driven medical triage and patient engagement platform built specifically for the Nigerian healthcare market. It guides patients through a structured clinical conversation, collects symptom data, applies doctor-approved decision rules, and returns one of three clear outcomes: self-care, see a doctor, or emergency. Proactive follow-up messages are sent automatically after each session to keep patients engaged without holding an expensive LLM session open.
-The system is deliberately simple: six components, each with one job. Complexity lives in how those components work together, not in the number of moving parts. A hospital deploying MedBot does not need to understand machine learning. They interact with a dashboard, review session logs, and follow up on flagged cases.
-This document is the single source of truth for the technology, data design, safety approach, and business model. Every implementation decision should be traceable back to a section in this document.
+## 1. Project Overview
 
-2.  Core Design Principles
-Principle	What it means in practice
-One component, one responsibility	Each of the six components does exactly one thing. Nothing overlaps. If you cannot describe a component's job in one sentence, it is too complex.
-The LLM never makes clinical decisions	DeepSeek phrases answers in human language. It never decides emergency vs. self-care. That decision is always made by plain code reading plain numbers.
-Every decision is auditable	A completed session produces a literal chain of nodes that fired, with scores. A doctor reviewing a case can see exactly why the system said emergency.
-Protocol changes are data changes	Updating a clinical guideline means editing a record in MongoDB. It never requires touching or redeploying the agent code.
-No complexity without a problem to solve	No ClickHouse, no Kafka, no Prometheus, no microservices. These solve problems MedBot does not have yet. Add them when the problem arrives, not before.
+MedBot is an AI-powered medical triage chatbot for Nigerian patients. It guides patients through structured symptom collection, runs doctor-approved decision rules, and returns one of three outcomes: **self-care**, **consult a doctor**, or **emergency**. The platform has three portals:
 
+| Portal | Audience | Route Prefix |
+|--------|----------|-------------|
+| Customer | Patients doing self-triage | `/dashboard` |
+| Business | Hospitals, clinics, HMOs | `/business/dashboard` |
+| Admin | Platform super-admins | `/admin/dashboard` |
 
-3.  System Architecture
-3.1  The Six Components
-Component	One-line responsibility
-Express API Layer	Receives all HTTP requests. Handles auth, tenant resolution, rate limits, and routing.
-Eve Agent Framework	Runs the patient conversation in natural language using DeepSeek LLM.
-Clinical Rule Layer	A plain code module inside Express. Reads numbers, returns a verdict. The only place allowed to say emergency, see-a-doctor, or self-care.
-MongoDB Atlas	Stores everything: patient records, session logs, clinical protocol nodes (as vectors), decision rules, token ledger, follow-up jobs.
-Redis / BullMQ	Holds delayed jobs for proactive follow-up messages. Nothing more.
-Notification Engine	Sends the follow-up messages via Termii or Twilio. No LLM involved.
-3.2  Architecture Diagram
-                  [ Patient ]
-                  Web / WhatsApp / Mobile
-                       |
-                       | HTTPS
-                       v
-           ┌─────────────────────────┐
-           │     Express API Layer    │
-           │  Auth · Routing · Guards │
-           └────────────┬────────────┘
-                        |
-          ┌─────────────┼──────────────┐
-          |             |              |
-          v             v              v
-   ┌────────────┐ ┌──────────┐ ┌────────────────┐
-   │  Eve Agent │ │ Clinical │ │  Redis/BullMQ  │
-   │ DeepSeek   │ │  Rule    │ │  Delayed Jobs  │
-   │ LLM        │ │  Layer   │ └───────┬────────┘
-   └─────┬──────┘ └────┬─────┘         |
-         |             |                v
-         └──────┬──────┘      [ Notification Engine ]
-                |              Termii / Twilio
-                v              SMS / WhatsApp
-       ┌─────────────────┐
-       │  MongoDB Atlas  │
-       │                 │
-       │ knowledge graph │
-       │ clinical rules  │
-       │ sessions        │
-       │ patients        │
-       │ tenants         │
-       │ token ledger    │
-       │ followup jobs   │
-       └─────────────────┘
-3.3  Request Flow in Plain English
-●Patient sends a message via web or WhatsApp.
-●Express receives it, checks authentication, identifies the tenant (clinic/HMO), checks the session turn limit (circuit breaker), then passes it along.
-●The safety floor runs first. Before anything else, if the message contains hardcoded emergency keywords (chest pain, can't breathe, unconscious, severe bleeding), the system returns an emergency response immediately — no LLM, no database query, no possible failure point.
-●If the safety floor does not fire, the message goes to Eve.
-●Eve asks MongoDB's vector index which clinical protocol node most closely matches what the patient said. This is retrieval only — no decision is made here.
-●Eve reads the questions from that node, asks the patient the next question, and collects their answer (severity number, duration, symptoms).
-●Those structured answers go to the Clinical Rule Layer — plain code. It reads the clinical_rules record for this node and returns one of three verdicts: self-care, see-a-doctor, or emergency.
-●Eve is handed that verdict and phrases it clearly to the patient. She adds the relevant guidance from the protocol node. She cannot change the verdict.
-●The session is updated in MongoDB: active node, firing score, conversation log, verdict.
-●Token usage is written to the ledger asynchronously — it never slows down the response.
-●After the session closes, a delayed follow-up job is registered in BullMQ. When it fires, the Notification Engine sends a WhatsApp/SMS message — no LLM involved.
+---
 
+## 2. Architecture (Implemented)
 
-4.  Eve Agent Framework
-Eve is a filesystem-first agent. Each agent is a folder, not a class in application code. This means the agent's behavior is independently versionable and reviewable by a non-developer — a clinical lead can read instructions.md and understand what the bot is supposed to do.
-4.1  Directory Structure
-/agents/triage/
-  instructions.md         ← behavior contract (what Eve is and is not allowed to do)
-  agent.ts                ← DeepSeek model config + tool bindings
-  tools/
-    vectorSearch.ts       ← queries the knowledge graph, returns a matched node
-    clinicalRule.ts       ← calls the Clinical Rule Layer, returns the verdict
-    scheduleFollowup.ts   ← registers a delayed BullMQ job after session ends
-4.2  What Goes in instructions.md
-This file defines how Eve behaves and speaks. It never contains clinical content — no thresholds, no red-flag lists, no protocol logic. Those live in MongoDB where they can be updated without touching this file.
-●Eve's identity: a calm, professional medical triage assistant serving Nigerian patients.
-●Tone rules: plain language, no jargon, no emojis, always calm even in emergencies.
-●The non-override rule: Eve always relays the Clinical Rule Layer's verdict exactly. She is not allowed to soften, upgrade, or bypass it based on what the patient says.
-●Scope limits: Eve does not diagnose. She does not prescribe. She does not contradict the verdict because the patient disagrees.
-●Consent: at session start, Eve must confirm the patient's consent before collecting any medical information.
-4.3  What Eve Does Per Turn
-Turn stage	What Eve does	What Eve does NOT do
-Receive message	Sends message to vectorSearch tool to find matching node	Guess the topic herself
-Read node	Reads the questions stored in the matched node	Invent her own clinical questions
-Collect answers	Asks the patient for severity, duration, associated symptoms	Decide what the answers mean
-Get verdict	Calls clinicalRule tool with the extracted numbers	Compute or override the verdict
-Reply to patient	Phrases the verdict in clear, calm language with next steps	Change the verdict based on patient reaction
-Close session	Calls scheduleFollowup tool to register a delayed job	Hold the session open or send the follow-up herself
+```
+[ React Frontend (Vercel) ]
+        | HTTPS
+        v
+[ Express Backend (Render) ]
+   ├── Auth & Routing
+   ├── Chat/Stream (SSE)
+   ├── Clinical Triage Pipeline
+   ├── Tenant/Analytics
+   ├── Admin
+   └── Voice WebSocket
+        |
+        v
+[ MongoDB Atlas ] ←── [ DeepSeek V4 Flash (OpenRouter) ]
+                       ←── [ Gemini Embedding-001 ]
+                       ←── [ Fish Audio TTS ]
+```
 
+### Key Design Decisions (Implemented)
 
-5.  Clinical Knowledge Graph — Vector Nodes as Neurons
-The knowledge graph is the clinical content of MedBot stored in MongoDB. Instead of searching the entire knowledge base from scratch every time a patient says something, the graph works like a network of neurons: when a node fires (matches), the next search is limited to only that node's neighbors. This keeps the conversation inside the correct clinical pathway and produces an auditable trail of exactly which steps fired and why.
-5.1  How a Node is Structured
-{
-  nodeId:              "chest_pain.step_1",
-  protocolId:          "chest_pain",
-  protocolVersion:     "1.2",
-  title:               "Chest Pain — Initial Assessment",
-  content:             "Ask the patient about the nature, location, and onset of chest pain...",
-  embedding:           [ ...1536 numbers ],
-  activationThreshold: 0.78,
-  edges: [
-    { toNodeId: "chest_pain.step_2_radiating",
-      triggerEmbedding: [...], label: "pain radiates to arm or jaw" },
-    { toNodeId: "chest_pain.step_2_local",
-      triggerEmbedding: [...], label: "pain stays in chest only" }
-  ],
-  updatedAt:           "2026-07-11",
-  updatedBy:           "Dr. Musa (clinical lead)"
-}
-5.2  Traversal — Step by Step
-●No active node yet (first message): run an unconstrained vector search across the entire knowledge_collection to find the entry node for this complaint.
-●Active node exists (subsequent messages): search only within that node's edges[].toNodeId set. MongoDB Atlas vector search supports pre-filtering, so this is a real query, not an application-side filter loop.
-●Score the patient's latest answer against each edge's triggerEmbedding. The edge that clears activationThreshold fires and becomes the new active node.
-●No edge clears the threshold: do not force a match. Re-root to an unconstrained search — the conversation moved somewhere the graph did not anticipate.
-●Store the new activeNodeId and the firing score on the session document after every turn.
-5.3  Confidence Thresholds
-Not every match is equally confident. The system behaves differently depending on the similarity score returned:
-Score range	What it means	What happens
-Above 0.85	High confidence match	Continue normally along the matched pathway.
-0.65 – 0.85	Moderate confidence match	Eve asks a clarifying question before continuing. Example: Just to confirm — is the pain mainly in your chest?
-Below 0.65	Low confidence match	Eve tells the patient the system is not confident about the topic and re-roots to a global search, or suggests they call a clinic directly.
+| Decision | Implementation |
+|----------|---------------|
+| **LLM never decides verdict** | DeepSeek phrases only; Clinical Rule Layer (plain code) returns verdict |
+| **SSE streaming** | Real `ReadableStream` with 20ms token rate, 80ms crossfade overlay |
+| **Emotion tags for TTS** | LLM emits `[calm]`, `[empathetic]`, `[serious]`, `[warm]`, `[laugh]` etc.; stripped from displayed text |
+| **Emergency bypass** | Hardcoded regex pattern check runs before LLM call |
+| **Greeting bypass** | Hardcoded greeting patterns return warm response without LLM |
+| **Consent check** | LLM/system asks consent before collecting medical info |
+| **Tenant-scoped data** | Every session/analytics query filtered by `tenantId` |
+| **LocalStorage history** | Recent sessions saved to `localStorage`, up to 20, with custom event for sidebar refresh |
 
+---
 
-6.  Clinical Rule Layer
-The Clinical Rule Layer is a plain TypeScript module inside the Express application — not a separate service, not the LLM. It receives structured numbers extracted from the patient conversation and returns exactly one verdict. It cannot be talked into changing its mind by a patient.
-6.1  What It Receives
-{
-  nodeId:          "chest_pain.step_1",
-  severityScore:   8,
-  durationHours:   2,
-  reportedSymptoms: ["chest pain", "radiating to left arm", "sweating"],
-}
-6.2  How It Decides
-●Loads the clinical_rules record for this nodeId from MongoDB (plain key-value lookup, not vector search).
-●Checks reported symptoms against the node's red-flag list. Any match → emergency, regardless of severity score.
-●If no red flags: checks severity score. At or above the emergency threshold → emergency.
-●If severity is in the mid-range and duration exceeds the watch-period → see-a-doctor.
-●Otherwise → self-care with the guidance text from the node.
-6.3  What It Returns
-{
-  verdict:        "emergency",
-  redFlagsFound:  ["radiating to left arm"],
-  severityScore:  8,
-  nextNodeId:     null,
-  guidanceText:   "This may be a cardiac emergency. Go to the nearest hospital now."
-}
-The Clinical Rule Layer is the only component allowed to set the verdict field. Eve reads this result and phrases it — she is never given the opportunity to replace it with her own opinion.
-6.4  Why It Is a Module, Not a Separate Service
-Keeping it as a module inside Express means it is simpler to test (a plain function call), has no network latency, shares the same deployment, and does not require another service to be running. It only becomes a separate service if other applications need to call it independently — and that is not a current requirement.
+## 3. What Has Been Built
 
+### 3.1 Backend (`backend/src/`)
 
-7.  Safety Floor — Emergency Fallback
-MedBot depends on MongoDB and DeepSeek being reachable. When they are not, a patient with a genuine emergency must still get a useful response. The safety floor is approximately 15 lines of code — a hardcoded keyword check that runs before any database or LLM call is made.
-7.1  How It Works
-●A short, hardcoded list of high-risk terms: chest pain, can't breathe, difficulty breathing, unconscious, severe bleeding, stroke, not breathing, heart attack, fitting, seizure.
-●Every incoming message is checked against this list before anything else runs.
-●Match found → the system returns a fixed emergency response immediately, regardless of whether MongoDB or DeepSeek is available.
-●No match, but the main system call subsequently fails → the system returns a fixed connectivity-error response that still advises the patient to seek care if the situation feels urgent.
-7.2  The Two Fixed Responses
-// Emergency keyword match:
-"What you are describing may be a medical emergency.
- Please go to the nearest hospital or call emergency services now.
- Do not wait."
+#### Routes (~40 HTTP endpoints + 1 WebSocket)
 
-// System unavailable, no keyword match:
-"I am having trouble connecting right now.
- If your symptoms feel urgent or are getting worse,
- please go to the nearest hospital or call a doctor immediately."
-This is not a fallback system — it is a safety rail. It adds no new component, no new database, nothing to maintain. It is one if-statement and two string constants.
+| File | Routes | Auth |
+|------|--------|------|
+| `health.route.ts` | `GET /health` | None |
+| `auth.route.ts` | `POST /api/auth/signup`, `/verify-otp`, `/resend-otp`, `/login`, `/verify-login-otp`, `/resend-login-otp`, `/forgot-password`, `/reset-password`, `/change-password`; `GET /api/auth/me`, `/api/auth/google`, `/api/auth/google/callback` | Mixed |
+| `user.route.ts` | `GET|PUT /api/users/me/profile` | Auth |
+| `session.route.ts` | `GET|DELETE /api/sessions/:sessionId`; `GET /session/:sessionId` | Auth |
+| `chat.route.ts` | `POST /chat`; `POST /chat/stream` (SSE) | Auth |
+| `consent.route.ts` | `GET|POST|DELETE /consent` | Auth |
+| `tenant.route.ts` | `POST /api/tenants/signup`, `/verify-otp`, `/login`, `/verify-login-otp` | None |
+| `tenant-analytics.route.ts` | `GET /api/tenant/analytics/overview`, `/sessions`, `/trends`, `/session/:sessionId` | JWT (custom) |
+| `admin.route.ts` | `GET /api/admin/stats`, `/users`, `/analytics/daily`, `/protocols`, `/protocols/:nodeId`, `/protocol-categories`; `POST|PUT|DELETE /api/admin/protocols/:nodeId` | Admin secret |
+| `analytics.route.ts` | `GET /api/v1/analytics/tokens`, `/tenants` | Admin |
+| `voice.route.ts` | `POST /api/voice/tts`; `GET /api/voice/status` | Mixed |
+| `voiceSocket.ts` | `ws://host/api/voice/tts-stream` (WebSocket) | None |
 
+#### Services (18 files)
 
-8.  Monitoring — The Minimum That Is Not Nothing
-Full observability stacks (Prometheus, Grafana, ClickHouse) solve problems MedBot does not have. What MedBot does need is one signal: if the Clinical Rule Layer crashes on a session that should have returned emergency, someone must know same-day. Everything else is noise at this stage.
-8.1  What Gets Logged
-●Every unhandled error, with the sessionId attached, written to stdout. Vercel captures this automatically — no new tool.
-●Every escalation decision: sessionId, nodeId, verdict, red flags found. Written to the session document in MongoDB. Not a separate log service — it is part of the session record that already exists.
-8.2  The One Alert
-●A single webhook (Slack, WhatsApp, or email) that fires only when the Clinical Rule Layer itself throws an error.
-●This is one try/catch block around the clinicalRule module with a single HTTP POST to a webhook URL on failure.
-●No monitoring stack. No dashboards. One webhook, one error type.
-Monitoring gets expanded when there are real users generating real patterns to observe. Not before.
+| Service | Purpose | Status |
+|---------|---------|--------|
+| `auth.service.ts` | JWT sign/verify, password hash, signup/login OTP flow, Google OAuth, password reset | ✅ Complete |
+| `user.service.ts` | Profile get/update | ✅ Complete |
+| `tenant.service.ts` | Tenant signup/OTP/login, token cost computation, deduct | ✅ Complete |
+| `session.service.ts` | CRUD sessions, append messages, update state | ✅ Complete |
+| `consent.service.ts` | Grant/revoke consent checks | ✅ Complete |
+| `chat.service.ts` (inline in route) | `SYSTEM_PROMPT`, `preChecks()`, `ensureEmotionTag()`, `forceLaughTag()` | ✅ Complete |
+| `clinicalRule.service.ts` | Load/evaluate clinical rules by nodeId | ✅ Complete |
+| `categoryClassifier.service.ts` | Classify messages into protocol categories | ✅ Complete |
+| `embeddings.service.ts` | Gemini `embedText()`/`embedBatch()` (3072-dim) | ✅ Complete |
+| `vectorSearch.service.ts` | Atlas `$vectorSearch` with in-memory fallback | ✅ Complete |
+| `knowledgeGraph.service.ts` | Graph traversal (entry node → edge-constrained) | ✅ Complete |
+| `fishAudio.service.ts` | Fish Audio TTS with `reference_id`, `s2.1-pro-free` model | ✅ Complete |
+| `paystack.service.ts` | Payment initialize/verify/webhook | ✅ Complete |
+| `protocolAdmin.service.ts` | Protocol CRUD for admin dashboard | ✅ Complete |
+| `sessionSummary.service.ts` | Vector-embedded session summaries for history recall | ✅ Complete |
+| `tokenLedger.service.ts` | Record/query token usage by tenant | ✅ Complete |
+| `queue.service.ts` | BullMQ followup queue (disabled - no Redis) | ⚠️ Disabled |
+| `apiKey.service.ts` | Create/list/revoke/validate API keys | ✅ Complete |
+| `otp.service.ts` | Send OTP via Brevo | ✅ Complete |
 
+#### Database (MongoDB Atlas)
 
-9.  Protocol Versioning
-Nigeria updates clinical guidelines. Malaria treatment protocols change. Hypertension thresholds shift. When that happens, MedBot should know which version of a protocol was used for which patient — not because it is legally required today, but because a doctor reviewing a historical case will want to know.
-9.1  How Versioning Works
-●Every node in knowledge_collection carries a protocolVersion field (e.g. "1.2").
-●Every clinical_rules record carries a matching version field.
-●When a session starts, the version of the active protocol is written to the session document.
-●Updating a protocol means inserting new node records with an incremented version number — never overwriting old ones.
-●Old versions are retained in the database indefinitely for audit purposes. They are excluded from active searches by a simple version filter.
-9.2  What This Looks Like on a Session
-{
-  sessionId:        "sess_abc123",
-  activeNodeId:     "chest_pain.step_2_radiating",
-  protocolVersion:  "1.2",
-  ...
-}
+| Collection | Purpose | Documents |
+|-----------|---------|-----------|
+| `sessions_collection` | Triage sessions with messages, verdict, state | ~10 (test) |
+| `knowledge_collection` | Clinical protocol nodes with vector embeddings | ~10 |
+| `clinical_rules` | Triage decision rules per node | ~10 |
+| `tenants` | Organization accounts | ~1 (test) |
+| `users_collection` | User accounts (patient + business admin) | ~1 (test) |
+| `patients` | Patient records | 0 |
+| `session_summaries` | Vector-embedded session summaries | 0 |
+| `token_ledger` | Token billing records | 0 |
+| `followup_jobs` | Delayed followup jobs | 0 |
+| `api_keys` | Tenant API keys | 0 |
 
+**Vector index:** `vector_index` on `knowledge_collection` (3072-dim cosine, 10/10 docs indexed)
 
-10.  Database Schema — All Collections
-10.1  knowledge_collection  (the neuron graph, vector-indexed)
-{ nodeId, protocolId, protocolVersion, title, content,
-  embedding [ ],  activationThreshold,
-  edges: [{ toNodeId, triggerEmbedding [ ], label }],
-  updatedAt, updatedBy }
-10.2  clinical_rules  (the rulebook, plain lookup)
-{ nodeId, protocolId, protocolVersion,
-  emergencyThreshold,   // severity score at which verdict = emergency
-  seeDoctorThreshold,   // severity score at which verdict = see-a-doctor
-  watchPeriodHours,     // duration beyond which see-a-doctor overrides self-care
-  redFlags: [ ],        // symptom strings; any match = emergency
-  selfCareGuidance,     // text returned for low-severity sessions
-  updatedAt, updatedBy }
-clinical_rules is separated from knowledge_collection intentionally. A clinician can update a threshold without triggering a re-embedding. These are two different kinds of change with two different risk levels.
-10.3  tenants
-{ _id, name, tier, tokenBalance,
-  subscriptionStartDate, subscriptionEndDate,
-  whitelabelConfig: { logoUrl, primaryColor },
-  createdAt }
-10.4  patients
-{ _id, tenantId, phone, name,
-  consentGivenAt,         // NDPR: must exist before any health data is stored
-  dataRetentionPolicy,    // how long this patient's records are kept
-  createdAt }
-10.5  sessions
-{ _id, tenantId, patientId, channel,
-  activeNodeId, lastFiringScore, protocolVersion,
-  verdict,                // self-care | see-a-doctor | emergency
-  status,                 // in-progress | closed
-  messages: [{ role, content, timestamp }],
-  extractedAnswers: { severityScore, durationHours, reportedSymptoms: [] },
-  createdAt, updatedAt }
-10.6  session_summaries  (separate from sessions)
-Stores vector embeddings of completed session summaries so Eve can recall relevant patient history at the start of a new session. Kept separate from knowledge_collection because these are patient-history vectors — a wrong match here is a different risk than a wrong match on a clinical protocol.
-{ _id, sessionId, patientId, tenantId,
-  summaryText, embedding [ ],
-  createdAt }
-10.7  tokenLedger
-{ _id, tenantId, sessionId,
-  promptTokens, completionTokens, multiplierApplied,
-  costNgn,
-  timestamp }
-10.8  followupJobs  (BullMQ idempotency guard)
-{ _id, sessionId, tenantId, patientId,
-  scheduledFor, sentAt,
-  dedupeKey,    // unique index on (sessionId + scheduledFor)
-  status }      // pending | sent | failed
+### 3.2 Frontend (`frontend/src/`)
 
+#### Routes (35 routes)
 
-11.  API Endpoint Architecture
-11.1  Triage & Chat
-Method	Endpoint	Purpose
-POST	/api/v1/chat/session/start	Captures consent, initializes Eve agent, recalls prior session summaries via vector search, returns sessionId.
-POST	/api/v1/chat/message	Runs one full turn: safety floor → vector traversal → Clinical Rule Layer → DeepSeek phrasing → stream reply. Updates session. Logs tokens asynchronously.
-GET	/api/v1/chat/session/:id	Returns full session document including message history, active node, and verdict for dashboard review.
-11.2  Token Management & Billing
-Method	Endpoint	Purpose
-GET	/api/v1/analytics/tokens	Returns token balance and historical consumption for a tenant. Requires X-Tenant-ID header.
-POST	/api/v1/tenants/topup	Processes a credit top-up via Paystack or Flutterwave. Adds tokens to the tenant's balance.
-11.3  Internal (Server-to-Server)
-Method	Endpoint	Purpose
-POST	/api/v1/internal/schedule-followup	Called by Eve's scheduleFollowup tool during an active session. Registers a delayed job in BullMQ. Requires X-Core-Secret header.
+| Path | Component | Status |
+|------|-----------|--------|
+| `/` | `LandingPage` (Navbar + Hero + Features + Stats + Testimonials + Pricing + Footer) | ✅ |
+| `/login` | `AuthPage` (login → OTP → redirect) | ✅ |
+| `/signup` | `DisclaimerPage` → `AuthPage` (signup → OTP → health profile) | ✅ |
+| `/forgot-password` | `ForgotPasswordPage` (email → OTP → new password) | ✅ |
+| `/health-profile` | `HealthProfilePage` | ✅ |
+| `/dashboard/*` | `CustomerDashboardLayout` + Outlet | ✅ |
+| `/dashboard` | `CustomerDashboardHome` (chat interface) | ✅ |
+| `/dashboard/assessment-history` | `AssessmentHistory` | ✅ |
+| `/dashboard/health-reports` | `HealthReports` | ✅ |
+| `/dashboard/health-library` | `HealthLibrary` | ✅ |
+| `/dashboard/settings` | `CustomerSettings` | ✅ |
+| `/business/login` | `BusinessLogin` (no Google auth) | ✅ |
+| `/business/signup` | `BusinessSignup` (no Google auth) | ✅ |
+| `/business/dashboard/*` | `BusinessDashboardLayout` + Outlet | ✅ |
+| `/business/dashboard` | `BusinessDashboardHome` (KPI cards, charts) | ✅ |
+| `/business/dashboard/assessments` | `BusinessAnalytics` (real API data) | ✅ |
+| `/business/dashboard/patient-insights` | `PatientInsights` | ✅ |
+| `/business/dashboard/reports` | `BusinessReports` (dummy data) | ⚠️ Needs real data |
+| `/business/dashboard/subscriptions` | `BusinessSubscription` | ✅ |
+| `/business/dashboard/settings` | `BusinessSettings` | ✅ |
+| `/business/dashboard/staff` | `StaffManagement` | ✅ |
+| `/business/dashboard/payment` | `BusinessPayment` | ✅ |
+| `/business/dashboard/protocols` | `ProtocolAdmin` | ✅ |
+| `/admin/login` | `AdminLogin` | ✅ |
+| `/admin/dashboard/*` | `AdminLayout` (auth-guarded) | ✅ |
+| `/admin/dashboard` | `AdminOverview` | ✅ |
+| `/admin/dashboard/tenants` | `AdminTenants` | ✅ |
+| `/admin/dashboard/users` | `AdminUsers` | ✅ |
+| `/admin/dashboard/analytics` | `AdminAnalytics` | ✅ |
+| `/admin/dashboard/settings` | `AdminSettings` | ✅ |
 
+#### Key Components
 
-12.  Security & Compliance
-12.1  NDPR / NDPA (Nigeria Data Protection Act)
-●Explicit consent captured at session start. consentGivenAt is written to the patients document before any health data is stored. If consent is not given, the session does not continue.
-●Data retention policy stored per patient. Health records are not kept indefinitely.
-●Patients can request deletion — a delete route removes the patient document, all session documents, and all session summary embeddings for that patient.
-12.2  Tenant Isolation
-●Every database read and write is scoped by tenantId at the query level — not enforced by trust in what the client sends.
-●A clinic can never see another clinic's patient data, even if they know a patient's ID.
-12.3  Token Security
-●Internal routes are protected by X-Core-Secret header, not exposed to clients.
-●Patient-facing routes use session tokens tied to the patient's consent record.
-12.4  Audit Trail
-●Every verdict produced by the Clinical Rule Layer is written to the session document with the nodeId, protocolVersion, and red flags found.
-●A doctor reviewing a historical case can reconstruct the exact path through the knowledge graph and the exact rule that produced the outcome.
+| Component | What it does |
+|-----------|-------------|
+| `customer-dashboard-home.tsx` | Chat UI: streaming messages, Markdown rendering, TTS audio player, thinking animation, autoscroll, stop button, session management |
+| `customer-dashboard-layout.tsx` | Sidebar with recent sessions (localStorage), header, backend keep-alive |
+| `business-analytics.tsx` | Real data: KPI cards, verdict breakdown bar, top symptoms, trends chart (Recharts), sessions table with pagination/filter/search, session detail modal |
+| `business-dashboard-home.tsx` | Home with KPI cards, growth chart, recent activity |
+| `hero-ai-infrastructure.tsx` | SplitText animations, rotating teal words, mobile responsive |
+| `feature-hero.tsx` | Phosphor icons: ArrowsLeftRight, Urgency Scoring, Symptom Triage, etc. |
+| `admin-api.ts` | Admin API client (stats, users, tenants, tokens) |
 
+#### UI Components (20)
 
-13.  Business Model Canvas
-Block	Detail
-Key Partners	National and regional HMOs · Private clinics · DeepSeek AI · MongoDB Atlas · Termii / Twilio · Paystack / Flutterwave · Vercel
-Key Activities	Clinical knowledge graph curation · Agent prompt engineering · Protocol versioning management · Background queue operations
-Value Proposition — HMO	Redirection of non-emergency cases back to self-care, directly reducing claims volume and payout costs.
-Value Proposition — Patient	24/7 access to structured, calm, consistent triage guidance — the same quality of first response regardless of time, location, or who is on call.
-Customer Relationships	Automated self-service for B2C patients. Dedicated customer success engineers for B2B enterprise clients.
-Customer Segments — B2B	Nigerian HMOs and multi-location hospital groups seeking to reduce emergency department overload.
-Customer Segments — B2C	Individual patients seeking self-triage, especially in areas with limited immediate access to a clinic.
-Key Resources	MongoDB Atlas clusters · DeepSeek API access · Clinical knowledge graph (the competitive moat) · Node.js server infrastructure on Vercel
-Channels	B2B: direct sales team and white-labeled portal integrations. B2C: WhatsApp, mobile app, web.
-Cost Structure	DeepSeek LLM token consumption · MongoDB Atlas compute and storage · SMS/WhatsApp gateway fees (Termii/Twilio) · Vercel hosting
-Revenue Streams	B2B SaaS monthly/annual subscriptions · Token usage markup on LLM costs · B2C pay-per-consultation
+`Button`, `Badge`, `Avatar`, `Input`, `Select`, `Dialog`, `Tooltip`, `HoverCard`, `Collapsible`, `Progress`, `Skeleton`, `SplitText`, `SidebarNav`, `BackButton`, `DateDropdown`, `ChartCard`, `ChartTheme`, `ChartUtils`, `TimelineAnimation`, `MotionDrawer`
 
+#### API Client (`lib/api.ts`)
 
-14.  Subscription & Pricing Model
-14.1  The Token Multiplier Principle
-MedBot's primary variable cost is DeepSeek token consumption via the eve framework. To protect margins from LLM cost volatility and ensure every tier is profitable, a Metered Cost Multiplier is applied to the raw token cost before billing:
-Multiplier	Applied to	Rationale
-2×	Standard Clinic / Growth tier	Absorbs engineering overhead and server costs. Provides approximately 50% gross margin on token spend.
-2.5×	Growth tier overage	Discourages excessive usage beyond the included pool without punishing it severely.
-2×	Enterprise tier overage	Stabilised rate for high-volume, predictable HMO usage. Reconciled quarterly.
-5×	B2C Pay-As-You-Go / Premium tier	Prices in the risk of long, unpredictable conversational sessions from individual users.
-14.2  B2B Tiers
-	Growth Tier	Enterprise Tier
-Target	Independent clinics, small hospitals	HMO networks, multi-location hospital groups
-Pricing	₦150,000 / month flat fee	Custom annual contract
-Staff accounts	Up to 5	Unlimited
-Token pool	1,000,000 tokens included	Negotiated volume commitment
-Overage rate	2.5× multiplier on tokens beyond pool	2× multiplier, reconciled quarterly
-Dashboard	Standard session and token analytics	Full analytics + white-labeling + custom branding
-Support	Email support	Dedicated customer success engineer
-Deployment	Shared infrastructure	Dedicated deployment with priority BullMQ queues
-Protocol updates	Standard versioned protocol releases	Custom protocol additions on request
-14.3  B2C Model
-●Pay-per-consultation: a fixed fee per completed triage session.
-●Priced to be accessible but with a 5× token multiplier protecting margin on variable-length sessions.
-●Entry point for individual patients who are not covered by an HMO using MedBot.
+27 exported functions covering auth, profile, chat, voice, sessions, admin, tenant auth, and tenant analytics.
 
+---
 
-15.  Build Roadmap
-Phase	What gets built	Done when
-Phase 1 — Foundation	MongoDB Atlas setup · knowledge_collection vector index · clinical_rules collection seeded with 3 protocols (chest pain, fever, breathing difficulty) · Express scaffolding · NDPR consent capture	Database is running, first 3 protocols are ingested and searchable.
-Phase 2 — Agent Core	Eve agent directory (instructions.md, agent.ts, tools/) · DeepSeek wiring · vector traversal logic · confidence threshold routing · Clinical Rule Layer module	A test conversation goes from first message to verdict without a human in the loop.
-Phase 3 — Safety & Queue	Safety floor keyword check · BullMQ delayed follow-up jobs · Notification Engine (Termii) · followupJobs idempotency guard · Clinical Rule Layer error webhook	An emergency keyword fires the safety floor. A closed session sends a follow-up message the next day.
-Phase 4 — Multi-tenancy	Tenant collection · token ledger · multiplier logic · Paystack top-up endpoint · Growth tier dashboard	A clinic can sign up, get a token balance, and see their session logs.
-Phase 5 — Pilot	One clinic on the Growth tier in a controlled rollout · Protocol versioning live · audit trail review with clinical lead	Real patients complete real triage sessions. A clinician reviews 20 session transcripts and signs off on the outcome quality.
+## 4. Key Implementation Details
 
-MedBot — Confidential — Version 1.0 — July 2026
+### 4.1 Chat & Streaming
+
+- **Endpoint:** `POST /chat/stream` returns SSE `data: {delta, done}`
+- **Content-type detection:** If response is JSON (non-streaming early returns for greeting/emergency/consent), render immediately
+- **Rendering:** `Markdown` component (not `@chenglou/pretext`); 80ms overlap crossfade between streaming bubble and permanent message
+- **Stream rate:** 20ms
+- **Abort:** `AbortController` stops fetch + axios source
+- **Auto-scroll:** 100px threshold from bottom
+
+### 4.2 TTS (Text-to-Speech)
+
+- **Provider:** Fish Audio (`s2.1-pro-free`, `s2-pro` requires paid plan)
+- **Voice:** `f248b08382a244a087ab5ee5fda8f6c2` — "Nigerian Storyteller"
+- **Speed:** Cycles 0.75× → 1× → 1.25× → 1.5× via button
+- **Emotion tags:** LLM emits `[calm]`, `[empathetic]`, `[serious]`, `[warm]`, `[laugh]`, `[chuckling]` — stripped from displayed text, passed to TTS
+- **Forced tags:** `ensureEmotionTag()` injects `[calm]` if missing; `forceLaughTag()` forces `[laugh]` for joke/funny requests
+- **Player:** Premium audio player above composer with play/pause, rewind/forward 15s, clickable progress bar, speed cycle, close button
+
+### 4.3 Thinking Animation
+
+- Collapsible shimmer text (`shimmer-text` keyframes)
+- Dark gray on light mode, light on dark mode
+- Teal bouncing dot (`dot-bounce` keyframes) beside text
+- No brain icon
+
+### 4.4 Emotion Tag Stripping
+
+| Surface | Stripped? |
+|---------|-----------|
+| Streaming bubble | ✅ |
+| Completed message | ✅ |
+| Clipboard copy | ✅ |
+| Edit message | ✅ |
+
+### 4.5 Business Analytics (Latest Feature)
+
+| Endpoint | Purpose | Implementation |
+|----------|---------|---------------|
+| `GET /api/tenant/analytics/overview` | KPI counts + verdict breakdown + weekly Δ | 7 `countDocuments` queries in `Promise.all` |
+| `GET /api/tenant/analytics/sessions` | Paginated sessions with verdict/status/search filters, symptom tags | `find` + `countDocuments` with regex search |
+| `GET /api/tenant/analytics/trends` | Daily time-series + top 10 symptoms | `$dateToString` + `$group` aggregation |
+| `GET /api/tenant/analytics/session/:id` | Full session detail with message history | Single `findOne` |
+
+### 4.6 Auth Flow
+
+**Customer:** Signup → OTP → Verify → Set Profile → Dashboard  
+**Business:** Signup (org details) → OTP → Verify → Login → OTP → Verify → Dashboard  
+**Admin:** Secret key (`x-core-secret` header) → Dashboard  
+**Google OAuth:** Available for customers only (removed from business portal)
+
+---
+
+## 5. Known Issues & Blockers
+
+| Issue | Impact | Status |
+|-------|--------|--------|
+| **MongoDB TLS handshake** hangs on local machine (antivirus/firewall intercepting) | Cannot run backend locally | Workaround: deploy to Render |
+| **Node 24** causes `ECONNRESET` on Atlas TLS handshake | Must use `nvm use 22` | Documented |
+| **TypeScript 7.0.2** (Go-based `tsc`) broken on local — missing `lib.d.ts` | Cannot typecheck backend locally | Pre-existing env issue |
+| **Redis not configured** | Followup queue worker disabled | Acceptable for MVP |
+| **Atlas `$vectorSearch`** unavailable (wrong cluster tier?) | Falls back to in-memory cosine search | Warning in logs |
+| **Business Reports** page still uses dummy data | Not wired to real API | Next task |
+| **Auth middleware** is hardcoded stub (bypasses real JWT check) | No real auth enforcement | Test-only |
+| **Phone call / VoiceCall** removed from customer dashboard | Feature cut | Confirmed with user |
+
+---
+
+## 6. Environment Variables
+
+### Backend (27 vars defined in `env.ts`)
+
+| Variable | Source | Used For |
+|----------|--------|----------|
+| `PORT` | Default `5001` | HTTP server |
+| `MONGODB_URI` | `.env` | Database connection |
+| `MONGODB_DB_NAME` | Default `medbot` | Database name |
+| `DEEPSEEK_API_KEY` | `.env` | Deprecated (now OpenRouter) |
+| `OPENROUTER_API_KEY` | `.env` | **Active** LLM provider |
+| `GEMINI_API_KEY` | `.env` | Embeddings (Gemini Embedding-001) |
+| `FISH_AUDIO_API_KEY` | `.env` | TTS |
+| `FISH_AUDIO_VOICE_ID` | `.env` | TTS voice reference |
+| `JWT_SECRET` | Default `dev-jwt-secret` | Auth tokens |
+| `CORE_SECRET` | Default `dev-core-secret` | Admin gate |
+| `CLIENT_URL` | Default `http://localhost:5173` | CORS |
+| `BREVO_API_KEY` | `.env` | OTP emails |
+| `SENDER_EMAIL` | Default | Email sender |
+| `GOOGLE_CLIENT_ID/SECRET` | `.env` | Google OAuth |
+| `PAYSTACK_SECRET/PUBLIC_KEY` | `.env` | Payments |
+| `EMBEDDING_DIMENSION` | `3072` | Vector size |
+
+### Frontend
+
+| Variable | Default | Used For |
+|----------|---------|----------|
+| `VITE_API_URL` | `''` (proxied in dev) | Backend URL |
+
+---
+
+## 7. Deployment
+
+### Frontend → Vercel
+
+| Property | Value |
+|----------|-------|
+| Project | `medbot_frontend` |
+| Domain | `https://medbotfrontend.vercel.app` |
+| Root dir | `frontend/` |
+| Build | `vite build` |
+| Output | `dist/` |
+
+### Backend → Render
+
+| Property | Value |
+|----------|-------|
+| Type | Web Service |
+| Root dir | `backend/` |
+| Build | `npm install` |
+| Start | `npm start` (`tsx src/index.ts`) |
+| Node | 22 |
+
+---
+
+## 8. Remaining Work
+
+### High Priority
+- [ ] Wire Business Reports page to real API endpoints
+- [ ] Replace hardcoded auth middleware with real JWT verification
+- [ ] Fix Atlas `$vectorSearch` (upgrade cluster or debug permission)
+- [ ] Configure Redis for followup queue
+
+### Medium Priority
+- [ ] Add WhatsApp channel integration (Twilio/Termii)
+- [ ] Implement B2C pay-per-consultation flow
+- [ ] Add data retention policy enforcement
+- [ ] Build patient deletion flow (NDPR compliance)
+
+### Low Priority
+- [ ] Add more clinical protocols (seed scripts exist)
+- [ ] Implement rate limiting per tenant
+- [ ] Add error webhook for Clinical Rule Layer failures
+- [ ] Expand test coverage
+
+---
+
+## 9. Git History (Recent)
+
+```
+22a15e0 Hero mobile fix
+f2ac61a Minor UI tweaks
+c700b1f Fix emotion tag stripping, thinking animation shimmer, premium audio player
+2487174 Fix hero mobile responsiveness, increase MongoDB timeout to 30s
+826b93c Trigger Vercel deployment
+d7acd66 Remove VoiceCall and Google auth from business portal, fix Phosphor icon import, add CODEBASE.md
+f5875b5 fix: use env.openrouterApiKey instead of process.env in chat route fallbacks
+7cc5197 fix: use getGoogleAuthUrl for production (Vercel) compat
+bbb6068 fix b2b google oauth: auto-create tenant, fix logout, vite proxy for /api
+01b1d85 b2b signup/signin w/ OTP: tenant routes, service, schema, frontend API
+58519f5 rename Eve to MedBot across chat route and instructions
+43cfd43 remove chain of thought display, keep simple thinking indicator
+14ec7cc add greeting detection to skip triage pipeline for greetings
+f955df1 add OPENROUTER_API_KEY to env spec
+9e4a9d0 fix consent service to handle invalid ObjectIds and bypass for test user
+7bd610f bypass auth middleware for testing
+9a74339 feat: wire forgot-password to real backend with OTP + reset flow
+0d8a349 add OpenRouter provider, switch Eve agent to deepseek/deepseek-v4-flash:free
+7541654 fix all date dropdowns with shared DateDropdown component
+91d503c make date filter functional on assessments page
+```
+
+---
+
+## 10. File Map (Key Files)
+
+```
+med bot/
+├── plan.md                           ← This file
+├── CODEBASE.md                       ← Full codebase map
+├── render.yaml                       ← Render deploy config
+├── vercel.json                       ← Vercel SPA rewrite
+├── backend/
+│   ├── src/
+│   │   ├── app.ts                    ← Route registration
+│   │   ├── index.ts                  ← Entry point
+│   │   ├── config/env.ts             ← 27 env vars
+│   │   ├── db/client.ts              ← MongoDB connection, indexes
+│   │   ├── db/schema.ts              ← 12 document interfaces
+│   │   ├── routes/ (11 files)        ← ~40 endpoints
+│   │   ├── services/ (18 files)      ← Business logic
+│   │   ├── middleware/ (2 files)     ← Auth (stub) + admin
+│   │   ├── agent/                    ← Eve AI framework
+│   │   └── voice/voiceSocket.ts      ← WebSocket TTS
+│   ├── package.json
+│   └── .env
+└── frontend/
+    ├── src/
+    │   ├── App.tsx                    ← 35 routes
+    │   ├── components/               ← 91 component files
+    │   │   ├── customer/ (16 files)  ← Patient portal
+    │   │   ├── business/ (16 files)  ← Hospital portal
+    │   │   ├── admin/ (12 files)     ← Super-admin portal
+    │   │   └── ui/ (20 files)       ← Shared UI kit
+    │   ├── lib/api.ts                ← 27 API functions
+    │   ├── lib/adminApi.ts           ← Protocol CRUD API
+    │   └── hooks/                    ← Theme, media query
+    ├── package.json
+    └── vite.config.ts
+```
+
+---
+
+**This document replaces the original `plan.md` (architecture blueprint) with a living build summary. Update as new features are completed.**

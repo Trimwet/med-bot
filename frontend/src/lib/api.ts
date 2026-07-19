@@ -282,6 +282,16 @@ export function deleteAccount() {
   })
 }
 
+export function hasConsented() {
+  return request<{ consented: boolean }>('/consent')
+}
+
+export function grantConsent() {
+  return request<{ consented: boolean; message: string }>('/consent', {
+    method: 'POST',
+  })
+}
+
 export function getAdminStats() {
   return request<{
     totalSessions: number
@@ -347,4 +357,92 @@ export function tenantVerifyLoginOtp(email: string, otp: string) {
     method: 'POST',
     body: JSON.stringify({ email, otp }),
   })
+}
+
+// ── Tenant Analytics API ──
+
+export interface TenantOverview {
+  totalSessions: number
+  activeSessions: number
+  completedSessions: number
+  emergencySessions: number
+  weeklyChange: number
+  verdictBreakdown: {
+    self_care: number
+    consult: number
+    emergency: number
+  }
+}
+
+export function getTenantOverview() {
+  return request<TenantOverview>('/api/tenant/analytics/overview')
+}
+
+export interface TenantSessionEntry {
+  sessionId: string
+  userId: string
+  verdict: string | null
+  status: string
+  messageCount: number
+  firstMessage: string
+  symptoms: string[]
+  severityScore: number | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TenantSessionsResponse {
+  sessions: TenantSessionEntry[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+export function getTenantSessions(params?: {
+  status?: string
+  verdict?: string
+  search?: string
+  page?: number
+  limit?: number
+}) {
+  const query = new URLSearchParams()
+  if (params?.status) query.set('status', params.status)
+  if (params?.verdict) query.set('verdict', params.verdict)
+  if (params?.search) query.set('search', params.search)
+  if (params?.page) query.set('page', String(params.page))
+  if (params?.limit) query.set('limit', String(params.limit))
+  return request<TenantSessionsResponse>(`/api/tenant/analytics/sessions?${query}`)
+}
+
+export interface TenantTrendsResponse {
+  daily: Array<{
+    date: string
+    total: number
+    emergency: number
+    consult: number
+    self_care: number
+  }>
+  topSymptoms: Array<{ name: string; count: number }>
+}
+
+export function getTenantTrends(range: string = '30d') {
+  return request<TenantTrendsResponse>(`/api/tenant/analytics/trends?range=${range}`)
+}
+
+export interface TenantSessionDetail {
+  sessionId: string
+  userId: string
+  verdict: string | null
+  status: string
+  messages: Array<{ role: string; content: string; timestamp: string }>
+  symptoms: string[]
+  severityScore: number | null
+  durationHours: number | null
+  createdAt: string
+  updatedAt: string
+}
+
+export function getTenantSessionDetail(sessionId: string) {
+  return request<TenantSessionDetail>(`/api/tenant/analytics/session/${encodeURIComponent(sessionId)}`)
 }

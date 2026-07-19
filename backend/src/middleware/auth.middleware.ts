@@ -1,15 +1,40 @@
 import type { Request, Response, NextFunction } from "express";
-import { env } from "@/config/env";
 import { UnauthorizedError } from "@/lib/errors";
-import { getUserById, verifyJwtToken } from "@/services/auth.service";
+import { verifyJwtToken, getUserById } from "@/services/auth.service";
 
 export async function authMiddleware(req: Request, _res: Response, next: NextFunction) {
-  (req as any).user = {
-    id: "test-user-id",
-    email: "test@example.com",
-    name: "Test User",
-    isVerified: true,
-    tenantId: "6a563c9f0c3f2d40a219c1e5",
-  };
-  next();
+  try {
+    const auth = req.headers.authorization;
+    if (!auth?.startsWith("Bearer ")) {
+      next(new UnauthorizedError("Missing or invalid authorization header"));
+      return;
+    }
+
+    const token = auth.slice(7);
+    let userId: string;
+    try {
+      userId = verifyJwtToken(token);
+    } catch {
+      next(new UnauthorizedError("Invalid or expired token"));
+      return;
+    }
+
+    const user = await getUserById(userId);
+    if (!user) {
+      next(new UnauthorizedError("User not found"));
+      return;
+    }
+
+    (req as any).user = {
+      id: user._id!.toString(),
+      email: user.email,
+      name: user.name,
+      isVerified: user.isVerified,
+      tenantId: user.tenantId,
+    };
+
+    next();
+  } catch (err) {
+    next(err);
+  }
 }
