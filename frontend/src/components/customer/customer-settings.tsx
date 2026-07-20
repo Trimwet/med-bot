@@ -8,7 +8,6 @@ import {
   Palette,
   ChevronRight,
   Check,
-  Camera,
   Globe,
   AlertTriangle,
 } from 'lucide-react'
@@ -142,22 +141,6 @@ function ProfileSection() {
       <div>
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Personal information</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400">Manage your personal details and contact information.</p>
-      </div>
-
-      {/* Avatar */}
-      <div className="flex items-center gap-4 py-4 border-b border-gray-100 dark:border-gray-800">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-full bg-[#073B4C]/10 dark:bg-teal/10 flex items-center justify-center">
-            <User className="w-7 h-7 text-[#073B4C] dark:text-teal" />
-          </div>
-          <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <Camera className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
-          </button>
-        </div>
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Profile photo</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">JPG, PNG or GIF. Max 2MB.</p>
-        </div>
       </div>
 
       <EditableRow label="Full name" value={name} expanded={expandedRow === 'name'} onEdit={() => setExpandedRow('name')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
