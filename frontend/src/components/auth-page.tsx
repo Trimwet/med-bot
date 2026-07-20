@@ -300,6 +300,15 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
             {error && <p className="text-sm text-red-500 text-center">{error}</p>}
             {info && !error && <p className="text-sm text-teal text-center">{info}</p>}
 
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal/80 transition-colors font-display disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? <Loader variant="helix" size={20} speed={0.6} label="Loading" className="text-white" /> : isSignup ? 'Sign Up' : 'Log In'}
+            </button>
+
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -323,15 +332,6 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
               Continue with Google
-            </button>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal/80 transition-colors font-display disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? <Loader variant="helix" size={20} speed={0.6} label="Loading" className="text-white" /> : isSignup ? 'Sign Up' : 'Log In'}
             </button>
           </form>
         </div>
