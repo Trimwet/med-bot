@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { BackButton } from '@/components/ui/back-button'
 import { useTheme } from '@/hooks/use-theme'
+import { getAuthUser, getProfile } from '@/lib/api'
 
 type NavItem = {
   id: string
@@ -117,10 +118,22 @@ function ToggleRow({ label, description, enabled, onChange }: ToggleRowProps) {
 
 function ProfileSection() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
-  const [name, setName] = useState('Aisha Bello')
-  const [email, setEmail] = useState('aisha@example.com')
-  const [phone, setPhone] = useState('+234 801 234 5678')
-  const [location, setLocation] = useState('Lagos, Nigeria')
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [location, setLocation] = useState('')
+
+  useEffect(() => {
+    getAuthUser().then((res) => {
+      setName(res.user.name || '')
+      setEmail(res.user.email || '')
+    }).catch(() => {})
+    getProfile().then((res) => {
+      const p = res.profile as Record<string, any>
+      if (p.phone) setPhone(p.phone)
+      if (p.location) setLocation(p.location)
+    }).catch(() => {})
+  }, [])
 
   const inputClass = 'w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C] bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'
 
@@ -176,7 +189,7 @@ function SecuritySection() {
 
       <div>
         <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Password</p>
-        <EditableRow label="Password" value="Last changed 3 months ago" expanded={expandedRow === 'password'} onEdit={() => setExpandedRow('password')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
+        <EditableRow label="Password" value="Last changed recently" expanded={expandedRow === 'password'} onEdit={() => setExpandedRow('password')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
           <input type="password" placeholder="New password" className={inputClass} />
         </EditableRow>
       </div>

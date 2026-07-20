@@ -287,6 +287,10 @@ export function getProfile() {
   return request<{ profile: Record<string, unknown> }>('/api/users/me/profile')
 }
 
+export function getAuthUser() {
+  return request<{ user: { id: string, name?: string, email: string, googleId?: string, isVerified: boolean, createdAt?: string, updatedAt?: string } }>('/api/auth/me')
+}
+
 export function changeUserPassword(currentPassword: string, newPassword: string) {
   return request<{ message: string }>('/api/auth/change-password', {
     method: 'POST',
