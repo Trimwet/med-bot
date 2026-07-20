@@ -28,11 +28,14 @@ import {
   SkipBack,
   SkipForward,
   X,
+  Cloud,
+  Monitor,
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ApiError, sendChatMessage, fetchTtsAudio, fetchSupertonicAudio } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import SplitText from '@/components/ui/SplitText'
+import { Select } from '@/components/ui/select'
 
 const GREETING_MESSAGES = [
   "Tell me what's going on and I'll help you figure out the next step.",
@@ -41,6 +44,19 @@ const GREETING_MESSAGES = [
   "Feeling unwell? Describe your symptoms and I'll help you decide what to do next.",
   "Let me help you figure out what's going on. What are you experiencing?",
   "Tell me what you're feeling or ask a health question, and I'll help you figure out the next step.",
+]
+
+const SUPERTONIC_VOICES = [
+  { label: 'Adewale', value: 'M1' },
+  { label: 'Chidi', value: 'M2' },
+  { label: 'Emeka', value: 'M3' },
+  { label: 'Ibrahim', value: 'M4' },
+  { label: 'Kunle', value: 'M5' },
+  { label: 'Adaeze', value: 'F1' },
+  { label: 'Chioma', value: 'F2' },
+  { label: 'Nneka', value: 'F3' },
+  { label: 'Fatima', value: 'F4' },
+  { label: 'Funke', value: 'F5' },
 ]
 
 const MAX_TEXTAREA_HEIGHT = 160
@@ -881,36 +897,25 @@ export const CustomerDashboardHome = () => {
               {/* TTS Engine toggle */}
               <button
                 onClick={handleToggleEngine}
-                className="h-8 flex items-center gap-1 rounded-full text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0 px-2"
+                className={`h-8 flex items-center gap-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 px-2.5 ${
+                  ttsEngine === 'fishAudio'
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
+                    : 'text-teal dark:text-teal bg-teal/10 dark:bg-teal/10'
+                }`}
                 aria-label="Toggle TTS engine"
-                title={ttsEngine === 'fishAudio' ? 'Using Fish Audio (cloud) - click for Supertonic (local)' : 'Using Supertonic (local) - click for Fish Audio (cloud)'}
+                title={ttsEngine === 'fishAudio' ? 'Fish Audio (cloud) - click for Supertonic (local)' : 'Supertonic (local) - click for Fish Audio (cloud)'}
               >
-                {ttsEngine === 'fishAudio' ? '☁️' : '💻'}
+                {ttsEngine === 'fishAudio' ? <Cloud className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
               </button>
 
               {/* Supertonic voice selector */}
               {ttsEngine === 'supertonic' && (
-                <select
+                <Select
                   value={supertonicVoice}
-                  onChange={(e) => setSupertonicVoice(e.target.value)}
-                  className="h-8 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 rounded-full px-2 shrink-0 cursor-pointer outline-none"
-                  aria-label="Select voice"
-                >
-                  <optgroup label="Male">
-                    <option value="M1">M1</option>
-                    <option value="M2">M2</option>
-                    <option value="M3">M3</option>
-                    <option value="M4">M4</option>
-                    <option value="M5">M5</option>
-                  </optgroup>
-                  <optgroup label="Female">
-                    <option value="F1">F1</option>
-                    <option value="F2">F2</option>
-                    <option value="F3">F3</option>
-                    <option value="F4">F4</option>
-                    <option value="F5">F5</option>
-                  </optgroup>
-                </select>
+                  onValueChange={setSupertonicVoice}
+                  options={SUPERTONIC_VOICES}
+                  className="w-28 shrink-0"
+                />
               )}
 
               {/* Close */}
