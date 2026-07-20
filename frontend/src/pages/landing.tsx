@@ -1,4 +1,5 @@
 import { HeroAiInfrastructure } from '@/components/hero-ai-infrastructure'
+import { FeaturesAlternating } from '@/components/features-alternating'
 import { FeatureHero } from '@/components/feature-hero'
 import { StatsSection } from '@/components/stats-section'
 import { MarqueeTestimonials } from '@/components/marque-testimonial'
@@ -20,6 +21,9 @@ export const LandingPage = ({ onLogin, onSignup, onPartners }: LandingPageProps)
         <HeroAiInfrastructure onPartners={onPartners} />
       </div>
       <div id="features">
+        <FeaturesAlternating />
+      </div>
+      <div id="features-details">
         <FeatureHero />
       </div>
       <div id="results">
