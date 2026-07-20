@@ -221,6 +221,10 @@ export function sendChatMessageStream(
   return controller
 }
 
+function stripEmotionTags(text: string): string {
+  return text.replace(/\[(calm|warm|empathetic|serious|concerned|gentle|reassuring|urgent|neutral|thoughtful|objective|firm|attentive|chuckling|laugh|sigh|sob|yell|gasp|sarcastic)\]/gi, '').trim()
+}
+
 export async function fetchTtsAudio(text: string, speed: number = 1): Promise<Blob> {
   const token = localStorage.getItem('token')
   const res = await fetch(`${API_URL}/api/voice/tts`, {
@@ -229,7 +233,7 @@ export async function fetchTtsAudio(text: string, speed: number = 1): Promise<Bl
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ text, format: 'mp3', speed }),
+    body: JSON.stringify({ text: stripEmotionTags(text), format: 'mp3', speed }),
   })
   if (!res.ok) throw new ApiError('TTS request failed', res.status)
   return res.blob()
@@ -243,7 +247,7 @@ export async function fetchSupertonicAudio(text: string, voice: string = 'M1', s
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ text, voice, speed }),
+    body: JSON.stringify({ text: stripEmotionTags(text), voice, speed }),
   })
   if (!res.ok) throw new ApiError('Supertonic TTS request failed', res.status)
   return res.blob()
