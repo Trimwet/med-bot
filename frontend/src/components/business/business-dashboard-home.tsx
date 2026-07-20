@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   Calendar,
   Download,
@@ -110,6 +110,21 @@ const weeklyTrendData = [
 
 export const BusinessDashboardHome = () => {
   const theme = useChartTheme()
+  const [assessmentRange, setAssessmentRange] = useState('This Week')
+  const [trendRange, setTrendRange] = useState('Last 8 Weeks')
+  const [assessmentOpen, setAssessmentOpen] = useState(false)
+  const [trendOpen, setTrendOpen] = useState(false)
+  const assessmentRef = useRef<HTMLDivElement>(null)
+  const trendRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function close(e: MouseEvent) {
+      if (assessmentRef.current && !assessmentRef.current.contains(e.target as Node)) setAssessmentOpen(false)
+      if (trendRef.current && !trendRef.current.contains(e.target as Node)) setTrendOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -138,7 +153,21 @@ export const BusinessDashboardHome = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Daily Assessments */}
         <ChartCard title="Daily Assessments" action={
-          <span className="text-xs text-gray-500 dark:text-[#6b7080] bg-gray-100 dark:bg-[#1a1d25] px-3 py-1 rounded-full">This Week</span>
+          <div ref={assessmentRef} className="relative">
+            <button onClick={() => setAssessmentOpen(!assessmentOpen)} className="text-xs text-gray-500 dark:text-[#6b7080] bg-gray-100 dark:bg-[#1a1d25] px-3 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-[#252830] transition-colors">
+              {assessmentRange} ▾
+            </button>
+            {assessmentOpen && (
+              <div className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] shadow-lg z-50 overflow-hidden">
+                {['Today', 'This Week', 'Last 2 Weeks', 'This Month'].map((opt) => (
+                  <button key={opt} onClick={() => { setAssessmentRange(opt); setAssessmentOpen(false) }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${assessmentRange === opt ? 'bg-[#073B4C] text-white' : 'text-gray-600 dark:text-[#a1a1aa] hover:bg-gray-100 dark:hover:bg-[#1a1d25]'}`}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         }>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
@@ -160,7 +189,21 @@ export const BusinessDashboardHome = () => {
 
         {/* Weekly Trends */}
         <ChartCard title="Weekly Trends" action={
-          <span className="text-xs text-gray-500 dark:text-[#6b7080] bg-gray-100 dark:bg-[#1a1d25] px-3 py-1 rounded-full">Last 8 Weeks ▾</span>
+          <div ref={trendRef} className="relative">
+            <button onClick={() => setTrendOpen(!trendOpen)} className="text-xs text-gray-500 dark:text-[#6b7080] bg-gray-100 dark:bg-[#1a1d25] px-3 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-[#252830] transition-colors">
+              {trendRange} ▾
+            </button>
+            {trendOpen && (
+              <div className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] shadow-lg z-50 overflow-hidden">
+                {['Last 4 Weeks', 'Last 8 Weeks', 'Last 12 Weeks', 'This Year'].map((opt) => (
+                  <button key={opt} onClick={() => { setTrendRange(opt); setTrendOpen(false) }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${trendRange === opt ? 'bg-[#073B4C] text-white' : 'text-gray-600 dark:text-[#a1a1aa] hover:bg-gray-100 dark:hover:bg-[#1a1d25]'}`}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         }>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
