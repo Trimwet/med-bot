@@ -410,12 +410,12 @@ export const CustomerDashboardHome = () => {
   }, [audioState.speed])
 
   const triggerAudio = useCallback(async (msgIndex: number, text: string) => {
-    if (audioState.messageIndex === msgIndex) {
-      if (audioRef.current?.paused) {
+    if (audioState.messageIndex === msgIndex && audioRef.current) {
+      if (audioRef.current.paused) {
         audioRef.current.play()
         setAudioState((s) => ({ ...s, playing: true }))
       } else {
-        audioRef.current?.pause()
+        audioRef.current.pause()
         setAudioState((s) => ({ ...s, playing: false }))
       }
       return
@@ -424,12 +424,12 @@ export const CustomerDashboardHome = () => {
       audioRef.current.pause()
       audioRef.current = null
     }
-    setAudioState({ messageIndex: msgIndex, playing: false, currentTime: 0, duration: 0, speed: 1, loading: true })
+    setAudioState({ messageIndex: msgIndex, playing: false, currentTime: 0, duration: 0, speed: audioState.speed, loading: true })
     try {
       const blob = ttsEngine === 'supertonic' ? await fetchSupertonicAudio(text, supertonicVoice) : await fetchTtsAudio(text)
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
-      audio.playbackRate = 1
+      audio.playbackRate = audioState.speed
       audioRef.current = audio
       audio.onloadedmetadata = () => {
         setAudioState((s) => ({ ...s, duration: audio.duration, loading: false }))
