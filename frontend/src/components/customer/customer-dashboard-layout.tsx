@@ -59,16 +59,17 @@ export const CustomerDashboardLayout = () => {
   }, [])
 
   async function handleGrantConsent() {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      navigate('/login', { replace: true })
+      return
+    }
     setConsentLoading(true)
     setConsentError('')
     try {
       await grantConsent()
       setConsented(true)
     } catch {
-      // If token is gone (expired/cleared), redirect to login
-      if (!localStorage.getItem('token')) {
-        navigate('/login', { replace: true })
-      }
       setConsentError('Failed to record consent. Please try again.')
     } finally {
       setConsentLoading(false)

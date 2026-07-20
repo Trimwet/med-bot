@@ -39,6 +39,10 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
   }, [])
 
   async function handleGrantConsent() {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      return
+    }
     setConsentLoading(true)
     setError('')
     try {
