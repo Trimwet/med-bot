@@ -40,6 +40,14 @@ export const CustomerDashboardLayout = () => {
 
   const isExpanded = !collapsed || mobileOpen
 
+  // Auth guard — redirect to login if no token
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      navigate('/login', { replace: true })
+    }
+  }, [navigate])
+
   useEffect(() => {
     setRecentSessions(getRecentSessions())
     const refresh = () => setRecentSessions(getRecentSessions())
@@ -50,7 +58,7 @@ export const CustomerDashboardLayout = () => {
   useEffect(() => {
     hasConsented()
       .then((res) => setConsented(res.consented))
-      .catch(() => setConsented(false))
+      .catch(() => { setConsented(false) })
   }, [])
 
   async function handleGrantConsent() {
@@ -60,6 +68,10 @@ export const CustomerDashboardLayout = () => {
       await grantConsent()
       setConsented(true)
     } catch {
+      // If token is gone (expired/cleared), redirect to login
+      if (!localStorage.getItem('token')) {
+        navigate('/login', { replace: true })
+      }
       setConsentError('Failed to record consent. Please try again.')
     } finally {
       setConsentLoading(false)

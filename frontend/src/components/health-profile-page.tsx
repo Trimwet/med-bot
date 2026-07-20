@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { User, Heart, Ruler, Weight, Droplets, AlertTriangle, Pill, Phone, ShieldCheck } from 'lucide-react'
 import { Select } from './ui/select'
 import { updateProfile, ApiError, hasConsented, grantConsent } from '@/lib/api'
@@ -11,6 +12,7 @@ interface HealthProfilePageProps {
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
 export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps) => {
+  const navigate = useNavigate()
   const [form, setForm] = useState({
     age: '',
     gender: '',
@@ -26,6 +28,14 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
   const [error, setError] = useState('')
   const [consented, setConsented] = useState<boolean | null>(null)
   const [consentLoading, setConsentLoading] = useState(false)
+
+  // Auth guard — redirect to login if no token
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      navigate('/login', { replace: true })
+    }
+  }, [navigate])
 
   useEffect(() => {
     hasConsented()
