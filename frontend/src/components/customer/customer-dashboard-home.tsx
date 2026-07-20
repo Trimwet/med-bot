@@ -47,16 +47,16 @@ const GREETING_MESSAGES = [
 ]
 
 const SUPERTONIC_VOICES = [
-  { label: 'Adewale', value: 'M1' },
-  { label: 'Chidi', value: 'M2' },
-  { label: 'Emeka', value: 'M3' },
-  { label: 'Ibrahim', value: 'M4' },
-  { label: 'Kunle', value: 'M5' },
-  { label: 'Adaeze', value: 'F1' },
-  { label: 'Chioma', value: 'F2' },
-  { label: 'Nneka', value: 'F3' },
-  { label: 'Fatima', value: 'F4' },
-  { label: 'Funke', value: 'F5' },
+  { label: 'Divine', value: 'M1' },
+  { label: 'Trimwet', value: 'M2' },
+  { label: 'Bolanle', value: 'M3' },
+  { label: 'Isaac', value: 'M4' },
+  { label: 'Chukwuebuka', value: 'M5' },
+  { label: 'Franca', value: 'F1' },
+  { label: 'Fave', value: 'F2' },
+  { label: 'Kammie', value: 'F3' },
+  { label: 'Nerat', value: 'F4' },
+  { label: 'Anditee', value: 'F5' },
 ]
 
 const MAX_TEXTAREA_HEIGHT = 160
