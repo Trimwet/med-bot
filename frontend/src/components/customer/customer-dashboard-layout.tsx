@@ -40,14 +40,6 @@ export const CustomerDashboardLayout = () => {
 
   const isExpanded = !collapsed || mobileOpen
 
-  // Auth guard — redirect to login if no token
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      navigate('/login', { replace: true })
-    }
-  }, [navigate])
-
   useEffect(() => {
     setRecentSessions(getRecentSessions())
     const refresh = () => setRecentSessions(getRecentSessions())
