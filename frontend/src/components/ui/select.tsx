@@ -52,7 +52,7 @@ export const Select = ({ value, onValueChange, placeholder = 'Select...', option
                 onValueChange(option.value)
                 setIsOpen(false)
               }}
-              className={`w-full px-4 py-2.5 text-sm text-left transition-colors ${
+              className={`w-full px-4 py-2.5 text-sm text-left transition-colors truncate ${
                 value === option.value
                   ? 'bg-teal/10 text-teal font-medium'
                   : 'text-ink hover:bg-paper-soft'

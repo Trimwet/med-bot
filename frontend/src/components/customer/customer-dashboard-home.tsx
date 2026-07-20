@@ -926,7 +926,7 @@ export const CustomerDashboardHome = () => {
                   value={supertonicVoice}
                   onValueChange={setSupertonicVoice}
                   options={SUPERTONIC_VOICES}
-                  className="w-28 shrink-0"
+                  className="w-36 shrink-0"
                   dropUp
                 />
               )}
