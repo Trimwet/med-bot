@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Calendar, Download, AlertTriangle, ClipboardList, UserCog, MoreVertical, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react'
+import { Calendar, Download, AlertTriangle, ClipboardList, UserCog, MoreVertical, RefreshCw } from 'lucide-react'
 
 export const BusinessDashboardHome = () => {
   const [dateRange, setDateRange] = useState('May 1 - May 26, 2026')
@@ -44,14 +44,9 @@ export const BusinessDashboardHome = () => {
             <div className="w-10 h-10 bg-gray-100 dark:bg-[#1a1d25] rounded-xl flex items-center justify-center">
               <ClipboardList className="w-5 h-5 text-gray-500 dark:text-[#6b7080]" />
             </div>
-            <span className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">
-              <TrendingUp className="w-3 h-3" />
-              +12%
-            </span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">2,456</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">-</p>
           <p className="text-sm font-medium text-gray-500 dark:text-[#6b7080] mt-1">Total Assessments</p>
-          <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">vs. 2,192 last week</p>
         </div>
 
         {/* Emergency Cases */}
@@ -60,14 +55,9 @@ export const BusinessDashboardHome = () => {
             <div className="w-10 h-10 bg-gray-100 dark:bg-[#1a1d25] rounded-xl flex items-center justify-center">
               <AlertTriangle className="w-5 h-5 text-gray-500 dark:text-[#6b7080]" />
             </div>
-            <span className="flex items-center gap-1 text-xs font-semibold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-full">
-              <TrendingDown className="w-3 h-3" />
-              -8%
-            </span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">156</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">-</p>
           <p className="text-sm font-medium text-gray-500 dark:text-[#6b7080] mt-1">Emergency Cases</p>
-          <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Requiring immediate attention</p>
         </div>
 
         {/* Doctor Referrals */}
@@ -76,14 +66,9 @@ export const BusinessDashboardHome = () => {
             <div className="w-10 h-10 bg-gray-100 dark:bg-[#1a1d25] rounded-xl flex items-center justify-center">
               <UserCog className="w-5 h-5 text-gray-500 dark:text-[#6b7080]" />
             </div>
-            <span className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">
-              <TrendingUp className="w-3 h-3" />
-              +15%
-            </span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">312</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-[#e8eaed]">-</p>
           <p className="text-sm font-medium text-gray-500 dark:text-[#6b7080] mt-1">Doctor Referrals</p>
-          <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Pending specialist review</p>
         </div>
       </div>
 
