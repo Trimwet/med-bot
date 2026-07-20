@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
-import { User, Heart, Ruler, Weight, Droplets, AlertTriangle, Pill, Phone, ShieldCheck } from 'lucide-react'
+import React, { useState } from 'react'
+import { User, Heart, Ruler, Weight, Droplets, AlertTriangle, Pill, Phone } from 'lucide-react'
 import { Select } from './ui/select'
-import { updateProfile, ApiError, hasConsented, grantConsent } from '@/lib/api'
+import { updateProfile, ApiError } from '@/lib/api'
 
 interface HealthProfilePageProps {
   onBack?: () => void
@@ -24,36 +24,6 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [consented, setConsented] = useState<boolean | null>(null)
-  const [consentLoading, setConsentLoading] = useState(false)
-
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      setConsented(false)
-      return
-    }
-    hasConsented()
-      .then((res) => setConsented(res.consented))
-      .catch(() => setConsented(false))
-  }, [])
-
-  async function handleGrantConsent() {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      return
-    }
-    setConsentLoading(true)
-    setError('')
-    try {
-      await grantConsent()
-      setConsented(true)
-    } catch {
-      setError('Failed to record consent. Please try again.')
-    } finally {
-      setConsentLoading(false)
-    }
-  }
 
   const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }))
 
@@ -87,54 +57,7 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
       <main className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-lg">
 
-          {/* Loading while checking consent */}
-          {consented === null && (
-            <div className="bg-white rounded-2xl border border-line shadow-sm px-8 py-10 text-center">
-              <p className="text-sm text-muted/50">Checking consent status...</p>
-            </div>
-          )}
-
-          {/* Consent gate */}
-          {consented === false && (
-            <div className="bg-white rounded-2xl border border-line shadow-sm px-8 py-10">
-              <div className="text-center mb-6">
-                <div className="mx-auto w-12 h-12 rounded-full bg-teal/10 flex items-center justify-center mb-4">
-                  <ShieldCheck className="w-6 h-6 text-teal" />
-                </div>
-                <h1 className="text-2xl font-bold text-ink font-display mb-2">
-                  Your Privacy Matters
-                </h1>
-                <p className="text-sm text-[#9CA3AF] max-w-sm mx-auto leading-relaxed">
-                  Before we can collect and process your health data, we need your consent under the Nigeria Data Protection Regulation (NDPR).
-                </p>
-              </div>
-
-              <div className="bg-[#F9FAFB] rounded-lg p-4 mb-6 space-y-3 text-sm text-ink/70 leading-relaxed">
-                <p><span className="font-semibold text-ink">What we collect:</span> Health symptoms, medical history, and profile information you provide.</p>
-                <p><span className="font-semibold text-ink">How it's used:</span> Solely for AI-powered triage and health guidance.</p>
-                <p><span className="font-semibold text-ink">Your rights:</span> You can revoke consent at any time in your account settings. Your data will never be shared without your explicit permission.</p>
-              </div>
-
-              {error && (
-                <p className="text-sm text-red-500 text-center mb-4">{error}</p>
-              )}
-
-              <button
-                onClick={handleGrantConsent}
-                disabled={consentLoading}
-                className="w-full py-3 rounded-lg bg-[#0A202A] text-white font-semibold text-sm hover:bg-[#0A202A]/80 transition-colors font-display disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {consentLoading ? 'RECORDING...' : 'I AGREE'}
-              </button>
-
-              <p className="text-xs text-muted/40 text-center mt-3">
-                You must agree to continue. You can revoke consent at any time.
-              </p>
-            </div>
-          )}
-
-          {/* Profile form (only after consent) */}
-          {consented === true && (
+          {/* Profile form */}
           <div className="bg-white rounded-2xl border border-line shadow-sm px-8 py-10">
 
             {/* Title */}
@@ -319,7 +242,6 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
               </div>
             </form>
           </div>
-          )}
         </div>
       </main>
     </div>

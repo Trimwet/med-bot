@@ -1,4 +1,4 @@
-import { Check, Sparkles, Download, AlertCircle, ArrowRight } from 'lucide-react'
+import { Check, Download, AlertCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const freeFeatures = [
@@ -103,32 +103,6 @@ export const BusinessSubscription = () => {
             className="w-full py-2.5 rounded-lg text-sm font-semibold text-white bg-[#073B4C] dark:bg-[#00D4D4] dark:text-[#073B4C] hover:bg-[#0A202A] dark:hover:bg-[#00C4C4] transition-colors"
           >
             Upgrade to Premium
-          </button>
-        </div>
-      </div>
-
-      {/* Upgrade CTA */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#073B4C] via-[#054A5E] to-[#0A202A] p-6 sm:p-8">
-        <div className="absolute -top-16 -right-10 w-56 h-56 rounded-full bg-[#00D4D4]/10 blur-2xl" />
-        <div className="absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-white/5 blur-2xl" />
-        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0">
-              <Sparkles className="w-6 h-6 text-[#00D4D4]" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white">Unlock Premium</h3>
-              <p className="text-sm text-white/70 mt-1 max-w-md leading-relaxed">
-                Unlimited assessments, advanced health reports, priority support, and premium AI features — all in one plan.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => navigate('/business/dashboard/payment')}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-[#073B4C] text-sm font-bold hover:bg-white/90 transition-colors shrink-0 shadow-lg shadow-black/20"
-          >
-            Upgrade Now
-            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>

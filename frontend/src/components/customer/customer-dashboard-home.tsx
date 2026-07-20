@@ -1,5 +1,6 @@
 // @ts-nocheck -- interactive dashboard is being migrated from mock data to the API.
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import {
   ArrowUp,
@@ -28,10 +29,9 @@ import {
   SkipBack,
   SkipForward,
   X,
-  Cloud,
-  Monitor,
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { VoiceIcon } from '@/components/ui/voice-icon'
 import { ApiError, sendChatMessage, fetchTtsAudio, fetchSupertonicAudio } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import SplitText from '@/components/ui/SplitText'
@@ -295,6 +295,7 @@ function StreamingBubble({ visibleText }: { visibleText: string }) {
 }
 
 export const CustomerDashboardHome = () => {
+  const navigate = useNavigate()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
@@ -581,9 +582,11 @@ export const CustomerDashboardHome = () => {
         // default delay 20ms
       )
     } catch (err) {
-      const reply = err instanceof ApiError && err.status === 401
-        ? 'Your session has expired. Please sign in again to continue.'
-        : 'I could not reach MedBot right now. If you have urgent symptoms, call 112 or go to the nearest emergency department.'
+      if (err instanceof ApiError && err.status === 401) {
+        navigate('/login', { replace: true })
+        return
+      }
+      const reply = 'I could not reach MedBot right now. If you have urgent symptoms, call 112 or go to the nearest emergency department.'
       setMessages((prev) => [...prev, { sender: 'assistant', text: reply }])
       setVisibleThinking('')
       setPhase('idle')
@@ -917,7 +920,7 @@ export const CustomerDashboardHome = () => {
                 aria-label="Toggle TTS engine"
                 title={ttsEngine === 'fishAudio' ? 'Fish Audio (cloud) - click for Supertonic (local)' : 'Supertonic (local) - click for Fish Audio (cloud)'}
               >
-                {ttsEngine === 'fishAudio' ? <Cloud className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
+                <VoiceIcon className="w-4 h-4" />
               </button>
 
               {/* Supertonic voice selector */}

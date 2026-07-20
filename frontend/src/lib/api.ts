@@ -311,16 +311,6 @@ export function deleteAccount() {
   })
 }
 
-export function hasConsented() {
-  return request<{ consented: boolean }>('/consent')
-}
-
-export function grantConsent() {
-  return request<{ consented: boolean; message: string }>('/consent', {
-    method: 'POST',
-  })
-}
-
 export function getAdminStats() {
   return request<{
     totalSessions: number
