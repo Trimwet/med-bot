@@ -8,9 +8,11 @@ import { motion } from 'motion/react'
 
 const CheckItem = ({ text }: { text: string }) => (
   <li className="flex items-start gap-3 text-sm text-muted md:text-base">
-    <svg className="mt-0.5 size-5 shrink-0 text-teal" viewBox="0 0 20 20" fill="none">
-      <path d="M16.667 5L7.5 14.167 3.333 10" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <div className="mt-0.5 size-5 shrink-0 rounded-full bg-teal flex items-center justify-center">
+      <svg className="size-3 text-white" viewBox="0 0 20 20" fill="none">
+        <path d="M16.667 5L7.5 14.167 3.333 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
     <span>{text}</span>
   </li>
 )
@@ -41,8 +43,12 @@ const TriageMockup = () => {
       setVisibleCount(0)
       setShowTyping(false)
       chatMessages.forEach((msg, i) => {
-        setTimeout(() => setShowTyping(true), msg.delay * 1000 - 600)
-        setTimeout(() => { setShowTyping(false); setVisibleCount(i + 1) }, msg.delay * 1000)
+        if (msg.role === 'bot') {
+          setTimeout(() => setShowTyping(true), msg.delay * 1000 - 600)
+          setTimeout(() => { setShowTyping(false); setVisibleCount(i + 1) }, msg.delay * 1000)
+        } else {
+          setTimeout(() => { setShowTyping(false); setVisibleCount(i + 1) }, msg.delay * 1000)
+        }
       })
     }
     runCycle()
@@ -68,36 +74,33 @@ const TriageMockup = () => {
       ))}
     </div>
     <div className="flex-1 flex flex-col">
-      <div className="flex-1 p-4 space-y-3 overflow-hidden">
-        {chatMessages.slice(0, visibleCount).map((msg, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 10, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className={msg.role === 'user' ? 'flex justify-end' : 'flex gap-2 max-w-[85%]'}
-          >
-            {msg.role === 'bot' && (
-              <div className="size-6 rounded-full bg-teal/10 flex items-center justify-center shrink-0 mt-0.5">
-                <Stethoscope className="size-3 text-teal" />
+      <div className="flex-1 p-4 overflow-hidden min-h-[240px]">
+        <div className="flex flex-col gap-3 justify-end h-full">
+        {chatMessages.map((msg, i) => {
+          const visible = i < visibleCount
+          return (
+            <div
+              key={i}
+              style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.25s ease-out' }}
+              className={msg.role === 'user' ? 'flex justify-end' : 'flex gap-2 max-w-[85%]'}
+            >
+              {msg.role === 'bot' && (
+                <div className="size-6 rounded-full bg-teal/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Stethoscope className="size-3 text-teal" />
+                </div>
+              )}
+              <div className={`px-3 py-2 text-xs leading-relaxed ${
+                msg.role === 'user'
+                  ? 'rounded-2xl rounded-tr-md bg-teal text-white max-w-[70%]'
+                  : 'rounded-2xl rounded-tl-md bg-ink/[0.03] text-ink/70'
+              }`}>
+                {msg.text}
               </div>
-            )}
-            <div className={`px-3 py-2 text-xs leading-relaxed ${
-              msg.role === 'user'
-                ? 'rounded-2xl rounded-tr-md bg-teal text-white max-w-[70%]'
-                : 'rounded-2xl rounded-tl-md bg-ink/[0.03] text-ink/70'
-            }`}>
-              {msg.text}
             </div>
-          </motion.div>
-        ))}
-        {showTyping && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="flex gap-2 max-w-[85%]"
-          >
+          )
+        })}
+        {showTyping && chatMessages[visibleCount]?.role === 'bot' && (
+          <div className="flex gap-2 max-w-[85%]">
             <div className="size-6 rounded-full bg-teal/10 flex items-center justify-center shrink-0">
               <Stethoscope className="size-3 text-teal" />
             </div>
@@ -106,8 +109,9 @@ const TriageMockup = () => {
               <span className="size-1.5 rounded-full bg-ink/20 animate-bounce [animation-delay:150ms]" />
               <span className="size-1.5 rounded-full bg-ink/20 animate-bounce [animation-delay:300ms]" />
             </div>
-          </motion.div>
+          </div>
         )}
+        </div>
       </div>
       <div className="p-3 border-t border-ink/[0.06]">
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-ink/[0.03] border border-ink/[0.06]">
