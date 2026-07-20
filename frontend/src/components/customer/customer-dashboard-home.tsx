@@ -427,7 +427,7 @@ export const CustomerDashboardHome = () => {
         setAudioState((s) => ({ ...s, duration: audio.duration, loading: false }))
       }
       audio.onended = () => {
-        setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: 1, loading: false })
+        setAudioState((s) => ({ ...s, playing: false, currentTime: 0 }))
         audioRef.current = null
       }
       audio.onerror = () => {
@@ -479,7 +479,7 @@ export const CustomerDashboardHome = () => {
             setAudioState((s) => ({ ...s, duration: audio.duration, loading: false }))
           }
           audio.onended = () => {
-            setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: audioState.speed, loading: false })
+            setAudioState((s) => ({ ...s, playing: false, currentTime: 0 }))
             audioRef.current = null
           }
           audio.onerror = () => {
@@ -823,7 +823,11 @@ export const CustomerDashboardHome = () => {
               {/* Play / Pause */}
               <button
                 onClick={() => {
-                  if (!audioRef.current) return
+                  if (audioState.messageIndex === null) return
+                  if (!audioRef.current) {
+                    triggerAudio(audioState.messageIndex, messages[audioState.messageIndex]?.text || '')
+                    return
+                  }
                   if (audioRef.current.paused) {
                     audioRef.current.play()
                     setAudioState((s) => ({ ...s, playing: true }))
