@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   Calendar,
   Download,
@@ -25,88 +24,12 @@ import { ChartCard } from '@/components/ui/chart-card'
 import { useChartTheme, CustomTooltip } from '@/components/ui/chart-theme'
 import { KpiCards } from '@/components/business/kpi-cards'
 
-const kpiData = [
-  {
-    label: 'Total Assessments',
-    value: '2,456',
-    subtitle: 'vs. 2,192 last week',
-    change: '+12%',
-    trend: 'up' as const,
-    icon: ClipboardList,
-  },
-  {
-    label: 'Emergency Cases',
-    value: '156',
-    subtitle: 'Requiring immediate attention',
-    change: '-8%',
-    trend: 'down' as const,
-    icon: AlertTriangle,
-  },
-  {
-    label: 'Doctor Referrals',
-    value: '312',
-    subtitle: 'Pending specialist review',
-    change: '+15%',
-    trend: 'up' as const,
-    icon: UserCog,
-  },
-]
-
-const recentActivity = [
-  {
-    time: 'May 20, 2026 10:30 AM',
-    activity: 'New Assessment',
-    activityIcon: ClipboardList,
-    activityColor: 'text-[#073B4C] dark:text-[#00A8A8]',
-    details: 'Fever, headache, body pain',
-    by: 'User #1256',
-  },
-  {
-    time: 'May 20, 2026 09:15 AM',
-    activity: 'Emergency Case',
-    activityIcon: AlertTriangle,
-    activityColor: 'text-[#073B4C] dark:text-[#00A8A8]',
-    details: 'High fever, difficulty breathing',
-    by: 'User #1248',
-  },
-  {
-    time: 'May 20, 2026 08:45 AM',
-    activity: 'Doctor Referral',
-    activityIcon: UserCog,
-    activityColor: 'text-[#073B4C] dark:text-[#00A8A8]',
-    details: 'Referred to Dr. Ahmed Ibrahim',
-    by: 'User #1251',
-  },
-  {
-    time: 'May 19, 2026 07:20 PM',
-    activity: 'New User Registered',
-    activityIcon: UserPlus,
-    activityColor: 'text-[#073B4C] dark:text-[#00A8A8]',
-    details: 'Aisha Bello',
-    by: 'System',
-  },
-]
-
-const assessmentsData = [
-  { day: 'Mon', value: 40 },
-  { day: 'Tue', value: 65 },
-  { day: 'Wed', value: 50 },
-  { day: 'Thu', value: 70 },
-  { day: 'Fri', value: 55 },
-  { day: 'Sat', value: 80 },
-  { day: 'Sun', value: 65 },
-]
-
-const weeklyTrendData = [
-  { label: 'Wk 1', value: 30 },
-  { label: 'Wk 2', value: 45 },
-  { label: 'Wk 3', value: 35 },
-  { label: 'Wk 4', value: 50 },
-  { label: 'Wk 5', value: 40 },
-  { label: 'Wk 6', value: 55 },
-  { label: 'Wk 7', value: 60 },
-  { label: 'Wk 8', value: 65 },
-]
+const stats: any[] = []
+const recentActivity: any[] = []
+const weeklyData: number[] = []
+const barData: number[] = []
+const days: string[] = []
+const weeks: string[] = []
 
 export const BusinessDashboardHome = () => {
   const theme = useChartTheme()
@@ -132,7 +55,7 @@ export const BusinessDashboardHome = () => {
       </div>
 
       {/* KPI Cards */}
-      <KpiCards cards={kpiData} />
+      <KpiCards cards={stats} />
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -142,7 +65,7 @@ export const BusinessDashboardHome = () => {
         }>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={assessmentsData} barCategoryGap="20%" barGap={4}>
+              <BarChart data={barData} barCategoryGap="20%" barGap={4}>
                 <CartesianGrid {...theme.grid} vertical={false} />
                 <XAxis dataKey="day" tick={theme.axis} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} width={30} />
@@ -164,7 +87,7 @@ export const BusinessDashboardHome = () => {
         }>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weeklyTrendData}>
+              <AreaChart data={weeklyData}>
                 <defs>
                   <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={theme.gradientTop} stopOpacity={0.15} />

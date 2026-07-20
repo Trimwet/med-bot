@@ -1,40 +1,11 @@
 import { Download, Printer, ClipboardList, AlertTriangle, UserCog, Users, AlertCircle } from 'lucide-react'
 import { DateDropdown } from '@/components/ui/date-dropdown'
 
-const weeklyStats = [
-  { label: 'Total Assessments', value: '1,245', change: '+12%', icon: ClipboardList, iconColor: 'text-[#073B4C] dark:text-[#00A8A8]' },
-  { label: 'Emergency Cases', value: '78', change: '-8%', icon: AlertTriangle, iconColor: 'text-[#073B4C] dark:text-[#00A8A8]' },
-  { label: 'Doctor Referrals', value: '156', change: '+15%', icon: UserCog, iconColor: 'text-[#073B4C] dark:text-[#00A8A8]' },
-  { label: 'Active Users', value: '892', change: '+5%', icon: Users, iconColor: 'text-[#073B4C] dark:text-[#00A8A8]' },
-]
-
-const monthlyStats = [
-  { label: 'Total Assessments', value: '4,827', change: '+18%' },
-  { label: 'Emergency Cases', value: '312', change: '+15%' },
-  { label: 'Doctor Referrals', value: '648', change: '+12%' },
-  { label: 'Active Users', value: '2,456', change: '+14%' },
-]
-
-const yearlyStats = [
-  { label: 'Total Assessments', value: '14,256', change: '+42%' },
-  { label: 'Emergency Cases', value: '1,024', change: '+19%' },
-  { label: 'Doctor Referrals', value: '1,856', change: '+16%' },
-  { label: 'Active Users', value: '6,892', change: '+26%' },
-]
-
-const weeklySymptoms = [
-  { name: 'Headache', count: 320, percent: 25.7, color: 'bg-[#073B4C]' },
-  { name: 'Fever', count: 280, percent: 22.5, color: 'bg-teal-500' },
-  { name: 'Cough', count: 240, percent: 19.3, color: 'bg-[#073B4C]' },
-]
-
-const yearlySymptoms = [
-  { name: 'Headache', count: 3100, percent: 21.7, color: 'bg-[#073B4C]' },
-  { name: 'Fever', count: 2800, percent: 19.6, color: 'bg-teal-500' },
-  { name: 'Cough', count: 2192, percent: 15.4, color: 'bg-[#073B4C]' },
-  { name: 'Body Pain', count: 1700, percent: 11.9, color: 'bg-teal-500' },
-  { name: 'Sore Throat', count: 1250, percent: 8.8, color: 'bg-gray-300' },
-]
+const weeklyStats: any[] = []
+const monthlyStats: any[] = []
+const yearlyStats: any[] = []
+const weeklySymptoms: any[] = []
+const yearlySymptoms: any[] = []
 
 export const BusinessReports = () => {
   return (

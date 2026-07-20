@@ -211,34 +211,34 @@ export const BusinessPayment = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500 dark:text-[#6b7080]">Plan</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">Premium Plan</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]"></span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500 dark:text-[#6b7080]">Billing Cycle</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">Monthly</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]"></span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500 dark:text-[#6b7080]">Amount</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">₦20,000</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">₦0</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500 dark:text-[#6b7080]">VAT (7.5%)</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">₦75.00</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">₦0</span>
               </div>
               <div className="border-t border-gray-100 dark:border-[#1e2028] pt-3 mt-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-gray-900 dark:text-[#e8eaed]">Total Amount</span>
-                  <span className="text-xl font-bold text-gray-900 dark:text-[#e8eaed]">₦20,090</span>
+                  <span className="text-xl font-bold text-gray-900 dark:text-[#e8eaed]">₦0</span>
                 </div>
               </div>
               <div className="border-t border-gray-100 dark:border-[#1e2028] pt-3 mt-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-400 dark:text-[#525666]">Start Date</span>
-                  <span className="text-xs font-medium text-gray-600 dark:text-[#a0a4ad]">May 20, 2026</span>
+                  <span className="text-xs font-medium text-gray-600 dark:text-[#a0a4ad]">-</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-400 dark:text-[#525666]">Next Renewal</span>
-                  <span className="text-xs font-medium text-gray-600 dark:text-[#a0a4ad]">June 20, 2026</span>
+                  <span className="text-xs font-medium text-gray-600 dark:text-[#a0a4ad]">-</span>
                 </div>
               </div>
             </div>

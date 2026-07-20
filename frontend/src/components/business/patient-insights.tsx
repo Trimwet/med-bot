@@ -4,27 +4,11 @@ import { cn } from '@/lib/utils'
 import { TrendBadge } from '@/components/business/kpi-cards'
 import { DateDropdown } from '@/components/ui/date-dropdown'
 
-const stats = [
-  { label: 'Total Patients', value: '2,456', change: '+12%', trend: 'up' as const, icon: Users, subtitle: '168 new patients' },
-  { label: 'Total Assessments', value: '3,912', change: '+18%', trend: 'up' as const, icon: ClipboardList, subtitle: '1,209 completed' },
-  { label: 'High Risk Cases', value: '156', change: '+7%', trend: 'up' as const, icon: AlertTriangle, subtitle: 'CRITICAL ATTENTION REQUIRED' },
-  { label: 'Reports Generated', value: '248', change: '+9%', trend: 'up' as const, icon: FileText, subtitle: '168 generated' },
-]
+const stats: any[] = []
 
-const topSymptoms = [
-  { name: 'Headache', count: 1245, percent: 31.8 },
-  { name: 'Fever', count: 1032, percent: 26.4 },
-  { name: 'Cough', count: 876, percent: 22.4 },
-  { name: 'Body Pain', count: 654, percent: 16.7 },
-  { name: 'Sore Throat', count: 543, percent: 13.9 },
-]
+const topSymptoms: any[] = []
 
-const riskCategories = [
-  { label: 'Low', percent: 62.4, color: '#00A8A8' },
-  { label: 'Medium', percent: 27.3, color: '#F59E0B' },
-  { label: 'High', percent: 7.1, color: '#EF4444' },
-  { label: 'Critical', percent: 3.2, color: '#DC2626' },
-]
+const riskCategories: any[] = []
 
 const cardStyle = cn(
   'rounded-xl p-6',

@@ -1,32 +1,10 @@
 import { Check, Download, AlertCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-const freeFeatures = [
-  'AI Symptom Assessment',
-  'Basic Health Reports',
-  'Health Library Access',
-  'Find Nearby Care',
-  'Priority Support',
-]
-
-const premiumFeatures = [
-  'Everything in Free',
-  'Unlimited Assessments',
-  'Advanced Health Reports',
-  'Priority Support',
-  'Premium AI Features',
-]
-
-const paymentHistory = [
-  { date: 'May 20, 2026', plan: 'Premium Monthly', amount: '₦20,000', status: 'Paid' },
-  { date: 'Apr 20, 2026', plan: 'Premium Monthly', amount: '₦20,000', status: 'Paid' },
-  { date: 'Mar 20, 2026', plan: 'Premium Monthly', amount: '₦20,000', status: 'Paid' },
-]
-
-const invoices = [
-  { id: 'INV-2026-05-0005', date: 'May 20, 2026', plan: 'Premium Monthly', amount: '₦20,000', status: 'Paid' },
-  { id: 'INV-2026-04-0004', date: 'Apr 20, 2026', plan: 'Premium Monthly', amount: '₦20,000', status: 'Paid' },
-]
+const freeFeatures: string[] = []
+const premiumFeatures: string[] = []
+const paymentHistory: any[] = []
+const invoices: any[] = []
 
 function FeatureRow({ label }: { label: string }) {
   return (

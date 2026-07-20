@@ -1,28 +1,12 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, Info, ChevronLeft, ChevronRight } from 'lucide-react'
 
-const initialStaff = [
-  { id: 1, name: 'John Doe', initials: 'JD', role: 'Admin', email: 'john.doe@medbot.com', status: 'ACTIVE' as const },
-  { id: 2, name: 'Jane Smith', initials: 'JS', role: 'Doctor', email: 'jane.smith@medbot.com', status: 'ACTIVE' as const },
-  { id: 3, name: 'Michael Brown', initials: 'MB', role: 'Nurse', email: 'michael.brown@medbot.com', status: 'ACTIVE' as const },
-  { id: 4, name: 'Sarah Johnson', initials: 'SJ', role: 'Support Staff', email: 'sarah.johnson@medbot.com', status: 'ACTIVE' as const },
-  { id: 5, name: 'David Wilson', initials: 'DW', role: 'Data Analyst', email: 'david.wilson@medbot.com', status: 'INACTIVE' as const },
-  { id: 6, name: 'Emily Davis', initials: 'ED', role: 'Receptionist', email: 'emily.davis@medbot.com', status: 'ACTIVE' as const },
-]
-
-const roles = ['Admin', 'Doctor', 'Nurse', 'Support Staff', 'Data Analyst', 'Receptionist']
-
-const roleColors: Record<string, string> = {
-  Admin: 'bg-[#073B4C] text-white',
-  Doctor: 'bg-[#00A8A8] text-white',
-  Nurse: 'bg-[#073B4C]/70 text-white',
-  'Support Staff': 'bg-[#00D4D4] text-[#073B4C]',
-  'Data Analyst': 'bg-[#073B4C]/50 text-white',
-  Receptionist: 'bg-[#00A8A8]/70 text-white',
-}
+const initialStaff: any[] = []
+const roles: string[] = []
+const roleColors: Record<string, string> = {}
 
 export const StaffManagement = () => {
-  const [staff] = useState(initialStaff)
+  const [staff] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
   const [newStaff, setNewStaff] = useState({ name: '', role: 'Doctor', email: '' })
