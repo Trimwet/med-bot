@@ -28,9 +28,9 @@ const total = severityData.reduce((sum, d) => sum + d.value, 0)
 /* ── Triage Mockup ─────────────────────────────────────────── */
 /* ── Triage Mockup ─────────────────────────────────────────── */
 const chatMessages = [
-  { role: 'bot' as const, text: "Hello! I'm MedBot. What symptoms are you experiencing today?", delay: 0.4 },
-  { role: 'user' as const, text: "I've had a fever and headache for 3 days", delay: 2.0 },
-  { role: 'bot' as const, text: "I'm sorry to hear that. Is the fever above 38°C? Any chills, body aches, or stiff neck?", delay: 3.6 },
+  { role: 'bot' as const, text: "Hello! I'm MedBot. What symptoms are you experiencing today?", delay: 4.0 },
+  { role: 'user' as const, text: "I've had a fever and headache for 3 days", delay: 6.0 },
+  { role: 'bot' as const, text: "I'm sorry to hear that. Is the fever above 38°C? Any chills, body aches, or stiff neck?", delay: 8.0 },
 ]
 
 const TriageMockup = () => {
@@ -42,17 +42,20 @@ const TriageMockup = () => {
     function runCycle() {
       setVisibleCount(0)
       setShowTyping(false)
+      setTimeout(() => setShowTyping(true), 1000)
       chatMessages.forEach((msg, i) => {
         if (msg.role === 'bot') {
-          setTimeout(() => setShowTyping(true), msg.delay * 1000 - 600)
           setTimeout(() => { setShowTyping(false); setVisibleCount(i + 1) }, msg.delay * 1000)
+          if (i + 1 < chatMessages.length) {
+            setTimeout(() => setShowTyping(true), msg.delay * 1000 + 600)
+          }
         } else {
-          setTimeout(() => { setShowTyping(false); setVisibleCount(i + 1) }, msg.delay * 1000)
+          setTimeout(() => { setVisibleCount(i + 1) }, msg.delay * 1000)
         }
       })
     }
     runCycle()
-    loopTimer = setInterval(runCycle, 10000)
+    loopTimer = setInterval(runCycle, 14000)
     return () => clearInterval(loopTimer)
   }, [])
 
@@ -78,10 +81,11 @@ const TriageMockup = () => {
         <div className="flex flex-col gap-3 justify-end h-full">
         {chatMessages.map((msg, i) => {
           const visible = i < visibleCount
+          const showTypingHere = showTyping && i === visibleCount && msg.role === 'bot'
           return (
             <div
               key={i}
-              style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.25s ease-out' }}
+              style={{ opacity: (visible || showTypingHere) ? 1 : 0, transition: 'opacity 0.25s ease-out' }}
               className={msg.role === 'user' ? 'flex justify-end' : 'flex gap-2 max-w-[85%]'}
             >
               {msg.role === 'bot' && (
@@ -89,28 +93,24 @@ const TriageMockup = () => {
                   <Stethoscope className="size-3 text-teal" />
                 </div>
               )}
-              <div className={`px-3 py-2 text-xs leading-relaxed ${
-                msg.role === 'user'
-                  ? 'rounded-2xl rounded-tr-md bg-teal text-white max-w-[70%]'
-                  : 'rounded-2xl rounded-tl-md bg-ink/[0.03] text-ink/70'
-              }`}>
-                {msg.text}
-              </div>
+              {showTypingHere ? (
+                <div className="px-3 py-2.5 rounded-2xl rounded-tl-md bg-ink/[0.03] flex gap-1">
+                  <span className="size-1.5 rounded-full bg-ink/20 animate-bounce [animation-delay:0ms]" />
+                  <span className="size-1.5 rounded-full bg-ink/20 animate-bounce [animation-delay:150ms]" />
+                  <span className="size-1.5 rounded-full bg-ink/20 animate-bounce [animation-delay:300ms]" />
+                </div>
+              ) : (
+                <div className={`px-3 py-2 text-xs leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'rounded-2xl rounded-tr-md bg-teal text-white max-w-[70%]'
+                    : 'rounded-2xl rounded-tl-md bg-ink/[0.03] text-ink/70'
+                }`}>
+                  {msg.text}
+                </div>
+              )}
             </div>
           )
         })}
-        {showTyping && chatMessages[visibleCount]?.role === 'bot' && (
-          <div className="flex gap-2 max-w-[85%]">
-            <div className="size-6 rounded-full bg-teal/10 flex items-center justify-center shrink-0">
-              <Stethoscope className="size-3 text-teal" />
-            </div>
-            <div className="px-3 py-2.5 rounded-2xl rounded-tl-md bg-ink/[0.03] flex gap-1">
-              <span className="size-1.5 rounded-full bg-ink/20 animate-bounce [animation-delay:0ms]" />
-              <span className="size-1.5 rounded-full bg-ink/20 animate-bounce [animation-delay:150ms]" />
-              <span className="size-1.5 rounded-full bg-ink/20 animate-bounce [animation-delay:300ms]" />
-            </div>
-          </div>
-        )}
         </div>
       </div>
       <div className="p-3 border-t border-ink/[0.06]">
