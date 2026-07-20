@@ -442,6 +442,43 @@ export const CustomerDashboardHome = () => {
     setAudioState((s) => ({ ...s, speed: next }))
   }, [audioState.speed])
 
+  const handleToggleEngine = useCallback(() => {
+    const newEngine = ttsEngine === 'fishAudio' ? 'supertonic' : 'fishAudio'
+    setTtsEngine(newEngine)
+    const wasPlaying = audioState.playing && audioState.messageIndex !== null
+    const currentText = wasPlaying ? messages[audioState.messageIndex]?.text : null
+    if (wasPlaying && currentText) {
+      audioRef.current?.pause()
+      audioRef.current = null
+      setAudioState((s) => ({ ...s, playing: false, currentTime: 0, duration: 0, loading: true }))
+      const fetchFn = newEngine === 'supertonic' ? fetchSupertonicAudio : fetchTtsAudio
+      fetchFn(currentText)
+        .then((blob) => {
+          const url = URL.createObjectURL(blob)
+          const audio = new Audio(url)
+          audio.playbackRate = audioState.speed
+          audioRef.current = audio
+          audio.onloadedmetadata = () => {
+            setAudioState((s) => ({ ...s, duration: audio.duration, loading: false }))
+          }
+          audio.onended = () => {
+            setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: audioState.speed, loading: false })
+            audioRef.current = null
+          }
+          audio.onerror = () => {
+            setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: audioState.speed, loading: false })
+            audioRef.current = null
+          }
+          audio.play().then(() => {
+            setAudioState((s) => ({ ...s, playing: true }))
+          })
+        })
+        .catch(() => {
+          setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: audioState.speed, loading: false })
+        })
+    }
+  }, [ttsEngine, audioState.playing, audioState.messageIndex, audioState.speed, messages])
+
   const estimateTokens = (text: string) => Math.ceil(text.length / 4)
 
   const toggleVoiceInput = useCallback(() => {
@@ -842,7 +879,7 @@ export const CustomerDashboardHome = () => {
 
               {/* TTS Engine toggle */}
               <button
-                onClick={() => setTtsEngine((prev) => prev === 'fishAudio' ? 'supertonic' : 'fishAudio')}
+                onClick={handleToggleEngine}
                 className="h-8 flex items-center gap-1 rounded-full text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0 px-2"
                 aria-label="Toggle TTS engine"
                 title={ttsEngine === 'fishAudio' ? 'Using Fish Audio (cloud) - click for Supertonic (local)' : 'Using Supertonic (local) - click for Fish Audio (cloud)'}
