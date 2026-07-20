@@ -309,6 +309,7 @@ export const CustomerDashboardHome = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioTimeRef = useRef<number>(0)
   const [ttsEngine, setTtsEngine] = useState<'fishAudio' | 'supertonic'>('fishAudio')
+  const [supertonicVoice, setSupertonicVoice] = useState('M1')
   const [recording, setRecording] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const thinkingStartRef = useRef<number | null>(null)
@@ -401,7 +402,7 @@ export const CustomerDashboardHome = () => {
     }
     setAudioState({ messageIndex: msgIndex, playing: false, currentTime: 0, duration: 0, speed: 1, loading: true })
     try {
-      const blob = ttsEngine === 'supertonic' ? await fetchSupertonicAudio(text) : await fetchTtsAudio(text)
+      const blob = ttsEngine === 'supertonic' ? await fetchSupertonicAudio(text, supertonicVoice) : await fetchTtsAudio(text)
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
       audio.playbackRate = 1
@@ -451,7 +452,7 @@ export const CustomerDashboardHome = () => {
       audioRef.current?.pause()
       audioRef.current = null
       setAudioState((s) => ({ ...s, playing: false, currentTime: 0, duration: 0, loading: true }))
-      const fetchFn = newEngine === 'supertonic' ? fetchSupertonicAudio : fetchTtsAudio
+      const fetchFn = newEngine === 'supertonic' ? (t: string) => fetchSupertonicAudio(t, supertonicVoice) : fetchTtsAudio
       fetchFn(currentText)
         .then((blob) => {
           const url = URL.createObjectURL(blob)
@@ -477,7 +478,7 @@ export const CustomerDashboardHome = () => {
           setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: audioState.speed, loading: false })
         })
     }
-  }, [ttsEngine, audioState.playing, audioState.messageIndex, audioState.speed, messages])
+  }, [ttsEngine, supertonicVoice, audioState.playing, audioState.messageIndex, audioState.speed, messages])
 
   const estimateTokens = (text: string) => Math.ceil(text.length / 4)
 
@@ -886,6 +887,31 @@ export const CustomerDashboardHome = () => {
               >
                 {ttsEngine === 'fishAudio' ? '☁️' : '💻'}
               </button>
+
+              {/* Supertonic voice selector */}
+              {ttsEngine === 'supertonic' && (
+                <select
+                  value={supertonicVoice}
+                  onChange={(e) => setSupertonicVoice(e.target.value)}
+                  className="h-8 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 rounded-full px-2 shrink-0 cursor-pointer outline-none"
+                  aria-label="Select voice"
+                >
+                  <optgroup label="Male">
+                    <option value="M1">M1</option>
+                    <option value="M2">M2</option>
+                    <option value="M3">M3</option>
+                    <option value="M4">M4</option>
+                    <option value="M5">M5</option>
+                  </optgroup>
+                  <optgroup label="Female">
+                    <option value="F1">F1</option>
+                    <option value="F2">F2</option>
+                    <option value="F3">F3</option>
+                    <option value="F4">F4</option>
+                    <option value="F5">F5</option>
+                  </optgroup>
+                </select>
+              )}
 
               {/* Close */}
               <button
