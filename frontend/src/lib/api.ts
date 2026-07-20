@@ -235,6 +235,20 @@ export async function fetchTtsAudio(text: string, speed: number = 1): Promise<Bl
   return res.blob()
 }
 
+export async function fetchSupertonicAudio(text: string, voice: string = 'M1', speed: number = 1.05): Promise<Blob> {
+  const token = localStorage.getItem('token')
+  const res = await fetch(`${API_URL}/api/voice/supertonic`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ text, voice, speed }),
+  })
+  if (!res.ok) throw new ApiError('Supertonic TTS request failed', res.status)
+  return res.blob()
+}
+
 export interface SessionEntry {
   sessionId: string
   activeNodeId?: string

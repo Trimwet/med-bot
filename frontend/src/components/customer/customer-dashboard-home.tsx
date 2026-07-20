@@ -30,7 +30,7 @@ import {
   X,
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { ApiError, sendChatMessage, fetchTtsAudio } from '@/lib/api'
+import { ApiError, sendChatMessage, fetchTtsAudio, fetchSupertonicAudio } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import SplitText from '@/components/ui/SplitText'
 
@@ -308,6 +308,7 @@ export const CustomerDashboardHome = () => {
   }>({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: 1, loading: false })
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioTimeRef = useRef<number>(0)
+  const [ttsEngine, setTtsEngine] = useState<'fishAudio' | 'supertonic'>('fishAudio')
   const [recording, setRecording] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const thinkingStartRef = useRef<number | null>(null)
@@ -400,7 +401,7 @@ export const CustomerDashboardHome = () => {
     }
     setAudioState({ messageIndex: msgIndex, playing: false, currentTime: 0, duration: 0, speed: 1, loading: true })
     try {
-      const blob = await fetchTtsAudio(text)
+      const blob = ttsEngine === 'supertonic' ? await fetchSupertonicAudio(text) : await fetchTtsAudio(text)
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
       audio.playbackRate = 1
@@ -421,7 +422,7 @@ export const CustomerDashboardHome = () => {
     } catch {
       setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: 1, loading: false })
     }
-  }, [audioState.messageIndex])
+  }, [audioState.messageIndex, ttsEngine])
 
   const closeAudio = useCallback(() => {
     audioRef.current?.pause()
@@ -837,6 +838,16 @@ export const CustomerDashboardHome = () => {
                 aria-label="Playback speed"
               >
                 {audioState.speed}x
+              </button>
+
+              {/* TTS Engine toggle */}
+              <button
+                onClick={() => setTtsEngine((prev) => prev === 'fishAudio' ? 'supertonic' : 'fishAudio')}
+                className="h-8 flex items-center gap-1 rounded-full text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0 px-2"
+                aria-label="Toggle TTS engine"
+                title={ttsEngine === 'fishAudio' ? 'Using Fish Audio (cloud) - click for Supertonic (local)' : 'Using Supertonic (local) - click for Fish Audio (cloud)'}
+              >
+                {ttsEngine === 'fishAudio' ? '☁️' : '💻'}
               </button>
 
               {/* Close */}
