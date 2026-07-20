@@ -42,7 +42,7 @@ export const DateDropdown = ({ value, onChange, className }: DateDropdownProps) 
     <div className={cn('relative', className)} ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] px-3 py-2 text-xs font-medium text-gray-600 dark:text-[#6b7080] transition-colors hover:border-gray-300 dark:hover:border-[#2a2d35]"
+        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-[#1e2028] bg-white dark:bg-[#0f1117] px-3 py-2.5 text-xs font-medium text-gray-600 dark:text-[#6b7080] transition-colors hover:border-gray-300 dark:hover:border-[#2a2d35]"
       >
         <Calendar className="h-3.5 w-3.5" />
         {formatDate(range.start)} - {formatDate(range.end)}, {range.end.getFullYear()} ▾
