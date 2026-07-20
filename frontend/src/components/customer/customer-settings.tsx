@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { BackButton } from '@/components/ui/back-button'
 import { useTheme } from '@/hooks/use-theme'
-import { getAuthUser, getProfile } from '@/lib/api'
+import { getAuthUser, getProfile, changeUserPassword } from '@/lib/api'
 
 type NavItem = {
   id: string
@@ -161,7 +161,38 @@ function ProfileSection() {
 
 function SecuritySection() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
+  const [hasPassword, setHasPassword] = useState(true)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+  const [passwordLoading, setPasswordLoading] = useState(false)
   const inputClass = 'w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C] bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'
+
+  useEffect(() => {
+    getAuthUser().then((res) => {
+      // If user has googleId and no password set, they're a Google-only user
+      if (res.user.googleId) setHasPassword(false)
+    }).catch(() => {})
+  }, [])
+
+  async function handleSavePassword() {
+    setPasswordError('')
+    setPasswordSuccess('')
+    if (!newPassword) { setPasswordError('Enter a new password'); return }
+    setPasswordLoading(true)
+    try {
+      await changeUserPassword(currentPassword, newPassword)
+      setPasswordSuccess('Password updated successfully')
+      setCurrentPassword('')
+      setNewPassword('')
+      setTimeout(() => setExpandedRow(null), 1500)
+    } catch (err: any) {
+      setPasswordError(err?.message || 'Failed to update password')
+    } finally {
+      setPasswordLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -172,9 +203,23 @@ function SecuritySection() {
 
       <div>
         <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Password</p>
-        <EditableRow label="Password" value="Last changed recently" expanded={expandedRow === 'password'} onEdit={() => setExpandedRow('password')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
-          <input type="password" placeholder="New password" className={inputClass} />
-        </EditableRow>
+        {hasPassword ? (
+          <EditableRow label="Password" value="Last changed recently" expanded={expandedRow === 'password'} onEdit={() => setExpandedRow('password')} onCancel={() => { setExpandedRow(null); setCurrentPassword(''); setNewPassword(''); setPasswordError(''); setPasswordSuccess('') }} onSave={handleSavePassword}>
+            <div className="space-y-3">
+              <input type="password" placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={inputClass} />
+              <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} />
+              {passwordError && <p className="text-xs text-red-600">{passwordError}</p>}
+              {passwordSuccess && <p className="text-xs text-green-600">{passwordSuccess}</p>}
+            </div>
+          </EditableRow>
+        ) : (
+          <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-800">
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Password</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Last changed recently</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div>
