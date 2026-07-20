@@ -48,6 +48,11 @@ export const CustomerDashboardLayout = () => {
   }, [location.pathname])
 
   useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setConsented(false)
+      return
+    }
     hasConsented()
       .then((res) => setConsented(res.consented))
       .catch(() => { setConsented(false) })

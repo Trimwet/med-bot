@@ -28,6 +28,11 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
   const [consentLoading, setConsentLoading] = useState(false)
 
   useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setConsented(false)
+      return
+    }
     hasConsented()
       .then((res) => setConsented(res.consented))
       .catch(() => setConsented(false))
