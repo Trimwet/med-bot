@@ -447,7 +447,7 @@ export const CustomerDashboardHome = () => {
     } catch {
       setAudioState({ messageIndex: null, playing: false, currentTime: 0, duration: 0, speed: 1, loading: false })
     }
-  }, [audioState.messageIndex, ttsEngine])
+  }, [audioState.messageIndex, audioState.speed, ttsEngine, supertonicVoice])
 
   const closeAudio = useCallback(() => {
     audioRef.current?.pause()
