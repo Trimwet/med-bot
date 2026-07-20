@@ -401,6 +401,14 @@ export const CustomerDashboardHome = () => {
     return () => clearInterval(ticker)
   }, [audioState.playing])
 
+  const prepareAudio = useCallback((msgIndex: number) => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    setAudioState({ messageIndex: msgIndex, playing: false, currentTime: 0, duration: 0, speed: audioState.speed, loading: false })
+  }, [audioState.speed])
+
   const triggerAudio = useCallback(async (msgIndex: number, text: string) => {
     if (audioState.messageIndex === msgIndex) {
       if (audioRef.current?.paused) {
@@ -719,7 +727,7 @@ export const CustomerDashboardHome = () => {
                     ) : (
                       <>
                         <button
-                          onClick={() => triggerAudio(i, msg.text)}
+                          onClick={() => prepareAudio(i)}
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           aria-label="Listen to response"
                         >
