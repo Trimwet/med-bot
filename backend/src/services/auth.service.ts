@@ -608,6 +608,36 @@ export async function changePassword(userId: string, input: { currentPassword: s
   return { message: "Password changed successfully" };
 }
 
+export async function setPassword(userId: string, newPassword: string) {
+  if (!newPassword) {
+    throw new ValidationError("New password is required");
+  }
+
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new AppError("User not found", 404, "USER_NOT_FOUND");
+  }
+
+  if (user.password) {
+    throw new AppError("You already have a password. Use change password instead.", 400, "ALREADY_HAS_PASSWORD");
+  }
+
+  const hashedPassword = hashPassword(newPassword);
+  const store = await getUserStore();
+
+  if (store.mode === "memory") {
+    user.password = hashedPassword;
+    user.updatedAt = new Date().toISOString();
+  } else {
+    await store.users.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { password: hashedPassword, updatedAt: new Date().toISOString() } }
+    );
+  }
+
+  return { message: "Password set successfully" };
+}
+
 /**
  * Delete a user account and all associated data (NDPR compliance).
  * Removes: user document, all sessions, all session summaries, consent.

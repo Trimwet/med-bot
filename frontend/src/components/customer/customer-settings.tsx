@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { BackButton } from '@/components/ui/back-button'
 import { useTheme } from '@/hooks/use-theme'
-import { getAuthUser, getProfile, changeUserPassword } from '@/lib/api'
+import { getAuthUser, getProfile, changeUserPassword, setUserPassword } from '@/lib/api'
 
 type NavItem = {
   id: string
@@ -182,10 +182,15 @@ function SecuritySection() {
     if (!newPassword) { setPasswordError('Enter a new password'); return }
     setPasswordLoading(true)
     try {
-      await changeUserPassword(currentPassword, newPassword)
+      if (hasPassword) {
+        await changeUserPassword(currentPassword, newPassword)
+      } else {
+        await setUserPassword(newPassword)
+      }
       setPasswordSuccess('Password updated successfully')
       setCurrentPassword('')
       setNewPassword('')
+      setHasPassword(true)
       setTimeout(() => setExpandedRow(null), 1500)
     } catch (err: any) {
       setPasswordError(err?.message || 'Failed to update password')
@@ -213,11 +218,32 @@ function SecuritySection() {
             </div>
           </EditableRow>
         ) : (
-          <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-800">
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Password</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Last changed recently</p>
+          <div className="py-4 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Password</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">No password set (Google account)</p>
+              </div>
             </div>
+            {expandedRow === 'set-password' ? (
+              <div className="space-y-3">
+                <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} />
+                {passwordError && <p className="text-xs text-red-600">{passwordError}</p>}
+                {passwordSuccess && <p className="text-xs text-green-600">{passwordSuccess}</p>}
+                <div className="flex gap-2">
+                  <button onClick={handleSavePassword} disabled={passwordLoading} className="px-4 py-2 text-sm font-medium text-white bg-[#073B4C] dark:bg-teal rounded-lg hover:bg-[#0A202A] dark:hover:bg-teal/80 transition-colors disabled:opacity-50">
+                    {passwordLoading ? 'Saving...' : 'Save'}
+                  </button>
+                  <button onClick={() => { setExpandedRow(null); setNewPassword(''); setPasswordError(''); setPasswordSuccess('') }} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => { setExpandedRow('set-password'); setNewPassword(''); setPasswordError(''); setPasswordSuccess('') }} className="px-4 py-2 text-sm font-medium text-[#073B4C] dark:text-teal border border-[#073B4C]/30 dark:border-teal/30 rounded-lg hover:bg-[#073B4C]/5 dark:hover:bg-teal/10 transition-colors">
+                Set password
+              </button>
+            )}
           </div>
         )}
       </div>

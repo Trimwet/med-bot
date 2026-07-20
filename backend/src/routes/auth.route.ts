@@ -21,6 +21,7 @@ import {
   requestPasswordReset,
   resetPassword,
   changePassword,
+  setPassword,
   deleteUserAccount,
 } from "@/services/auth.service";
 import { sendOtpEmail } from "@/services/otp.service";
@@ -359,6 +360,20 @@ authRoute.post("/api/auth/change-password", authMiddleware, async (req, res, nex
       throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
     }
     const result = await changePassword(userId, req.body);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+authRoute.post("/api/auth/set-password", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+    }
+    const { newPassword } = req.body;
+    const result = await setPassword(userId, newPassword);
     res.json(result);
   } catch (err) {
     next(err);

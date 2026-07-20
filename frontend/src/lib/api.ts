@@ -298,6 +298,13 @@ export function changeUserPassword(currentPassword: string, newPassword: string)
   })
 }
 
+export function setUserPassword(newPassword: string) {
+  return request<{ message: string }>('/api/auth/set-password', {
+    method: 'POST',
+    body: JSON.stringify({ newPassword }),
+  })
+}
+
 export function deleteAccount() {
   return request<{ message: string }>('/api/users/me', {
     method: 'DELETE',
