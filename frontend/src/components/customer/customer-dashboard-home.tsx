@@ -817,7 +817,7 @@ export const CustomerDashboardHome = () => {
 
       {/* Audio Player */}
       {audioState.messageIndex !== null && (
-        <div className="bg-white dark:bg-[#0f1117] border-t border-gray-100 dark:border-gray-800 px-3 sm:px-6 pt-3 pb-2 shrink-0">
+        <div className="bg-white dark:bg-[#0f1117] border-t border-gray-100 dark:border-gray-800 px-3 sm:px-6 pt-3 pb-2 shrink-0 relative z-50">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center gap-2 sm:gap-3 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl px-3 sm:px-4 py-2.5 shadow-sm">
               {/* Play / Pause */}
@@ -915,6 +915,7 @@ export const CustomerDashboardHome = () => {
                   onValueChange={setSupertonicVoice}
                   options={SUPERTONIC_VOICES}
                   className="w-28 shrink-0"
+                  dropUp
                 />
               )}
 

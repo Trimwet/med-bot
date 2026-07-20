@@ -12,9 +12,10 @@ interface SelectProps {
   placeholder?: string
   options: SelectOption[]
   className?: string
+  dropUp?: boolean
 }
 
-export const Select = ({ value, onValueChange, placeholder = 'Select...', options, className = '' }: SelectProps) => {
+export const Select = ({ value, onValueChange, placeholder = 'Select...', options, className = '', dropUp = false }: SelectProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -42,7 +43,7 @@ export const Select = ({ value, onValueChange, placeholder = 'Select...', option
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-line bg-white shadow-lg overflow-hidden">
+        <div className={`absolute z-50 w-full rounded-lg border border-line bg-white shadow-lg overflow-hidden ${dropUp ? 'bottom-full mb-1' : 'mt-1'}`}>
           {options.map((option) => (
             <button
               key={option.value}
