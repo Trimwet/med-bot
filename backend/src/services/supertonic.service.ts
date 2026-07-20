@@ -6,6 +6,12 @@ export function isSupertonicConfigured(): boolean {
   return !!process.env.SUPERTONIC_URL || true;
 }
 
+function numbersToDigits(text: string): string {
+  return text.replace(/\b(\d{7,})\b/g, (match) => {
+    return match.split("").join(" ");
+  });
+}
+
 export async function textToSpeech(options: {
   text: string;
   voice?: string;
@@ -13,12 +19,13 @@ export async function textToSpeech(options: {
   steps?: number;
 }): Promise<Buffer> {
   const { text, voice = "M1", speed = 1.05, steps = 8 } = options;
+  const spokenText = numbersToDigits(text);
 
   const res = await fetch(`${SUPERTONIC_URL}/v1/tts`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      text,
+      text: spokenText,
       voice,
       lang: "en",
       steps,
