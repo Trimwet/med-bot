@@ -70,7 +70,7 @@ export const StatsSection = () => {
   }, [])
 
   return (
-    <section className="pb-16 px-6 bg-[#0A202A] text-white relative overflow-hidden">
+    <section className="pt-16 pb-16 px-6 bg-[#0A202A] text-white relative overflow-hidden">
       <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(0,168,168,0.06)_0%,transparent_70%)] pointer-events-none"></div>
       <div className="max-w-7xl mx-auto relative">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-center">
