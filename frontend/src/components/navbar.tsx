@@ -33,7 +33,10 @@ function useActiveSection() {
   const [active, setActive] = useState("")
 
   useEffect(() => {
-    const sections = NAV_LINKS.map((l) => document.querySelector(l.href)).filter(Boolean) as Element[]
+    const sections = NAV_LINKS
+      .filter((l) => l.href.startsWith('#'))
+      .map((l) => document.querySelector(l.href))
+      .filter(Boolean) as Element[]
     if (!sections.length) return
 
     const observer = new IntersectionObserver(
@@ -105,7 +108,8 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
             className="hidden lg:flex items-center gap-1"
           >
             {NAV_LINKS.map(({ label, href }) => {
-              const isActive = activeSection === href
+              const isRoute = !href.startsWith('#')
+              const isActive = !isRoute ? false : activeSection === href
               return (
                 <a
                   key={href}
@@ -215,7 +219,8 @@ export const Navbar = ({ onLogin, onSignup }: NavbarProps) => {
               {/* Links */}
               <nav className="flex-1 px-3 py-4 space-y-0.5" aria-label="Mobile navigation">
                 {NAV_LINKS.map(({ label, href }) => {
-                  const isActive = activeSection === href
+                  const isRoute = !href.startsWith('#')
+                  const isActive = !isRoute ? false : activeSection === href
                   return (
                     <a
                       key={href}
