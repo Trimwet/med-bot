@@ -149,7 +149,6 @@ export const PatientInsights = () => {
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-gray-700 dark:text-[#d4d4d8]">PDF Report</p>
-                <p className="text-[11px] text-gray-400 dark:text-[#52525b]">Q4 2025, 4.2MB</p>
               </div>
             </button>
             <button className="inline-flex items-center gap-3 rounded-lg border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-[#111111] px-4 py-3 transition-colors hover:border-gray-300 dark:hover:border-white/[0.12]">
