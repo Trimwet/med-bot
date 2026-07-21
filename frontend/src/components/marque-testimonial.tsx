@@ -20,10 +20,18 @@ const testimonials = [
   },
   {
     name: 'Wash Choji Rangs',
-    role: 'Emergency Physician',
-    company: 'Jos University Teaching Hospital',
+    role: 'Cyber Security Analyst',
+    company: 'Plateau State University, Bokkos',
     text: 'I was sceptical at first, but the AI reasoning is transparent and reliable. A solid addition to our team.',
     avatar: 'WC',
+    rating: 5,
+  },
+  {
+    name: 'Adebolanle Ajimotokan',
+    role: 'Data Analyst',
+    company: 'National Open University of Nigeria',
+    text: 'The insights from MedBot analytics help me understand patient flow trends like never before.',
+    avatar: 'AA',
     rating: 5,
   },
   {
@@ -100,8 +108,8 @@ const testimonials = [
   },
   {
     name: 'Tatmang Israel David',
-    role: 'Clinical Lead',
-    company: 'Gombe State General Hospital',
+    role: 'UI/UX Designer',
+    company: 'Plateau State University, Bokkos',
     text: 'MedBot has streamlined our patient intake process and improved accuracy across all shifts.',
     avatar: 'TD',
     rating: 5,
