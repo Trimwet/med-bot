@@ -305,6 +305,17 @@ export function getAuthUser() {
   return request<{ user: { id: string, name?: string, email: string, googleId?: string, isVerified: boolean, createdAt?: string, updatedAt?: string } }>('/api/auth/me')
 }
 
+export function getNotificationPrefs() {
+  return request<{ preferences: { emailNotifications: boolean; pushNotifications: boolean; assessmentAlerts: boolean } }>('/api/notifications/preferences')
+}
+
+export function updateNotificationPrefs(prefs: Partial<{ emailNotifications: boolean; pushNotifications: boolean; assessmentAlerts: boolean }>) {
+  return request<{ message: string }>('/api/notifications/preferences', {
+    method: 'PUT',
+    body: JSON.stringify(prefs),
+  })
+}
+
 export async function exportUserData() {
   const token = localStorage.getItem('token')
   const API_URL = import.meta.env.VITE_API_URL || ''

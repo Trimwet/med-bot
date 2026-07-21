@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { BackButton } from '@/components/ui/back-button'
 import { useTheme } from '@/hooks/use-theme'
-import { exportUserData } from '@/lib/api'
+import { exportUserData, getNotificationPrefs, updateNotificationPrefs } from '@/lib/api'
 import { formatPhoneInput, stripPhoneFormat } from '@/lib/utils'
 import { getAuthUser, getProfile, changeUserPassword, setUserPassword } from '@/lib/api'
 
@@ -298,7 +298,34 @@ function NotificationsSection() {
   const [emailNotif, setEmailNotif] = useState(true)
   const [pushNotif, setPushNotif] = useState(true)
   const [assessmentAlerts, setAssessmentAlerts] = useState(true)
-  const [weeklyDigest, setWeeklyDigest] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getNotificationPrefs()
+      .then(({ preferences }) => {
+        setEmailNotif(preferences.emailNotifications ?? true)
+        setPushNotif(preferences.pushNotifications ?? true)
+        setAssessmentAlerts(preferences.assessmentAlerts ?? true)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const updatePref = (key: string, value: boolean) => {
+    const updates: Record<string, boolean> = {}
+    updates[key] = value
+    if (key === 'pushNotifications' && value && 'Notification' in window) {
+      Notification.requestPermission().then((perm) => {
+        if (perm !== 'granted') {
+          setPushNotif(false)
+          return
+        }
+        updateNotificationPrefs(updates).catch(() => {})
+      })
+      return
+    }
+    updateNotificationPrefs(updates).catch(() => {})
+  }
 
   return (
     <div className="space-y-6">
@@ -309,14 +336,13 @@ function NotificationsSection() {
 
       <div>
         <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Channels</p>
-        <ToggleRow label="Email notifications" description="Receive notifications via email" enabled={emailNotif} onChange={setEmailNotif} />
-        <ToggleRow label="Push notifications" description="Receive push notifications in your browser" enabled={pushNotif} onChange={setPushNotif} />
+        <ToggleRow label="Email notifications" description="Receive assessment results via email" enabled={emailNotif} onChange={(v) => { setEmailNotif(v); updatePref('emailNotifications', v) }} />
+        <ToggleRow label="Push notifications" description="Receive push notifications in your browser" enabled={pushNotif} onChange={(v) => { setPushNotif(v); updatePref('pushNotifications', v) }} />
       </div>
 
       <div>
         <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Types</p>
-        <ToggleRow label="Assessment alerts" description="Get notified when new assessments are completed" enabled={assessmentAlerts} onChange={setAssessmentAlerts} />
-        <ToggleRow label="Weekly digest" description="Receive a weekly summary of activity" enabled={weeklyDigest} onChange={setWeeklyDigest} />
+        <ToggleRow label="Assessment alerts" description="Get notified when your assessment is completed" enabled={assessmentAlerts} onChange={(v) => { setAssessmentAlerts(v); updatePref('assessmentAlerts', v) }} />
       </div>
     </div>
   )

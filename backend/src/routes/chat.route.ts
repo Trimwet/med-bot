@@ -3,6 +3,8 @@ import { authMiddleware } from "@/middleware/auth.middleware";
 import { logger } from "@/lib/logger";
 import { getOrCreateSession, appendMessage, updateSessionGraphState } from "@/services/session.service";
 import { generateSessionSummary } from "@/services/summary.service";
+import { sendPushToUser } from "@/services/push.service";
+import { sendAssessmentEmail, getNotificationPrefs } from "@/services/notification.service";
 import { hasConsented } from "@/services/consent.service";
 import { vectorSearch } from "../../agents/triage/tools/vectorSearch";
 import { scheduleFollowup } from "../../agents/triage/tools/scheduleFollowup";
@@ -351,6 +353,30 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
     if (agentResult.verdict) {
       generateSessionSummary(sessionId, checks.userId!, messagesForAgent)
         .catch((err) => logger.warn("summary generation failed", { sessionId, error: (err as Error).message }));
+
+      getNotificationPrefs(checks.userId!).then((prefs) => {
+        const verdictLabel = agentResult.verdict === "emergency" ? "Emergency" :
+          agentResult.verdict === "urgent" ? "Urgent" :
+          agentResult.verdict === "soon" ? "See a Doctor Soon" : "Self-Care";
+
+        if (prefs.pushNotifications) {
+          sendPushToUser(
+            checks.userId!,
+            "MedBot Assessment Complete",
+            `Your assessment result: ${verdictLabel}`,
+            "/dashboard"
+          ).catch(() => {});
+        }
+
+        if (prefs.emailNotifications && checks.session?.profile?.email) {
+          sendAssessmentEmail(
+            checks.session.profile.email,
+            checks.session.profile.name || "",
+            agentResult.verdict,
+            undefined
+          ).catch(() => {});
+        }
+      }).catch(() => {});
     }
 
     saveSessionSummary(sessionId, checks.userId!, checks.session!.tenantId, { ...checks.session!, activeNodeId: checks.activeNodeId })

@@ -56,6 +56,8 @@ export const COLLECTIONS = {
   users: "users_collection",
   apiKeys: "api_keys",
   demoSessions: "demo_sessions",
+  pushSubscriptions: "push_subscriptions",
+  notificationPrefs: "notification_preferences",
 } as const;
 
 export async function closeDb() {
