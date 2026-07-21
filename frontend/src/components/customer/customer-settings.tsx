@@ -8,7 +8,6 @@ import {
   Palette,
   ChevronRight,
   Check,
-  Globe,
   AlertTriangle,
 } from 'lucide-react'
 import { BackButton } from '@/components/ui/back-button'
@@ -246,22 +245,6 @@ function SecuritySection() {
             )}
           </div>
         )}
-      </div>
-
-      <div>
-        <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Connected accounts</p>
-        <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <Globe className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Google</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Connected</p>
-            </div>
-          </div>
-          <button className="text-sm text-red-600 hover:underline">Disconnect</button>
-        </div>
       </div>
 
       <div>
