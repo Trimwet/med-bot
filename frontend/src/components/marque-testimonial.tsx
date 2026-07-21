@@ -98,6 +98,14 @@ const testimonials = [
     avatar: 'YY',
     rating: 5,
   },
+  {
+    name: 'Tatmang Israel David',
+    role: 'Clinical Lead',
+    company: 'Gombe State General Hospital',
+    text: 'MedBot has streamlined our patient intake process and improved accuracy across all shifts.',
+    avatar: 'TD',
+    rating: 5,
+  },
 ]
 
 const TestimonialCard = ({ testimonial, reverse = false }: { testimonial: typeof testimonials[0]; reverse?: boolean }) => (
