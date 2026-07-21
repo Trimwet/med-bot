@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { label: "Results", href: "#results" },
   { label: "Testimonials", href: "#testimonials" },
   { label: "Pricing", href: "#pricing" },
+  { label: "Demo", href: "/demo" },
 ] as const
 
 function useScrolled(threshold = 20) {

@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   ArrowLeft,
+  Play,
 } from 'lucide-react'
 import { getRecentSessions, type RecentSession } from '@/lib/recent-sessions'
 
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { icon: ClipboardList, label: 'Chat Assessments', href: '/dashboard/assessment-history' },
   { icon: FileBarChart, label: 'Reports', href: '/dashboard/health-reports' },
   { icon: Library, label: 'Health Library', href: '/dashboard/health-library' },
+  { icon: Play, label: 'Try Demo', href: '/demo' },
 ]
 
 export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) => {
