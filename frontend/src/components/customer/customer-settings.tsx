@@ -284,7 +284,6 @@ function SecuritySection() {
 }
 
 function PrivacySection() {
-  const [readReceipts, setReadReceipts] = useState(true)
   const [shareData, setShareData] = useState(false)
   const [aiTraining, setAiTraining] = useState(false)
 
@@ -293,11 +292,6 @@ function PrivacySection() {
       <div>
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Privacy</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400">Control your privacy settings and data sharing preferences.</p>
-      </div>
-
-      <div>
-        <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Messaging</p>
-        <ToggleRow label="Read receipts" description="Let others know when you've read their messages" enabled={readReceipts} onChange={setReadReceipts} />
       </div>
 
       <div>
