@@ -11,6 +11,7 @@ import { tenantRoute } from "@/routes/tenant.route";
 import { analyticsRoute } from "@/routes/analytics.route";
 import { tenantAnalyticsRoute } from "@/routes/tenant-analytics.route";
 import voiceRoute from "@/routes/voice.route";
+import { demoRoute } from "@/routes/demo.route";
 import { toErrorResponse } from "@/lib/errors";
 import { sendErrorWebhook } from "@/lib/webhook";
 import { logger } from "@/lib/logger";
@@ -39,6 +40,7 @@ app.use(adminRoute);
 app.use(tenantRoute);
 app.use(analyticsRoute);
 app.use(tenantAnalyticsRoute);
+app.use(demoRoute);
 app.use("/api/voice", voiceRoute);
 
 app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {

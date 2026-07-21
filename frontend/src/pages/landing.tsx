@@ -10,9 +10,10 @@ interface LandingPageProps {
   onLogin: () => void
   onSignup: () => void
   onPartners?: () => void
+  onRequestDemo?: () => void
 }
 
-export const LandingPage = ({ onLogin, onSignup, onPartners }: LandingPageProps) => {
+export const LandingPage = ({ onLogin, onSignup, onPartners, onRequestDemo }: LandingPageProps) => {
   return (
     <div className="bg-white overflow-hidden">
       <Navbar onLogin={onLogin} onSignup={onSignup} />
@@ -32,7 +33,7 @@ export const LandingPage = ({ onLogin, onSignup, onPartners }: LandingPageProps)
         <PricingSection />
       </div>
       <div id="contact">
-        <DetailedFooter />
+        <DetailedFooter onRequestDemo={onRequestDemo} />
       </div>
     </div>
   )

@@ -1,6 +1,45 @@
 import { ArrowRight } from 'lucide-react'
 
-export const DetailedFooter = () => {
+const footerLinks = [
+  {
+    title: 'Product',
+    links: [
+      { label: 'Features', href: '#features' },
+      { label: 'Pricing', href: '#pricing' },
+      { label: 'How It Works', href: '#how' },
+      { label: 'For Clinicians', href: '#clinicians' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'About Us', href: '#about' },
+      { label: 'Our Team', href: '#team' },
+      { label: 'Careers', href: '#careers' },
+      { label: 'Press Kit', href: '#press' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'Documentation', href: '#docs' },
+      { label: 'Clinical Protocols', href: '#protocols' },
+      { label: 'API Reference', href: '#api' },
+      { label: 'Support', href: '#support' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { label: 'Privacy Policy', href: '#privacy' },
+      { label: 'Terms of Service', href: '#terms' },
+      { label: 'HIPAA Compliance', href: '#hipaa' },
+      { label: 'Security', href: '#security' },
+    ],
+  },
+]
+
+export const DetailedFooter = ({ onRequestDemo }: { onRequestDemo?: () => void }) => {
   return (
     <footer className="w-full bg-[#0A202A] text-white border-t border-white/5">
       {/* CTA */}
@@ -12,12 +51,13 @@ export const DetailedFooter = () => {
           <p className="text-[#9CA3AF] mb-6 max-w-lg mx-auto text-sm">
             Join 120+ hospitals already using MedBot to triage patients faster and reduce wait times.
           </p>
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-2 bg-white text-[#0A202A] px-6 py-3 rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors font-display"
+          <button
+            type="button"
+            onClick={onRequestDemo}
+            className="inline-flex items-center gap-2 bg-white text-[#0A202A] px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-white/90 transition-colors font-display"
           >
             Request a Demo <ArrowRight size={16} />
-          </a>
+          </button>
         </div>
       </div>
 

@@ -11,6 +11,8 @@ import { AssessmentHistory } from '@/components/customer/assessment-history'
 import { HealthReports } from '@/components/customer/health-reports'
 import { HealthLibrary } from '@/components/customer/health-library'
 import { CustomerSettings } from '@/components/customer/customer-settings'
+import { DemoAccessGuard, DemoAssessmentLock } from '@/pages/demo'
+import { hasDemoSession, getDemoStatus, startDemo } from '@/lib/demo-session'
 import { BusinessLogin } from '@/components/business/business-login'
 import { BusinessSignup } from '@/components/business/business-signup'
 import { BusinessDashboardLayout } from '@/components/business/business-dashboard-layout'
@@ -60,6 +62,17 @@ function AppRoutes() {
     }
   }, [location])
 
+  const requestDemo = async () => {
+    try {
+      if (hasDemoSession()) await getDemoStatus()
+      else await startDemo()
+      navigate('/demo')
+    } catch {
+      // A stale stored credential cannot be resumed; create a fresh demo for this browser.
+      try { await startDemo(); navigate('/demo') } catch { navigate('/demo') }
+    }
+  }
+
   return (
     <Routes>
       {/* Landing & Auth */}
@@ -70,6 +83,7 @@ function AppRoutes() {
             onLogin={() => navigate('/login')}
             onSignup={() => navigate('/signup')}
             onPartners={() => navigate('/business/login')}
+            onRequestDemo={requestDemo}
           />
         }
       />
@@ -135,6 +149,15 @@ function AppRoutes() {
         <Route path="chat-history" element={<Navigate to="/dashboard/assessment-history" replace />} />
         <Route path="settings" element={<CustomerSettings />} />
         <Route path="help" element={<div className="text-gray-600">Help Center - Coming Soon</div>} />
+      </Route>
+
+      {/* Anonymous temporary demo */}
+      <Route path="/demo" element={<DemoAccessGuard />}>
+        <Route element={<CustomerDashboardLayout demo />}>
+          <Route index element={<CustomerDashboardHome demo />} />
+          <Route path="health-library" element={<HealthLibrary />} />
+          <Route path="assessment-history" element={<DemoAssessmentLock />} />
+        </Route>
       </Route>
 
       {/* Business Partner Routes */}

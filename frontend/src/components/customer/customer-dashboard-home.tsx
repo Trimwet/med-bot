@@ -33,6 +33,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { VoiceIcon } from '@/components/ui/voice-icon'
 import { ApiError, sendChatMessage, fetchTtsAudio, fetchSupertonicAudio } from '@/lib/api'
+import { consentToDemo, getDemoStatus, sendDemoMessage, type DemoStatus } from '@/lib/demo-session'
 import { cn } from '@/lib/utils'
 import SplitText from '@/components/ui/SplitText'
 import { Select } from '@/components/ui/select'
@@ -294,7 +295,7 @@ function StreamingBubble({ visibleText }: { visibleText: string }) {
   )
 }
 
-export const CustomerDashboardHome = () => {
+export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
   const navigate = useNavigate()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -332,6 +333,13 @@ export const CustomerDashboardHome = () => {
   const thinkingStartRef = useRef<number | null>(null)
   const [thinkingDuration, setThinkingDuration] = useState<number | null>(null)
   const [thinkingOpen, setThinkingOpen] = useState(false)
+  const [demoStatus, setDemoStatus] = useState<DemoStatus | null>(null)
+  const [demoError, setDemoError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!demo) return
+    getDemoStatus().then(setDemoStatus).catch((err) => setDemoError(err instanceof Error ? err.message : 'Demo session unavailable'))
+  }, [demo])
 
   useEffect(() => {
     if (!wave || !waveRef.current) return
@@ -540,7 +548,7 @@ export const CustomerDashboardHome = () => {
   }, [recording])
 
   const handleSend = useCallback(async () => {
-    if (!input.trim() || phase !== 'idle') return
+    if (!input.trim() || phase !== 'idle' || (demo && (!demoStatus?.consented || demoStatus.remainingRequests <= 0))) return
     const text = input.trim()
     setMessages((prev) => [...prev, { sender: 'user', text }])
     setInput('')
@@ -558,7 +566,8 @@ export const CustomerDashboardHome = () => {
 
     setVisibleThinking('Reviewing your message and checking for urgent symptoms.')
     try {
-      const result = await sendChatMessage(sessionIdRef.current, text)
+      const result = demo ? await sendDemoMessage(text) : await sendChatMessage(sessionIdRef.current, text)
+      if (demo) setDemoStatus((previous) => previous ? { ...previous, remainingRequests: result.remainingRequests } : previous)
       fullResponseRef.current = result.reply
       setPhase('responding')
       setVisibleResponse('')
@@ -582,8 +591,15 @@ export const CustomerDashboardHome = () => {
         // default delay 20ms
       )
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
+      if (!demo && err instanceof ApiError && err.status === 401) {
         navigate('/login', { replace: true })
+        return
+      }
+      if (demo && err instanceof ApiError) {
+        setDemoError(err.message)
+        setVisibleThinking('')
+        setPhase('idle')
+        getDemoStatus().then(setDemoStatus).catch(() => {})
         return
       }
       const reply = 'I could not reach MedBot right now. If you have urgent symptoms, call 112 or go to the nearest emergency department.'
@@ -591,7 +607,7 @@ export const CustomerDashboardHome = () => {
       setVisibleThinking('')
       setPhase('idle')
     }
-  }, [input, phase])
+  }, [input, phase, demo, demoStatus])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -608,6 +624,13 @@ export const CustomerDashboardHome = () => {
 
   const isBusy = phase !== 'idle'
 
+  if (demo && demoError) {
+    return <div className="flex-1 grid place-items-center p-6 bg-white dark:bg-[#0a0c10]"><div className="text-center max-w-sm"><h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Demo session unavailable</h1><p className="text-sm text-gray-500 mt-2">{demoError}</p><button onClick={() => navigate('/signup')} className="mt-5 px-4 py-2 rounded-lg bg-[#073B4C] text-white text-sm font-medium">Create an account</button></div></div>
+  }
+  if (demo && demoStatus && !demoStatus.consented) {
+    return <div className="flex-1 grid place-items-center p-5 bg-gray-50 dark:bg-[#0a0c10]"><div className="max-w-lg rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f1117] p-6 sm:p-8"><h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Before you try MedBot</h1><p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 mt-4">MedBot provides AI-powered health information and is not a diagnosis or replacement for professional medical advice. In an emergency, call 112 or go to the nearest emergency department.</p><p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 mt-3">By continuing, you consent to temporary processing of the health information you submit for this 24-hour demo.</p><button onClick={() => consentToDemo().then(setDemoStatus).catch((err) => setDemoError(err.message))} className="mt-6 w-full py-2.5 rounded-lg bg-[#073B4C] text-white font-medium text-sm">I understand and consent</button></div></div>
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Session header */}
@@ -615,7 +638,7 @@ export const CustomerDashboardHome = () => {
         <div className="min-w-0 flex items-center gap-2">
           <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">New Assessment</h1>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        {!demo && <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => { sessionIdRef.current = crypto.randomUUID(); setMessages([]); setInput(''); stopGeneration() }}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 h-8 rounded-lg text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -630,7 +653,7 @@ export const CustomerDashboardHome = () => {
           >
             <Share2 className="w-[18px] h-[18px]" />
           </button>
-        </div>
+        </div>}
       </div>
 
       {/* Messages */}
@@ -729,7 +752,7 @@ export const CustomerDashboardHome = () => {
                       </button>
                     ) : (
                       <>
-                        <button
+                        {!demo && <button
                           onClick={() => prepareAudio(i)}
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           aria-label="Listen to response"
@@ -739,7 +762,7 @@ export const CustomerDashboardHome = () => {
                           ) : (
                             <Volume2 className="w-3.5 h-3.5" />
                           )}
-                        </button>
+                        </button>}
                         <button
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           aria-label="Regenerate response"
@@ -820,14 +843,14 @@ export const CustomerDashboardHome = () => {
       </div>
 
       {/* Session Usage — fixed above composer */}
-      {(usage.messagesSent > 0 || usage.messagesReceived > 0) && (
+      {!demo && (usage.messagesSent > 0 || usage.messagesReceived > 0) && (
         <div className="bg-white dark:bg-[#0f1117] border-t border-gray-100 dark:border-gray-800 px-3 sm:px-6 shrink-0">
           <SessionUsage stats={usage} />
         </div>
       )}
 
       {/* Audio Player */}
-      {audioState.messageIndex !== null && (
+      {!demo && audioState.messageIndex !== null && (
         <div className="bg-white dark:bg-[#0f1117] border-t border-gray-100 dark:border-gray-800 px-3 sm:px-6 pt-3 pb-2 shrink-0 relative z-50">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center gap-2 sm:gap-3 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl px-3 sm:px-4 py-2.5 shadow-sm">
@@ -962,12 +985,13 @@ export const CustomerDashboardHome = () => {
               placeholder="Message MedBot..."
               rows={1}
               disabled={isBusy}
+              maxLength={demo ? 500 : undefined}
               className="w-full resize-none bg-transparent px-4 pt-3.5 pb-1 text-base sm:text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none leading-relaxed disabled:opacity-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               style={{ maxHeight: MAX_TEXTAREA_HEIGHT }}
             />
 
             <div className="flex items-center justify-between px-2 pb-2 pt-1">
-              <div className="flex items-center gap-0.5">
+              {!demo && <div className="flex items-center gap-0.5">
                 <button
                   type="button"
                   disabled={isBusy}
@@ -989,7 +1013,9 @@ export const CustomerDashboardHome = () => {
                 >
                   <Mic className="w-[18px] h-[18px]" />
                 </button>
-              </div>
+              </div>}
+
+              {demo && <span className="text-[11px] text-gray-400 dark:text-gray-500 px-2">{input.length}/500 · {demoStatus?.remainingRequests ?? 0}/10 requests left</span>}
 
               {isBusy ? (
                 <button
@@ -1002,7 +1028,7 @@ export const CustomerDashboardHome = () => {
               ) : (
                 <button
                   onClick={handleSend}
-                  disabled={!input.trim()}
+                  disabled={!input.trim() || (demo && (demoStatus?.remainingRequests ?? 0) <= 0)}
                   className="w-8 h-8 flex items-center justify-center rounded-full bg-[#073B4C] dark:bg-teal text-white hover:bg-[#0A202A] dark:hover:bg-teal/80 disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:text-gray-400 dark:disabled:text-gray-500 disabled:cursor-not-allowed transition-colors shrink-0"
                   aria-label="Send message"
                 >
@@ -1012,9 +1038,9 @@ export const CustomerDashboardHome = () => {
             </div>
           </div>
 
-          <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mt-2 pb-1">
-            MedBot provides health information, not medical advice.
-          </p>
+          {demo && (demoStatus?.remainingRequests ?? 0) <= 0 ? (
+            <button onClick={() => navigate('/signup')} className="w-full text-center text-xs font-medium text-[#073B4C] dark:text-teal mt-2 pb-1">Your 10 demo requests are used. Create an account to continue.</button>
+          ) : <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mt-2 pb-1">{demo ? `Demo: ${demoStatus?.remainingRequests ?? 0} of 10 messages remaining · ` : ''}MedBot provides health information, not medical advice.</p>}
         </div>
       </div>
 

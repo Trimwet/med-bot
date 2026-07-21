@@ -105,7 +105,7 @@ RULES FOR EMOTION TAGS:
 - Only ONE tag per response.
 - Do not use any other markdown formatting — no bold, no bullet points, no numbered lists. Write in plain conversational sentences.`;
 
-async function runEveAgent(messages: { role: string; content: string }[], activeNodeId?: string, sessionId?: string, userId?: string): Promise<{ reply: string; nodeId?: string }> {
+export async function runTriageAgent(messages: { role: string; content: string }[], activeNodeId?: string, sessionId?: string, userId?: string): Promise<{ reply: string; nodeId?: string }> {
   const openrouterKey = env.openrouterApiKey;
   if (!openrouterKey) throw new Error("OPENROUTER_API_KEY not configured");
 
@@ -318,7 +318,7 @@ chatRoute.post("/chat", authMiddleware, async (req, res, next) => {
     if (checks.earlyReturn) { res.status(checks.earlyReturn.status).json(checks.earlyReturn.body); return; }
 
     const messagesForAgent = [...(checks.session!.messages || []), checks.userMsg].map((m: any) => ({ role: m.role, content: m.content }));
-    const agentResult = await runEveAgent(messagesForAgent, checks.activeNodeId, sessionId, checks.userId);
+    const agentResult = await runTriageAgent(messagesForAgent, checks.activeNodeId, sessionId, checks.userId);
 
     if (!agentResult.reply) throw new Error("Agent returned empty response");
     agentResult.reply = ensureEmotionTag(agentResult.reply);

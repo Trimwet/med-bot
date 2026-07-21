@@ -14,6 +14,7 @@ import {
   ChevronsRight,
   Menu,
   X,
+  ArrowLeft,
 } from 'lucide-react'
 import { getRecentSessions, type RecentSession } from '@/lib/recent-sessions'
 
@@ -24,7 +25,7 @@ const NAV_ITEMS = [
   { icon: Library, label: 'Health Library', href: '/dashboard/health-library' },
 ]
 
-export const CustomerDashboardLayout = () => {
+export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
@@ -32,15 +33,24 @@ export const CustomerDashboardLayout = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const activeSessionId = searchParams.get('session')
+  const basePath = demo ? '/demo' : '/dashboard'
+  const navItems = demo
+    ? [
+        { icon: Home, label: 'Chat', href: '/demo' },
+        { icon: ClipboardList, label: 'Chat Assessments', href: '/demo/assessment-history' },
+        { icon: Library, label: 'Health Library', href: '/demo/health-library' },
+      ]
+    : NAV_ITEMS
 
   const isExpanded = !collapsed || mobileOpen
 
   useEffect(() => {
+    if (demo) return
     setRecentSessions(getRecentSessions())
     const refresh = () => setRecentSessions(getRecentSessions())
     window.addEventListener('recent-sessions-updated', refresh)
     return () => window.removeEventListener('recent-sessions-updated', refresh)
-  }, [location.pathname])
+  }, [location.pathname, demo])
 
   // Keep backend alive — ping every 4 min to prevent Render cold start
   useEffect(() => {
@@ -96,7 +106,7 @@ export const CustomerDashboardLayout = () => {
         <div className="px-3 py-3 space-y-1 shrink-0">
           <button
             onClick={() => {
-              navigate('/dashboard')
+              navigate(basePath)
               setMobileOpen(false)
             }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -104,17 +114,17 @@ export const CustomerDashboardLayout = () => {
             <Plus className="w-4 h-4 shrink-0" />
             {isExpanded && <span>New chat</span>}
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          {!demo && <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <Search className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Search</span>}
-          </button>
+          </button>}
         </div>
 
         <div className="border-t border-gray-100 dark:border-gray-800 mx-3" />
 
         {/* Navigation */}
         <div className="px-3 py-3 space-y-1 shrink-0">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive = location.pathname === item.href
             return (
               <Link
@@ -139,7 +149,7 @@ export const CustomerDashboardLayout = () => {
         <div className="border-t border-gray-100 dark:border-gray-800 mx-3" />
 
         {/* Conversations */}
-        {isExpanded && (
+        {!demo && isExpanded && (
           <div className="flex-1 overflow-y-auto px-3 py-3">
             <p className="px-3 text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
               Recent
@@ -172,15 +182,15 @@ export const CustomerDashboardLayout = () => {
 
         {/* Footer */}
         <div className="border-t border-gray-100 dark:border-gray-800 px-3 py-3 space-y-1 shrink-0">
-          <Link
+          {!demo && <Link
             to="/dashboard/settings"
             onClick={() => setMobileOpen(false)}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <Cog className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Settings</span>}
-          </Link>
-          <button
+          </Link>}
+          {!demo && <button
             onClick={() => {
               navigate('/dashboard/settings')
               setMobileOpen(false)
@@ -189,8 +199,13 @@ export const CustomerDashboardLayout = () => {
           >
             <UserCircle className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Profile</span>}
-          </button>
+          </button>}
 
+          {demo ? <div className="space-y-1">
+            <Link to="/" onClick={() => setMobileOpen(false)} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><ArrowLeft className="w-4 h-4 shrink-0" />{isExpanded && <span>Back to landing page</span>}</Link>
+            <Link to="/login" onClick={() => setMobileOpen(false)} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><LogOut className="w-4 h-4 shrink-0" />{isExpanded && <span>Log in</span>}</Link>
+            <Link to="/signup" onClick={() => setMobileOpen(false)} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#073B4C] dark:text-teal hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><UserCircle className="w-4 h-4 shrink-0" />{isExpanded && <span>Sign up</span>}</Link>
+          </div> : <>
           <div className="border-t border-gray-100 dark:border-gray-800 my-1" />
 
           <button
@@ -200,6 +215,7 @@ export const CustomerDashboardLayout = () => {
             <LogOut className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Log out</span>}
           </button>
+          </>}
         </div>
 
         {/* Collapse Toggle (desktop only) */}

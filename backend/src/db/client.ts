@@ -37,6 +37,8 @@ export async function ensureIndexes(): Promise<void> {
     database.collection("token_ledger").createIndex({ tenantId: 1, sessionId: 1 }),
     database.collection("patients").createIndex({ retainUntil: 1 }, { expireAfterSeconds: 0 }),
     database.collection("followup_jobs").createIndex({ dedupeKey: 1 }, { unique: true }),
+    database.collection("demo_sessions").createIndex({ demoId: 1 }, { unique: true }),
+    database.collection("demo_sessions").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
   ]);
 
   logger.info("mongodb indexes ensured");
@@ -53,6 +55,7 @@ export const COLLECTIONS = {
   followupJobs: "followup_jobs",
   users: "users_collection",
   apiKeys: "api_keys",
+  demoSessions: "demo_sessions",
 } as const;
 
 export async function closeDb() {

@@ -192,6 +192,26 @@ export interface UserDocument {
   updatedAt?: string;
 }
 
+export interface DemoMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
+
+/** Anonymous, browser-bound trial. Secrets are stored as hashes only. */
+export interface DemoSessionDocument {
+  _id?: ObjectId;
+  demoId: string;
+  tokenHash: string;
+  browserBindingHash: string;
+  remainingRequests: number;
+  consentGivenAt?: string;
+  activeNodeId?: string;
+  messages: DemoMessage[];
+  createdAt: string;
+  expiresAt: Date;
+}
+
 export interface ClinicalInput {
   severityScale: number;
   durationHours: number;
