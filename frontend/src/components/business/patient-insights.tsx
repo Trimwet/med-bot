@@ -115,7 +115,7 @@ export const PatientInsights = () => {
                 }, { elements: [] as React.ReactElement[], offset: 0 }).elements}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">3.9k</span>
+                <span className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">0</span>
                 <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-[#52525b]">Total</span>
               </div>
             </div>
