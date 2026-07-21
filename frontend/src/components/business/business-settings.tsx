@@ -16,6 +16,7 @@ import {
   Trash2,
   Check,
 } from 'lucide-react'
+import { formatPhoneInput } from '@/lib/utils'
 
 type NavItem = {
   id: string
@@ -125,7 +126,7 @@ function ProfileSection() {
           <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} />
         </EditableRow>
         <EditableRow label="Phone number" value={phone || '-'} expanded={expandedRow === 'phone'} onEdit={() => setExpandedRow('phone')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
-          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+          <input type="tel" value={phone} onChange={(e) => setPhone(formatPhoneInput(e.target.value))} placeholder="e.g. 09063546819" className={inputClass} />
         </EditableRow>
         <EditableRow label="Email" value={email || '-'} expanded={expandedRow === 'email'} onEdit={() => setExpandedRow('email')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />

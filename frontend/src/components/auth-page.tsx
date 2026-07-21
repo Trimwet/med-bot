@@ -11,6 +11,7 @@ import {
   getGoogleAuthUrl,
   ApiError,
 } from '@/lib/api'
+import { formatPhoneInput } from '@/lib/utils'
 
 type AuthMode = 'login' | 'signup'
 type Step = 'form' | 'otp'
@@ -239,8 +240,8 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Enter your phone number"
+                      onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+                      placeholder="e.g. 09063546819"
                       className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all"
                     />
                   </div>

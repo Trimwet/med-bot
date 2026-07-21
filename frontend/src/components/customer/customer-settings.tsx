@@ -13,6 +13,7 @@ import {
 import { BackButton } from '@/components/ui/back-button'
 import { useTheme } from '@/hooks/use-theme'
 import { exportUserData } from '@/lib/api'
+import { formatPhoneInput, stripPhoneFormat } from '@/lib/utils'
 import { getAuthUser, getProfile, changeUserPassword, setUserPassword } from '@/lib/api'
 
 type NavItem = {
@@ -150,7 +151,7 @@ function ProfileSection() {
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
       </EditableRow>
       <EditableRow label="Phone number" value={phone} expanded={expandedRow === 'phone'} onEdit={() => setExpandedRow('phone')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
-        <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+        <input type="tel" value={phone} onChange={(e) => setPhone(formatPhoneInput(e.target.value))} placeholder="e.g. 09063546819" className={inputClass} />
       </EditableRow>
       <EditableRow label="Location" value={location} expanded={expandedRow === 'location'} onEdit={() => setExpandedRow('location')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
         <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className={inputClass} />

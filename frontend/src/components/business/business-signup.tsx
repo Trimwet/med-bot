@@ -6,6 +6,7 @@ import {
   ChevronLeft,
 } from 'lucide-react'
 import { tenantSignup, tenantVerifyOtp } from '@/lib/api'
+import { formatPhoneInput } from '@/lib/utils'
 
 interface BusinessSignupProps {
   onBack?: () => void
@@ -242,8 +243,8 @@ export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSig
               <input
                 type="tel"
                 value={form.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="Enter phone number"
+                onChange={(e) => handleChange('phone', formatPhoneInput(e.target.value))}
+                placeholder="e.g. 09063546819"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#073B4C]/30"
               />
             </div>
