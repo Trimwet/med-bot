@@ -1,6 +1,6 @@
 // @ts-nocheck -- interactive dashboard is being migrated from mock data to the API.
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import {
   ArrowUp,
@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { VoiceIcon } from '@/components/ui/voice-icon'
-import { ApiError, sendChatMessage, fetchTtsAudio, fetchSupertonicAudio } from '@/lib/api'
+import { ApiError, sendChatMessage, fetchTtsAudio, fetchSupertonicAudio, getSession } from '@/lib/api'
 import { consentToDemo, getDemoStatus, sendDemoMessage, type DemoStatus } from '@/lib/demo-session'
 import { cn } from '@/lib/utils'
 import SplitText from '@/components/ui/SplitText'
@@ -297,6 +297,8 @@ function StreamingBubble({ visibleText }: { visibleText: string }) {
 
 export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const selectedSessionId = searchParams.get('session')
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
@@ -336,9 +338,48 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
   const [demoStatus, setDemoStatus] = useState<DemoStatus | null>(null)
   const [demoError, setDemoError] = useState<string | null>(null)
 
+  // Sidebar history links carry a session ID. Restore it from the server so
+  // conversations survive refreshes and work across devices.
+  useEffect(() => {
+    if (demo || !selectedSessionId) return
+    let cancelled = false
+    setPhase('idle')
+    setVisibleThinking('')
+    setVisibleResponse('')
+    getSession(selectedSessionId)
+      .then((session) => {
+        if (cancelled) return
+        sessionIdRef.current = session.sessionId
+        setMessages(session.messages
+          .filter((message) => message.role === 'user' || message.role === 'assistant')
+          .map((message) => ({ sender: message.role, text: message.content })))
+      })
+      .catch((err) => {
+        if (cancelled) return
+        if (err instanceof ApiError && err.status === 401) navigate('/login', { replace: true })
+        else navigate('/dashboard', { replace: true })
+      })
+    return () => { cancelled = true }
+  }, [demo, selectedSessionId, navigate])
+
   useEffect(() => {
     if (!demo) return
     getDemoStatus().then(setDemoStatus).catch((err) => setDemoError(err instanceof Error ? err.message : 'Demo session unavailable'))
+  }, [demo])
+
+  useEffect(() => {
+    if (demo) return
+    const startNewChat = () => {
+      sessionIdRef.current = crypto.randomUUID()
+      setMessages([])
+      setInput('')
+      setVisibleThinking('')
+      setVisibleResponse('')
+      setPhase('idle')
+      setUsage({ messagesSent: 0, messagesReceived: 0, inputTokens: 0, outputTokens: 0 })
+    }
+    window.addEventListener('start-new-chat', startNewChat)
+    return () => window.removeEventListener('start-new-chat', startNewChat)
   }, [demo])
 
   useEffect(() => {
@@ -586,6 +627,7 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
             setVisibleThinking('')
             setVisibleResponse('')
             setPhase('idle')
+            if (!demo) window.dispatchEvent(new Event('recent-sessions-updated'))
           }, 80)
         },
         // default delay 20ms
@@ -640,7 +682,7 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
         </div>
         {!demo && <div className="flex items-center gap-1 shrink-0">
           <button
-            onClick={() => { sessionIdRef.current = crypto.randomUUID(); setMessages([]); setInput(''); stopGeneration() }}
+            onClick={() => { sessionIdRef.current = crypto.randomUUID(); setMessages([]); setInput(''); stopGeneration(); navigate('/dashboard') }}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 h-8 rounded-lg text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="Start new assessment"
           >
@@ -753,7 +795,7 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
                     ) : (
                       <>
                         {!demo && <button
-                          onClick={() => prepareAudio(i)}
+                          onClick={() => triggerAudio(i, msg.text)}
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           aria-label="Listen to response"
                         >
@@ -994,7 +1036,8 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
               {!demo && <div className="flex items-center gap-0.5">
                 <button
                   type="button"
-                  disabled={isBusy}
+                  disabled
+                  title="File attachments are not available yet"
                   className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
                   aria-label="Attach file"
                 >

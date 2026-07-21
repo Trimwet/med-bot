@@ -17,7 +17,7 @@ import {
   ArrowLeft,
   Play,
 } from 'lucide-react'
-import { getRecentSessions, type RecentSession } from '@/lib/recent-sessions'
+import { listSessions, type SessionEntry } from '@/lib/api'
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Chat', href: '/dashboard' },
@@ -27,10 +27,21 @@ const NAV_ITEMS = [
   { icon: Play, label: 'Try Demo', href: '/demo' },
 ]
 
+function formatRecentTime(value: string): string {
+  const timestamp = new Date(value).getTime()
+  if (Number.isNaN(timestamp)) return ''
+  const difference = Date.now() - timestamp
+  if (difference < 60_000) return 'Just now'
+  if (difference < 3_600_000) return `${Math.floor(difference / 60_000)}m ago`
+  if (difference < 86_400_000) return `${Math.floor(difference / 3_600_000)}h ago`
+  const date = new Date(value)
+  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
+}
+
 export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
+  const [recentSessions, setRecentSessions] = useState<SessionEntry[]>([])
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -48,10 +59,18 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
 
   useEffect(() => {
     if (demo) return
-    setRecentSessions(getRecentSessions())
-    const refresh = () => setRecentSessions(getRecentSessions())
+    let cancelled = false
+    const refresh = () => {
+      listSessions({ limit: 20 })
+        .then(({ sessions }) => { if (!cancelled) setRecentSessions(sessions) })
+        .catch(() => { if (!cancelled) setRecentSessions([]) })
+    }
+    refresh()
     window.addEventListener('recent-sessions-updated', refresh)
-    return () => window.removeEventListener('recent-sessions-updated', refresh)
+    return () => {
+      cancelled = true
+      window.removeEventListener('recent-sessions-updated', refresh)
+    }
   }, [location.pathname, demo])
 
   // Keep backend alive — ping every 4 min to prevent Render cold start
@@ -108,6 +127,7 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
         <div className="px-3 py-3 space-y-1 shrink-0">
           <button
             onClick={() => {
+              window.dispatchEvent(new Event('start-new-chat'))
               navigate(basePath)
               setMobileOpen(false)
             }}
@@ -168,14 +188,15 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
                     setMobileOpen(false)
                   }}
                   className={`
-                    w-full text-left px-3 py-2 rounded-lg text-sm truncate transition-colors
+                    w-full text-left px-3 py-2 rounded-lg transition-colors
                     ${activeSessionId === session.sessionId
                       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
                       : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
                     }
                   `}
                 >
-                  {session.firstMessage || 'New chat'}
+                  <span className="block text-sm truncate">{session.summary || session.firstMessage || 'New assessment'}</span>
+                  <span className="block mt-0.5 text-[11px] text-gray-400 dark:text-gray-500">{formatRecentTime(session.updatedAt)}</span>
                 </button>
               ))}
             </div>

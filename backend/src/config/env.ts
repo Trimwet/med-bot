@@ -37,6 +37,7 @@ const ENV_SPEC: EnvVar[] = [
   { key: "FISH_AUDIO_VOICE_ID", required: false, default: "" },
   { key: "OPENROUTER_API_KEY", required: false, default: "" },
   { key: "SUPERTONIC_URL", required: false, default: "http://127.0.0.1:7788" },
+  { key: "GROQ_API_KEY", required: false, default: "" },
 ];
 
 function parseDotEnv(content: string): Record<string, string> {
@@ -120,4 +121,5 @@ export const env = {
   openrouterApiKey: raw.OPENROUTER_API_KEY,
   geminiApiKey: raw.GEMINI_API_KEY,
   supertonicUrl: raw.SUPERTONIC_URL,
+  groqApiKey: raw.GROQ_API_KEY,
 } as const;

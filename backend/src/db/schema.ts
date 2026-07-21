@@ -123,6 +123,7 @@ export interface SessionDocument {
     reportedSymptoms: string[];
   };
   messages: SessionMessage[];
+  summary?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -7,12 +7,17 @@
 // Model: DeepSeek Chat (OpenAI-compatible)
 // Tools: vectorSearch, clinicalRule, scheduleFollowup
 
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 export { vectorSearch } from "./tools/vectorSearch";
 export { clinicalRule } from "./tools/clinicalRule";
 export { scheduleFollowup } from "./tools/scheduleFollowup";
 
+const agentDirectory = dirname(fileURLToPath(import.meta.url));
+
 export const agentConfig = {
   model: "deepseek-chat",
   temperature: 0.3,
-  instructionsPath: __dirname + "/instructions.md",
+  instructionsPath: join(agentDirectory, "instructions.md"),
 } as const;

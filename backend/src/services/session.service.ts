@@ -11,6 +11,7 @@ export interface SessionListEntry {
   updatedAt: string;
   messageCount: number;
   firstMessage?: string;
+  summary?: string;
 }
 
 export async function listUserSessions(
@@ -44,6 +45,7 @@ export async function listUserSessions(
       updatedAt: d.updatedAt,
       messageCount: d.messages?.length ?? 0,
       firstMessage: d.messages?.find((m) => m.role === "user")?.content,
+      summary: d.summary,
     })),
     total,
   };
@@ -56,6 +58,12 @@ export async function deleteSession(sessionId: string, userId: string): Promise<
   if (result.deletedCount === 0) {
     throw new Error("Session not found or already deleted");
   }
+}
+
+/** Fetch an existing session without creating one as a side effect. */
+export async function getSession(sessionId: string, userId: string): Promise<SessionDocument | null> {
+  const db = await getDb();
+  return db.collection<SessionDocument>(COLLECTIONS.sessions).findOne({ sessionId, userId });
 }
 
 export async function getOrCreateSession(

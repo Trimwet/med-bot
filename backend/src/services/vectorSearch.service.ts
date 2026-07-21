@@ -5,6 +5,9 @@ import { classifyMessage } from "@/services/categoryClassifier.service";
 import { logger } from "@/lib/logger";
 
 function cosineSimilarity(a: number[], b: number[]): number {
+  // Mixed embedding models/dimensions must never produce NaN scores. A zero
+  // score lets callers fall back predictably while old documents are re-ingested.
+  if (a.length === 0 || a.length !== b.length) return 0;
   let dot = 0, magA = 0, magB = 0;
   for (let i = 0; i < a.length; i++) {
     dot += a[i] * b[i];

@@ -10,7 +10,7 @@
 // will work. Until then, the keyword fallback handles matching.
 
 import { getDb, closeDb } from "@/db/client";
-import { logger } from "@/lib/logger";
+import { env } from "@/config/env";
 
 async function main() {
   const db = await getDb();
@@ -19,6 +19,18 @@ async function main() {
   // Check if index already exists
   const existing = await collection.listSearchIndexes().toArray();
   if (existing.some((idx: any) => idx.name === "vector_index")) {
+    // Keep deployed indexes aligned with the configured embedding model.
+    // Atlas applies this asynchronously; re-running is safe.
+    await collection.updateSearchIndex("vector_index", {
+      definition: {
+        fields: [
+          { type: "vector", path: "embedding", numDimensions: env.embeddingDimension, similarity: "cosine" },
+          { type: "filter", path: "category" },
+          { type: "filter", path: "isLatest" },
+          { type: "filter", path: "protocolId" },
+        ],
+      },
+    });
     console.log("✓ vector_index already exists");
     await closeDb();
     return;
@@ -35,12 +47,16 @@ async function main() {
           {
             type: "vector",
             path: "embedding",
-            numDimensions: 1536,
+            numDimensions: env.embeddingDimension,
             similarity: "cosine",
           },
           {
             type: "filter",
             path: "category",
+          },
+          {
+            type: "filter",
+            path: "isLatest",
           },
           {
             type: "filter",
