@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils'
 const plans = [
   {
     name: 'Starter',
-    desc: 'For small clinics',
-    price: '₦49,000',
+    desc: 'For personal use (Free)',
+    price: '₦0',
     period: '/month',
     highlight: false,
     features: [
@@ -62,9 +62,6 @@ export const PricingSection = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="inline-flex px-4 py-1.5 text-xs font-semibold border border-teal/40 rounded-full text-teal uppercase tracking-[0.2em] bg-teal/10 mb-6">
-            Pricing
-          </span>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-ink mb-4 font-display">
             Simple, transparent pricing
           </h2>

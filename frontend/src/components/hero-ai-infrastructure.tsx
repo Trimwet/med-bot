@@ -43,7 +43,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
           <TimelineAnimation
             timelineRef={timelineRef}
             animationNum={3}
-            className="flex items-center gap-2 rounded-full px-1.5 py-1 pr-4 bg-teal/10 text-ink text-sm font-medium font-display my-2"
+            className="flex items-center gap-2 rounded-full px-1.5 py-1 pr-4 bg-teal/10 text-ink text-[12px] font-medium font-display my-2"
           >
             <span className="py-0.5 px-2.5 rounded-full bg-teal text-white font-semibold text-xs">
               New
