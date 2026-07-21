@@ -297,7 +297,6 @@ function PrivacySection() {
 function NotificationsSection() {
   const [emailNotif, setEmailNotif] = useState(true)
   const [pushNotif, setPushNotif] = useState(true)
-  const [assessmentAlerts, setAssessmentAlerts] = useState(true)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -305,7 +304,6 @@ function NotificationsSection() {
       .then(({ preferences }) => {
         setEmailNotif(preferences.emailNotifications ?? true)
         setPushNotif(preferences.pushNotifications ?? true)
-        setAssessmentAlerts(preferences.assessmentAlerts ?? true)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -338,11 +336,6 @@ function NotificationsSection() {
         <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Channels</p>
         <ToggleRow label="Email notifications" description="Receive assessment results via email" enabled={emailNotif} onChange={(v) => { setEmailNotif(v); updatePref('emailNotifications', v) }} />
         <ToggleRow label="Push notifications" description="Receive push notifications in your browser" enabled={pushNotif} onChange={(v) => { setPushNotif(v); updatePref('pushNotifications', v) }} />
-      </div>
-
-      <div>
-        <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Types</p>
-        <ToggleRow label="Assessment alerts" description="Get notified when your assessment is completed" enabled={assessmentAlerts} onChange={(v) => { setAssessmentAlerts(v); updatePref('assessmentAlerts', v) }} />
       </div>
     </div>
   )
