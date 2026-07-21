@@ -25,13 +25,13 @@ export const DetailedFooter = () => {
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="flex flex-col md:flex-row items-start justify-between gap-8">
           {/* Brand */}
-          <div className="max-w-xs">
+          <div className="max-w-xl">
             <div className="flex items-center gap-2.5 mb-4">
               <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto" />
               <span className="text-white font-bold text-lg font-display">MedBot</span>
             </div>
             <p className="text-sm text-[#9CA3AF] leading-relaxed">
-              AI-powered patient triage for hospitals. Interview, sort, and hand off — clinically grounded, always improving.
+              AI-powered patient triage for hospitals. Interview, sort, and hand off clinically grounded, always improving.
             </p>
           </div>
 
@@ -46,14 +46,6 @@ export const DetailedFooter = () => {
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-semibold text-white uppercase tracking-wider mb-4">Company</h3>
-              <ul className="space-y-2.5">
-                <li><a href="#about" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#careers" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#contact" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            <div>
               <h3 className="text-xs font-semibold text-white uppercase tracking-wider mb-4">Legal</h3>
               <ul className="space-y-2.5">
                 <li><a href="#privacy" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">Privacy Policy</a></li>
@@ -65,7 +57,7 @@ export const DetailedFooter = () => {
         </div>
 
         {/* Bottom */}
-        <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[#9CA3AF]/60">
             © 2026 MedBot Health. All rights reserved.
           </p>
