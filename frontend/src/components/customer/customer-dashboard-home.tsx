@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { VoiceIcon } from '@/components/ui/voice-icon'
-import { ApiError, sendChatMessage, fetchTtsAudio, fetchSupertonicAudio, getSession } from '@/lib/api'
+import { ApiError, sendChatMessage, fetchTtsAudio, fetchSupertonicAudio, getSession, getAuthUser } from '@/lib/api'
 import { consentToDemo, getDemoStatus, sendDemoMessage, type DemoStatus } from '@/lib/demo-session'
 import { cn } from '@/lib/utils'
 import SplitText from '@/components/ui/SplitText'
@@ -64,6 +64,15 @@ const MAX_TEXTAREA_HEIGHT = 160
 
 function stripEmotionTag(text: string): string {
   return text.replace(/^\[(?:calm|warm|empathetic|serious|laugh|chuckling|concerned|reassuring|urgent|neutral|confident|gentle)\]\s*/i, '')
+}
+
+function getGreeting(name: string): string {
+  const hour = new Date().getHours()
+  let period: string
+  if (hour < 12) period = 'Good morning'
+  else if (hour < 17) period = 'Good afternoon'
+  else period = 'Good evening'
+  return name ? `${period}, ${name}` : period
 }
 
 const THINKING_STEPS = [
@@ -337,6 +346,12 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
   const [thinkingOpen, setThinkingOpen] = useState(false)
   const [demoStatus, setDemoStatus] = useState<DemoStatus | null>(null)
   const [demoError, setDemoError] = useState<string | null>(null)
+  const [userName, setUserName] = useState('')
+
+  useEffect(() => {
+    if (demo) return
+    getAuthUser().then((res) => setUserName(res.user.name || '')).catch(() => {})
+  }, [demo])
 
   // Sidebar history links carry a session ID. Restore it from the server so
   // conversations survive refreshes and work across devices.
@@ -678,7 +693,7 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
       {/* Session header */}
       <div className="flex items-center justify-between px-3 sm:px-6 h-14 border-b border-gray-100 dark:border-gray-800 shrink-0 bg-white dark:bg-[#0f1117]">
         <div className="min-w-0 flex items-center gap-2">
-          <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">New Assessment</h1>
+          <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{getGreeting(userName)}</h1>
         </div>
         {!demo && <div className="flex items-center gap-1 shrink-0">
           <button

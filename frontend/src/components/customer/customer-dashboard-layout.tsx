@@ -17,7 +17,7 @@ import {
   ArrowLeft,
   Play,
 } from 'lucide-react'
-import { listSessions, type SessionEntry } from '@/lib/api'
+import { listSessions, getAuthUser, type SessionEntry } from '@/lib/api'
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Chat', href: '/dashboard' },
@@ -38,10 +38,20 @@ function formatRecentTime(value: string): string {
   return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
 }
 
+function getGreeting(name: string): string {
+  const hour = new Date().getHours()
+  let period: string
+  if (hour < 12) period = 'Good morning'
+  else if (hour < 17) period = 'Good afternoon'
+  else period = 'Good evening'
+  return name ? `${period}, ${name}` : period
+}
+
 export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [recentSessions, setRecentSessions] = useState<SessionEntry[]>([])
+  const [userName, setUserName] = useState('')
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -56,6 +66,11 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
     : NAV_ITEMS
 
   const isExpanded = !collapsed || mobileOpen
+
+  useEffect(() => {
+    if (demo) return
+    getAuthUser().then((res) => setUserName(res.user.name || '')).catch(() => {})
+  }, [demo])
 
   useEffect(() => {
     if (demo) return
