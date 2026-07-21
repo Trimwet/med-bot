@@ -187,7 +187,7 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
 
         {/* Conversations */}
         {!demo && isExpanded && (
-          <div className="flex-1 overflow-y-auto px-3 py-3">
+          <div className="flex-1 overflow-y-auto px-3 py-3 [scrollbar-width:thin] [scrollbar-color:#d1d5db_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full">
             <p className="px-3 text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
               Recent
             </p>
