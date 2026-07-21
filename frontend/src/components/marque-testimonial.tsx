@@ -100,8 +100,8 @@ const testimonials = [
   },
   {
     name: 'Yakubu Yawachi Victor',
-    role: 'Public Health Officer',
-    company: 'Ministry of Health, Yobe State',
+    role: 'Front End Developer',
+    company: 'Air Force Institute of Technology, Kaduna',
     text: 'We deployed MedBot in three rural clinics and the consistency of triage across facilities has been remarkable.',
     avatar: 'YY',
     rating: 5,
