@@ -305,6 +305,24 @@ export function getAuthUser() {
   return request<{ user: { id: string, name?: string, email: string, googleId?: string, isVerified: boolean, createdAt?: string, updatedAt?: string } }>('/api/auth/me')
 }
 
+export async function exportUserData() {
+  const token = localStorage.getItem('token')
+  const API_URL = import.meta.env.VITE_API_URL || ''
+  const res = await fetch(`${API_URL}/api/users/me/export`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) throw new ApiError('Export failed', res.status)
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'medbot-data.json'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
 export function changeUserPassword(currentPassword: string, newPassword: string) {
   return request<{ message: string }>('/api/auth/change-password', {
     method: 'POST',

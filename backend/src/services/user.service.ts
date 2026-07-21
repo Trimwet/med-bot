@@ -144,3 +144,55 @@ export async function updateUserProfile(userId: string, input: UpdateProfileInpu
   const updated = await users.findOne({ _id: new ObjectId(userId) });
   return updated?.profile ?? {};
 }
+
+export async function exportUserData(userId: string) {
+  const store = await getUserStore();
+  const { getDb } = await import("@/db/client");
+  const { COLLECTIONS } = await import("@/db/client");
+
+  let user: any = null;
+  let sessions: any[] = [];
+
+  if (store.mode === "memory") {
+    user = memoryUsers.find((u) => u._id?.toString() === userId);
+  } else {
+    const db = await getDb();
+    user = await store.users!.findOne({ _id: new ObjectId(userId) });
+    sessions = await db
+      .collection(COLLECTIONS.sessions)
+      .find({ userId })
+      .toArray();
+  }
+
+  const safeUser = user
+    ? {
+        id: user._id?.toString() ?? user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        profile: user.profile ?? {},
+      }
+    : null;
+
+  const safeSessions = sessions.map((s) => ({
+    sessionId: s.sessionId,
+    status: s.status,
+    verdict: s.verdict,
+    summary: s.summary,
+    createdAt: s.createdAt,
+    updatedAt: s.updatedAt,
+    messages: (s.messages ?? []).map((m: any) => ({
+      role: m.role,
+      content: m.content,
+      timestamp: m.timestamp,
+    })),
+  }));
+
+  return {
+    exportDate: new Date().toISOString(),
+    user: safeUser,
+    sessions: safeSessions,
+    sessionCount: safeSessions.length,
+  };
+}

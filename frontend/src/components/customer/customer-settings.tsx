@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { BackButton } from '@/components/ui/back-button'
 import { useTheme } from '@/hooks/use-theme'
+import { exportUserData } from '@/lib/api'
 import { getAuthUser, getProfile, changeUserPassword, setUserPassword } from '@/lib/api'
 
 type NavItem = {
@@ -267,20 +268,11 @@ function SecuritySection() {
 }
 
 function PrivacySection() {
-  const [shareData, setShareData] = useState(false)
-  const [aiTraining, setAiTraining] = useState(false)
-
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Privacy</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400">Control your privacy settings and data sharing preferences.</p>
-      </div>
-
-      <div>
-        <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Data</p>
-        <ToggleRow label="Share usage data" description="Help improve MedBot by sharing anonymous usage data" enabled={shareData} onChange={setShareData} />
-        <ToggleRow label="AI training" description="Allow your data to be used for AI model improvement" enabled={aiTraining} onChange={setAiTraining} />
       </div>
 
       <div className="py-4 border-b border-gray-100 dark:border-gray-800">
@@ -289,8 +281,11 @@ function PrivacySection() {
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Download your data</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Request a copy of all your personal data</p>
           </div>
-          <button className="px-4 py-2 text-sm font-medium text-[#073B4C] dark:text-teal border border-[#073B4C]/30 dark:border-teal/30 rounded-lg hover:bg-[#073B4C]/5 dark:hover:bg-teal/10 transition-colors">
-            Request
+          <button
+            onClick={() => exportUserData().catch(() => {})}
+            className="px-4 py-2 text-sm font-medium text-[#073B4C] dark:text-teal border border-[#073B4C]/30 dark:border-teal/30 rounded-lg hover:bg-[#073B4C]/5 dark:hover:bg-teal/10 transition-colors"
+          >
+            Download
           </button>
         </div>
       </div>
