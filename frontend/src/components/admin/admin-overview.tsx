@@ -4,14 +4,9 @@ import {
   Users,
   AlertTriangle,
   Clock,
-  CheckCircle,
-  BookOpen,
-  Shield,
-  Download,
   TrendingUp,
   TrendingDown,
-  RefreshCw,
-  MoreVertical,
+  Download,
 } from 'lucide-react'
 import {
   BarChart,
@@ -87,19 +82,19 @@ export const AdminOverview = () => {
 
   if (loading) {
     return (
-      <div className="animate-pulse space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="h-8 w-48 bg-gray-100 dark:bg-[#1a1d25] rounded-lg" />
-          <div className="h-9 w-32 bg-gray-100 dark:bg-[#1a1d25] rounded-lg" />
+          <div className="h-8 w-48 bg-gray-100 dark:bg-[#1a1d25] rounded-lg animate-pulse" />
+          <div className="h-9 w-40 bg-gray-100 dark:bg-[#1a1d25] rounded-lg animate-pulse" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 bg-gray-100 dark:bg-[#1a1d25] rounded-xl" />
+            <div key={i} className="h-28 bg-gray-100 dark:bg-[#1a1d25] rounded-xl animate-pulse" />
           ))}
         </div>
         <div className="grid lg:grid-cols-2 gap-6">
-          <div className="h-80 bg-gray-100 dark:bg-[#1a1d25] rounded-xl" />
-          <div className="h-80 bg-gray-100 dark:bg-[#1a1d25] rounded-xl" />
+          <div className="h-80 bg-gray-100 dark:bg-[#1a1d25] rounded-xl animate-pulse" />
+          <div className="h-80 bg-gray-100 dark:bg-[#1a1d25] rounded-xl animate-pulse" />
         </div>
       </div>
     )
@@ -147,7 +142,7 @@ export const AdminOverview = () => {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* Section Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => {
           const Icon = kpi.icon
@@ -156,67 +151,37 @@ export const AdminOverview = () => {
               key={kpi.label}
               className="group bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-5 transition-all hover:dark:border-white/[0.1]"
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-gray-500 dark:text-[#6b7080]">{kpi.label}</span>
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${kpi.color}15` }}>
                   <Icon className="w-4 h-4" style={{ color: kpi.color }} />
                 </div>
-                <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  kpi.up ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+              </div>
+              <div className="flex items-end justify-between">
+                <p className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white tabular-nums">
+                  <NumberFlow value={kpi.value} />
+                </p>
+                <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${
+                  kpi.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                 }`}>
                   {kpi.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                   {kpi.trend}
                 </span>
               </div>
-              <p className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white tabular-nums">
-                <NumberFlow value={kpi.value} />
-              </p>
-              <p className="text-sm font-medium text-gray-600 dark:text-[#a1a1aa] mt-1">{kpi.label}</p>
             </div>
           )
         })}
       </div>
 
-      {/* Secondary KPI row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: 'Completed Sessions', value: stats?.completedSessions ?? 0, icon: CheckCircle, color: '#22C55E' },
-          { label: 'Protocol Nodes', value: stats?.totalProtocols ?? 0, icon: BookOpen, color: '#8B5CF6' },
-          { label: 'Clinical Rules', value: stats?.totalRules ?? 0, icon: Shield, color: '#F59E0B' },
-        ].map((item) => {
-          const Icon = item.icon
-          return (
-            <div
-              key={item.label}
-              className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4 flex items-center gap-4 transition-all hover:dark:border-white/[0.1]"
-            >
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${item.color}15` }}>
-                <Icon className="w-4 h-4" style={{ color: item.color }} />
-              </div>
-              <div>
-                <p className="text-xl font-bold text-gray-900 dark:text-[#e8eaed] tabular-nums tracking-tight">
-                  <NumberFlow value={item.value} />
-                </p>
-                <p className="text-xs text-gray-500 dark:text-[#6b7080]">{item.label}</p>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Charts Row */}
+      {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
+        {/* Session Growth */}
         <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Session Growth</h3>
-              <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Daily volume over last 30 days</p>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-[#525666]">
-              <RefreshCw className="w-3 h-3" />
-              Live
-            </div>
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Session Growth</h3>
+            <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Daily session volume</p>
           </div>
-          <div className="h-44">
+          <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={dailySessions}>
                 <defs>
@@ -225,34 +190,29 @@ export const AdminOverview = () => {
                     <stop offset="100%" stopColor={theme.areaStroke} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke={theme.grid.stroke} strokeDasharray={theme.grid.strokeDasharray} />
-                <XAxis dataKey="date" tick={theme.axis} tickFormatter={(v) => { const d = new Date(v); return `${d.getMonth() + 1}/${d.getDate()}` }} />
-                <YAxis tick={theme.axis} allowDecimals={false} />
+                <CartesianGrid stroke={theme.grid.stroke} strokeDasharray={theme.grid.strokeDasharray} vertical={false} />
+                <XAxis dataKey="date" tick={theme.axis} tickFormatter={(v) => { const d = new Date(v); return `${d.getMonth() + 1}/${d.getDate()}` }} axisLine={false} tickLine={false} />
+                <YAxis tick={theme.axis} allowDecimals={false} axisLine={false} tickLine={false} width={30} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: theme.cursor }} />
-                <Area type="monotone" dataKey="count" stroke={theme.areaStroke} fill="url(#adminSessionGrad)" strokeWidth={2.5} dot={false} activeDot={{ fill: theme.activeDotFill, stroke: theme.activeDotStroke, strokeWidth: 2, r: 4 }} />
+                <Area type="monotone" dataKey="count" stroke={theme.areaStroke} fill="url(#adminSessionGrad)" strokeWidth={2} dot={false} activeDot={{ fill: theme.activeDotFill, stroke: theme.activeDotStroke, strokeWidth: 2, r: 4 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
+        {/* User Growth */}
         <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">User Growth</h3>
-              <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">New registrations per day</p>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-[#525666]">
-              <RefreshCw className="w-3 h-3" />
-              Live
-            </div>
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">User Growth</h3>
+            <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">New registrations per day</p>
           </div>
-          <div className="h-44">
+          <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyUsers} barCategoryGap="20%" barGap={4}>
-                <CartesianGrid stroke={theme.grid.stroke} strokeDasharray={theme.grid.strokeDasharray} />
-                <XAxis dataKey="date" tick={theme.axis} tickFormatter={(v) => { const d = new Date(v); return `${d.getMonth() + 1}/${d.getDate()}` }} />
-                <YAxis tick={theme.axis} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: theme.cursor }} />
+                <CartesianGrid stroke={theme.grid.stroke} strokeDasharray={theme.grid.strokeDasharray} vertical={false} />
+                <XAxis dataKey="date" tick={theme.axis} tickFormatter={(v) => { const d = new Date(v); return `${d.getMonth() + 1}/${d.getDate()}` }} axisLine={false} tickLine={false} />
+                <YAxis tick={theme.axis} allowDecimals={false} axisLine={false} tickLine={false} width={30} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.cursor }} />
                 <Bar dataKey="count" fill={theme.bar} radius={[4, 4, 0, 0]} maxBarSize={36} />
               </BarChart>
             </ResponsiveContainer>
@@ -261,14 +221,12 @@ export const AdminOverview = () => {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-5 gap-6">
         {/* Verdict Breakdown */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Verdict Breakdown</h3>
-              <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">{totalVerdicts} total decisions</p>
-            </div>
+        <div className="lg:col-span-2 bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
+          <div className="mb-5">
+            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Verdict Breakdown</h3>
+            <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">{totalVerdicts} total decisions</p>
           </div>
           <div className="space-y-4">
             {verdictEntries.map(([verdict, count]) => {
@@ -302,52 +260,54 @@ export const AdminOverview = () => {
           </div>
         </div>
 
-        {/* Recent Sessions */}
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-[#1e2028]">
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Recent Sessions</h3>
-              <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Latest triage activity</p>
-            </div>
-            <button className="text-xs font-medium text-[#073B4C] dark:text-[#00A8A8] hover:underline">View all</button>
+        {/* Recent Sessions Table */}
+        <div className="lg:col-span-3 bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-[#1e2028]">
+            <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Recent Sessions</h3>
+            <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Latest triage activity across all tenants</p>
           </div>
 
-          <div className="hidden sm:grid grid-cols-[1fr_auto_auto] gap-4 px-5 py-2.5 border-b border-gray-100 dark:border-[#1e2028] text-[10px] font-semibold text-gray-400 dark:text-[#525666] uppercase tracking-wider">
-            <span>Session ID</span>
-            <span className="text-right">Verdict</span>
-            <span></span>
-          </div>
-
-          <div className="divide-y divide-gray-100 dark:divide-[#1e2028]">
-            {stats?.recentSessions?.slice(0, 6).map((s) => (
-              <div key={s.sessionId} className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2 sm:gap-4 px-5 py-3.5 items-center hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors group">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-[#e8eaed] font-mono truncate">{s.sessionId.slice(0, 16)}…</p>
-                  <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">
-                    {new Date(s.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short' })}
-                    {' · '}
-                    {new Date(s.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-                <span className={`text-[10px] px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${VERDICT_BADGE[s.verdict] || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
-                  {VERDICT_LABELS[s.verdict] || s.verdict || 'pending'}
-                </span>
-                <button className="p-1 text-gray-300 dark:text-[#525666] hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-            {(!stats?.recentSessions || stats.recentSessions.length === 0) && (
-              <div className="px-5 py-12 text-center">
-                <Clock className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-2" />
-                <p className="text-sm text-gray-400 dark:text-[#525666]">No sessions recorded yet</p>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center justify-center gap-1.5 px-5 py-3 border-t border-gray-100 dark:border-[#1e2028] text-xs text-gray-400 dark:text-[#525666]">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Live — auto-refreshing
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-[#1e2028]">
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-gray-400 dark:text-[#525666] uppercase tracking-wider">Session</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-gray-400 dark:text-[#525666] uppercase tracking-wider">Verdict</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-gray-400 dark:text-[#525666] uppercase tracking-wider">Status</th>
+                  <th className="text-right px-5 py-3 text-[10px] font-semibold text-gray-400 dark:text-[#525666] uppercase tracking-wider">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-[#1e2028]">
+                {stats?.recentSessions?.slice(0, 8).map((s) => (
+                  <tr key={s.sessionId} className="hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors">
+                    <td className="px-5 py-3">
+                      <p className="font-mono text-xs text-gray-900 dark:text-[#e8eaed] truncate max-w-[160px]">{s.sessionId.slice(0, 12)}...</p>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${VERDICT_BADGE[s.verdict] || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                        {VERDICT_LABELS[s.verdict] || s.verdict || 'pending'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="text-xs text-gray-500 dark:text-[#6b7080] capitalize">{s.status}</span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <span className="text-xs text-gray-400 dark:text-[#525666]">
+                        {new Date(s.createdAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {(!stats?.recentSessions || stats.recentSessions.length === 0) && (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-12 text-center">
+                      <Clock className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-2" />
+                      <p className="text-sm text-gray-400 dark:text-[#525666]">No sessions recorded yet</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
