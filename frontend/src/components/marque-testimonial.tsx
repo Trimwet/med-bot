@@ -130,7 +130,11 @@ const TestimonialCard = ({ testimonial, reverse = false }: { testimonial: typeof
 )
 
 export const MarqueeTestimonials = () => {
-  const doubled = [...testimonials, ...testimonials]
+  const mid = Math.ceil(testimonials.length / 2)
+  const topTestimonials = testimonials.slice(0, mid)
+  const bottomTestimonials = testimonials.slice(mid)
+  const topDoubled = [...topTestimonials, ...topTestimonials]
+  const bottomDoubled = [...bottomTestimonials, ...bottomTestimonials]
 
   return (
     <section className="relative w-full overflow-hidden bg-[#0A202A] py-10 sm:py-16">
@@ -168,7 +172,7 @@ export const MarqueeTestimonials = () => {
       {/* Row 1 - left to right */}
       <div className="overflow-hidden">
         <div className="flex gap-3 sm:gap-5 w-max marquee-row-left">
-          {doubled.map((testimonial, i) => (
+          {topDoubled.map((testimonial, i) => (
             <TestimonialCard key={i} testimonial={testimonial} />
           ))}
         </div>
@@ -177,7 +181,7 @@ export const MarqueeTestimonials = () => {
       {/* Row 2 - right to left */}
       <div className="overflow-hidden mt-3 sm:mt-5">
         <div className="flex gap-3 sm:gap-5 w-max marquee-row-right">
-          {doubled.map((testimonial, i) => (
+          {bottomDoubled.map((testimonial, i) => (
             <TestimonialCard key={`second-${i}`} testimonial={testimonial} reverse />
           ))}
         </div>
