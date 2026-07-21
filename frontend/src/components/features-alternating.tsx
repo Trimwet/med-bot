@@ -343,14 +343,16 @@ export const FeaturesAlternating = () => {
       </div>
 
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 sm:gap-16 md:gap-20 md:px-8 lg:gap-24">
-        {features.map((feature, i) => {
+        {features.map((feature) => {
           const Icon = feature.icon
-          const blobRadii = ['30% 70% 70% 30% / 30% 30% 70% 70%', '70% 30% 30% 70% / 60% 40% 60% 40%', '40% 60% 30% 70% / 50% 40% 60% 50%']
           return (
             <div key={feature.title} className="grid grid-cols-1 gap-10 md:gap-20 lg:grid-cols-2 lg:gap-24">
               <div className={cn("max-w-xl flex-1 self-center", feature.reverse && "lg:order-last")}>
-                <div className="flex items-center justify-center size-12 bg-teal/10 text-teal md:size-14" style={{ borderRadius: blobRadii[i] }}>
-                  <Icon className="size-6 md:size-7" strokeWidth={1.5} />
+                <div className="relative size-12 md:size-14">
+                  <div className="absolute inset-0 bg-teal/10 animate-blob" />
+                  <div className="relative flex items-center justify-center size-full">
+                    <Icon className="size-6 md:size-7 text-teal" strokeWidth={1.5} />
+                  </div>
                 </div>
                 <h2 className="mt-5 text-2xl font-semibold text-ink md:text-3xl">{feature.title}</h2>
                 <p className="mt-2 text-base text-muted md:mt-4 md:text-lg">{feature.description}</p>
