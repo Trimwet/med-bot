@@ -333,10 +333,10 @@ export const FeaturesAlternating = () => {
       <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
         <div className="mx-auto flex w-full max-w-3xl flex-col items-center text-center">
           <span className="text-sm font-semibold text-teal md:text-base">Features</span>
-          <h2 className="mt-3 text-3xl font-semibold text-ink md:text-4xl lg:text-5xl">
+          <h2 className="mt-3 text-4xl font-semibold text-ink md:text-5xl lg:text-6xl">
             Clinical intelligence,<br />built for your team
           </h2>
-          <p className="mt-4 text-lg text-muted md:mt-5 md:text-xl">
+          <p className="mt-4 text-base text-muted md:mt-5 md:text-lg">
             Powerful, AI-driven triage and assessment tools to help you evaluate faster, prioritize better, and care for more patients.
           </p>
         </div>
