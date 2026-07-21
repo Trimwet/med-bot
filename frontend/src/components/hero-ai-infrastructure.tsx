@@ -132,7 +132,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
               timelineRef={timelineRef}
               as="a"
               animationNum={6}
-              href="#contact"
+              href="/demo"
               className="cursor-pointer bg-teal text-white px-5 py-2.5 rounded-sm font-semibold flex items-center gap-2 hover:bg-teal/80 transition font-display text-sm sm:whitespace-nowrap justify-center"
             >
               Start Symptom Check <ArrowRight size={16} />
