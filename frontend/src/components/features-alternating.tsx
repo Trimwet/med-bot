@@ -1,11 +1,10 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
-import { Stethoscope, BookOpenText, ArrowRight, Clock, Shield, Database, Cpu, Activity, Lock } from 'lucide-react'
+import { Stethoscope, BookOpenText, ArrowRight, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BrowserMockup } from '@/components/ui/browser-mockup'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { motion } from 'motion/react'
-import { CircuitBoard } from '@/components/ui/circuit-board'
 
 const CheckItem = ({ text }: { text: string }) => (
   <li className="flex items-start gap-3 text-sm text-muted md:text-base">
@@ -275,50 +274,6 @@ const EvidenceMockup = () => (
   </div>
 )
 
-/* ── Architecture Mockup ────────────────────────────────── */
-const ArchitectureMockup = ({ visible = false }: { visible?: boolean }) => {
-  const nodes = [
-    { id: "api-gateway", x: 80, y: 150, label: "API Gateway", icon: <Shield className="w-4 h-4" />, status: "active" as const },
-    { id: "auth", x: 220, y: 80, label: "Auth", icon: <Lock className="w-4 h-4" />, status: "active" as const },
-    { id: "triage-engine", x: 220, y: 220, label: "Triage Engine", icon: <Cpu className="w-4 h-4" />, status: "processing" as const },
-    { id: "ai-model", x: 360, y: 150, label: "AI Model", icon: <Activity className="w-4 h-4" />, status: "active" as const },
-    { id: "database", x: 500, y: 150, label: "Database", icon: <Database className="w-4 h-4" />, status: "active" as const },
-  ]
-
-  const connections = [
-    { from: "api-gateway", to: "auth", animated: true },
-    { from: "api-gateway", to: "triage-engine", animated: true },
-    { from: "auth", to: "ai-model", animated: true },
-    { from: "triage-engine", to: "ai-model", animated: true },
-    { from: "ai-model", to: "database", animated: true },
-  ]
-
-  return (
-    <div className="flex h-80 md:h-96 flex-col p-5 bg-gradient-to-b from-ink/[0.01] to-white">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <div className="text-xs font-semibold text-ink/80">System Architecture</div>
-          <div className="text-[10px] text-ink/40 mt-0.5">Real-time data flow visualization</div>
-        </div>
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-ink/[0.03] text-[10px] text-ink/40">
-          <Activity className="size-2.5" /> Live
-        </div>
-      </div>
-      <div className="flex-1 flex items-center justify-center">
-        <CircuitBoard
-          nodes={nodes}
-          connections={connections}
-          width={560}
-          height={280}
-          showGrid={true}
-          pulseSpeed={2.5}
-          traceWidth={2}
-        />
-      </div>
-    </div>
-  )
-}
-
 /* ── Features Data ─────────────────────────────────────────── */
 const features: Array<{
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>
@@ -368,24 +323,10 @@ const features: Array<{
     url: 'medbot.app/protocols',
     reverse: false,
   },
-  {
-    icon: Cpu,
-    title: 'Sophisticated Architecture',
-    description: 'Our robust infrastructure ensures reliability, security, and scalability. Every component is designed for high availability and performance.',
-    bullets: [
-      'Multi-layered security with end-to-end encryption',
-      'Real-time processing with sub-second response times',
-      'Scalable microservices architecture handling millions of assessments',
-    ],
-    Mockup: ArchitectureMockup,
-    url: 'medbot.app/architecture',
-    reverse: true,
-  },
 ]
 
 export const FeaturesAlternating = () => {
   const { ref: severityRef, inView: severityVisible } = useInView(0.3)
-  const { ref: architectureRef, inView: architectureVisible } = useInView(0.3)
 
   return (
     <section className="flex flex-col gap-12 overflow-hidden bg-white py-16 sm:gap-16 md:gap-20 md:py-24 lg:gap-24">
@@ -422,16 +363,7 @@ export const FeaturesAlternating = () => {
                 </ul>
               </div>
 
-              <div
-                ref={
-                  feature.title === 'Severity Scoring'
-                    ? severityRef
-                    : feature.title === 'Sophisticated Architecture'
-                    ? architectureRef
-                    : undefined
-                }
-                className="relative w-full flex-1 lg:h-[32rem]"
-              >
+              <div ref={feature.title === 'Severity Scoring' ? severityRef : undefined} className="relative w-full flex-1 lg:h-[32rem]">
                 <BrowserMockup
                   url={feature.url}
                   fade
@@ -440,15 +372,7 @@ export const FeaturesAlternating = () => {
                     feature.reverse ? "lg:right-0" : "lg:left-0",
                   )}
                 >
-                  <feature.Mockup
-                    visible={
-                      feature.title === 'Severity Scoring'
-                        ? severityVisible
-                        : feature.title === 'Sophisticated Architecture'
-                        ? architectureVisible
-                        : undefined
-                    }
-                  />
+                  <feature.Mockup visible={feature.title === 'Severity Scoring' ? severityVisible : undefined} />
                 </BrowserMockup>
               </div>
             </div>
