@@ -39,11 +39,13 @@ function getCookie(req: { headers: { cookie?: string } }, name: string) {
 
 function validOAuthState(req: { headers: { cookie?: string } }, state: string | undefined) {
   const cookie = getCookie(req, "oauth_state");
-  if (!cookie || !state) return false;
+  if (!cookie || !state) { console.log("[google-auth] validOAuthState: missing cookie or state", { hasCookie: !!cookie, hasState: !!state }); return false; }
   const [value, signature] = cookie.split(".");
-  if (!value || !signature || value !== state) return false;
+  if (!value || !signature || value !== state) { console.log("[google-auth] validOAuthState: value mismatch", { cookieValue: value, stateParam: state }); return false; }
   const expected = signOAuthState(value);
-  return signature.length === expected.length && timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  const valid = signature.length === expected.length && timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  if (!valid) console.log("[google-auth] validOAuthState: signature mismatch", { cookieSigLen: signature.length, expectedSigLen: expected.length });
+  return valid;
 }
 
 authRoute.post("/api/auth/signup", async (req, res, next) => {
@@ -202,7 +204,6 @@ authRoute.get("/api/auth/google", (req, res) => {
     sameSite: "lax",
     secure: env.isProduction,
     maxAge: 10 * 60 * 1000,
-    path: "/api/auth/google/callback",
   });
   if (from) {
     res.cookie("oauth_from", from, {
@@ -210,7 +211,6 @@ authRoute.get("/api/auth/google", (req, res) => {
       sameSite: "lax",
       secure: env.isProduction,
       maxAge: 10 * 60 * 1000,
-      path: "/api/auth/google/callback",
     });
   }
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -228,14 +228,16 @@ authRoute.get("/api/auth/google", (req, res) => {
 authRoute.get("/api/auth/google/callback", async (req, res) => {
   const code = typeof req.query.code === "string" ? req.query.code : undefined;
   const state = typeof req.query.state === "string" ? req.query.state : undefined;
+  const cookieState = getCookie(req, "oauth_state");
+  console.log("[google-auth] Callback received:", { hasCode: !!code, hasState: !!state, hasCookie: !!cookieState, stateMatch: state === cookieState?.split(".")[0] });
   if (!code || !validOAuthState(req, state)) {
-    console.error("[google-auth] State validation failed or code missing:", { hasCode: !!code, hasState: !!state });
+    console.error("[google-auth] State validation failed or code missing:", { hasCode: !!code, hasState: !!state, hasCookie: !!cookieState });
     res.redirect(`${env.clientUrl}/login?error=google_auth_failed`);
     return;
   }
 
   try {
-    res.clearCookie("oauth_state", { path: "/api/auth/google/callback" });
+    res.clearCookie("oauth_state");
     const redirectUri = env.googleCallbackUrl;
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
@@ -283,11 +285,10 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
     });
 
     const token = signJwtToken(user._id!);
-    const hasProfile = user.profile && Object.keys(user.profile).length > 0;
 
     const fromParam = getCookie(req, "oauth_from") || "";
-    res.clearCookie("oauth_state", { path: "/api/auth/google/callback" });
-    res.clearCookie("oauth_from", { path: "/api/auth/google/callback" });
+    res.clearCookie("oauth_state");
+    res.clearCookie("oauth_from");
 
     // For new B2B Google signups, auto-create a tenant
     if (fromParam === "business" && !user.tenantId) {
@@ -314,7 +315,7 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
     if (fromParam === "business" || (user as any).tenantId) {
       res.redirect(`${env.clientUrl}/business/dashboard#token=${encodeURIComponent(token)}`);
     } else {
-      res.redirect(`${env.clientUrl}/${hasProfile ? "dashboard" : "health-profile"}#token=${encodeURIComponent(token)}`);
+      res.redirect(`${env.clientUrl}/dashboard#token=${encodeURIComponent(token)}`);
     }
   } catch (err: any) {
     console.error("[google-auth] Callback error:", err?.message || err);
