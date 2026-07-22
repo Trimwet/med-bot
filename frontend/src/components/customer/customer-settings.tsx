@@ -12,9 +12,8 @@ import {
 } from 'lucide-react'
 import { BackButton } from '@/components/ui/back-button'
 import { useTheme } from '@/hooks/use-theme'
-import { exportUserData, getNotificationPrefs, updateNotificationPrefs } from '@/lib/api'
+import { exportUserData, getNotificationPrefs, updateNotificationPrefs, getProfile, updateProfile, getAuthUser, changeUserPassword, setUserPassword } from '@/lib/api'
 import { formatPhoneInput, stripPhoneFormat } from '@/lib/utils'
-import { getAuthUser, getProfile, changeUserPassword, setUserPassword } from '@/lib/api'
 
 type NavItem = {
   id: string
@@ -122,6 +121,15 @@ function ProfileSection() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [location, setLocation] = useState('')
+  const [age, setAge] = useState('')
+  const [gender, setGender] = useState('')
+  const [height, setHeight] = useState('')
+  const [weight, setWeight] = useState('')
+  const [bloodGroup, setBloodGroup] = useState('')
+  const [allergies, setAllergies] = useState('')
+  const [conditions, setConditions] = useState('')
+  const [medications, setMedications] = useState('')
+  const [emergencyContact, setEmergencyContact] = useState('')
 
   useEffect(() => {
     getAuthUser().then((res) => {
@@ -132,10 +140,34 @@ function ProfileSection() {
       const p = res.profile as Record<string, any>
       if (p.phone) setPhone(p.phone)
       if (p.location) setLocation(p.location)
+      if (p.age) setAge(String(p.age))
+      if (p.gender) setGender(p.gender)
+      if (p.heightCm) setHeight(String(p.heightCm))
+      if (p.weightKg) setWeight(String(p.weightKg))
+      if (p.bloodGroup) setBloodGroup(p.bloodGroup)
+      if (p.allergies) setAllergies(p.allergies)
+      if (p.conditions) setConditions(p.conditions)
+      if (p.medications) setMedications(p.medications)
+      if (p.emergencyContact) setEmergencyContact(p.emergencyContact)
     }).catch(() => {})
   }, [])
 
   const inputClass = 'w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C] bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'
+  const selectClass = inputClass
+
+  const saveHealth = (field: string, value: string) => {
+    const update: Record<string, any> = {}
+    if (field === 'age') update.age = value ? Number(value) : undefined
+    else if (field === 'gender') update.gender = value || undefined
+    else if (field === 'heightCm') update.heightCm = value ? Number(value) : undefined
+    else if (field === 'weightKg') update.weightKg = value ? Number(value) : undefined
+    else if (field === 'bloodGroup') update.bloodGroup = value || undefined
+    else if (field === 'allergies') update.allergies = value || undefined
+    else if (field === 'conditions') update.conditions = value || undefined
+    else if (field === 'medications') update.medications = value || undefined
+    else if (field === 'emergencyContact') update.emergencyContact = value || undefined
+    updateProfile(update).catch(() => {})
+  }
 
   return (
     <div className="space-y-6">
@@ -155,6 +187,47 @@ function ProfileSection() {
       </EditableRow>
       <EditableRow label="Location" value={location} expanded={expandedRow === 'location'} onEdit={() => setExpandedRow('location')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
         <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className={inputClass} />
+      </EditableRow>
+
+      <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Health information</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Your medical profile used for triage assessments.</p>
+      </div>
+
+      <EditableRow label="Age" value={age} expanded={expandedRow === 'age'} onEdit={() => setExpandedRow('age')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('age', age); setExpandedRow(null) }}>
+        <input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="e.g. 28" className={inputClass} />
+      </EditableRow>
+      <EditableRow label="Gender" value={gender} expanded={expandedRow === 'gender'} onEdit={() => setExpandedRow('gender')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('gender', gender); setExpandedRow(null) }}>
+        <select value={gender} onChange={(e) => setGender(e.target.value)} className={selectClass}>
+          <option value="">Select</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </EditableRow>
+      <EditableRow label="Height (cm)" value={height} expanded={expandedRow === 'height'} onEdit={() => setExpandedRow('height')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('heightCm', height); setExpandedRow(null) }}>
+        <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g. 170" className={inputClass} />
+      </EditableRow>
+      <EditableRow label="Weight (kg)" value={weight} expanded={expandedRow === 'weight'} onEdit={() => setExpandedRow('weight')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('weightKg', weight); setExpandedRow(null) }}>
+        <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="e.g. 70" className={inputClass} />
+      </EditableRow>
+      <EditableRow label="Blood group" value={bloodGroup} expanded={expandedRow === 'bloodGroup'} onEdit={() => setExpandedRow('bloodGroup')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('bloodGroup', bloodGroup); setExpandedRow(null) }}>
+        <select value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)} className={selectClass}>
+          <option value="">Select</option>
+          {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((g) => <option key={g} value={g}>{g}</option>)}
+        </select>
+      </EditableRow>
+      <EditableRow label="Allergies" value={allergies} expanded={expandedRow === 'allergies'} onEdit={() => setExpandedRow('allergies')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('allergies', allergies); setExpandedRow(null) }}>
+        <input type="text" value={allergies} onChange={(e) => setAllergies(e.target.value)} placeholder="e.g. Penicillin" className={inputClass} />
+      </EditableRow>
+      <EditableRow label="Existing conditions" value={conditions} expanded={expandedRow === 'conditions'} onEdit={() => setExpandedRow('conditions')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('conditions', conditions); setExpandedRow(null) }}>
+        <input type="text" value={conditions} onChange={(e) => setConditions(e.target.value)} placeholder="e.g. Asthma" className={inputClass} />
+      </EditableRow>
+      <EditableRow label="Medications" value={medications} expanded={expandedRow === 'medications'} onEdit={() => setExpandedRow('medications')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('medications', medications); setExpandedRow(null) }}>
+        <input type="text" value={medications} onChange={(e) => setMedications(e.target.value)} placeholder="e.g. Ibuprofen" className={inputClass} />
+      </EditableRow>
+      <EditableRow label="Emergency contact" value={emergencyContact} expanded={expandedRow === 'emergencyContact'} onEdit={() => setExpandedRow('emergencyContact')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('emergencyContact', emergencyContact); setExpandedRow(null) }}>
+        <input type="text" value={emergencyContact} onChange={(e) => setEmergencyContact(e.target.value)} placeholder="Name and phone number" className={inputClass} />
       </EditableRow>
     </div>
   )
