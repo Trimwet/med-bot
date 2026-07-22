@@ -116,7 +116,7 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
       {/* Side Nav */}
       <aside
         className={`
-          fixed md:static inset-y-0 left-0 z-50 md:z-auto md:relative
+          fixed md:static inset-y-0 left-0 z-50 md:z-30 md:relative
           flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f1117]
           transition-all duration-200 ease-in-out shrink-0
           w-[260px] ${collapsed ? 'md:w-[68px]' : 'md:w-[260px]'}
@@ -270,7 +270,7 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Mobile top bar */}
         <div className="md:hidden h-14 flex items-center gap-3 px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f1117] shrink-0">
           <button
