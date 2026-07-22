@@ -718,8 +718,8 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
         {messages.length === 0 && !isBusy ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center max-w-sm mx-auto px-4">
-              <div className="w-12 h-12 rounded-xl bg-[#073B4C]/5 dark:bg-teal/10 flex items-center justify-center mx-auto mb-4">
-                <img src="/assets/Logo.jpeg" alt="" className="w-8 h-8 rounded-lg" />
+              <div className="w-20 h-20 mx-auto mb-4">
+                <img src="/assets/chat-bot.svg" alt="" className="w-full h-full" />
               </div>
               <h2
                 className="text-gray-900 dark:text-gray-100 text-base font-semibold mb-1.5 transition-opacity duration-500"
