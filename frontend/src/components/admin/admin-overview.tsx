@@ -18,6 +18,7 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  Brush,
 } from 'recharts'
 import { useChartTheme, CustomTooltip } from '@/components/ui/chart-theme'
 import { adminApi } from './admin-api'
@@ -179,15 +180,15 @@ export const AdminOverview = () => {
         <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] p-5">
           <div className="mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Session Growth</h3>
-            <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Daily session volume</p>
+            <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Drag the brush below to zoom into a time range</p>
           </div>
-          <div className="h-52">
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dailySessions}>
+              <AreaChart data={dailySessions} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="adminSessionGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={theme.areaStroke} stopOpacity={0.15} />
-                    <stop offset="100%" stopColor={theme.areaStroke} stopOpacity={0} />
+                    <stop offset="0%" stopColor={theme.areaStroke} stopOpacity={0.25} />
+                    <stop offset="100%" stopColor={theme.areaStroke} stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke={theme.grid.stroke} strokeDasharray={theme.grid.strokeDasharray} vertical={false} />
@@ -195,6 +196,14 @@ export const AdminOverview = () => {
                 <YAxis tick={theme.axis} allowDecimals={false} axisLine={false} tickLine={false} width={30} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: theme.cursor }} />
                 <Area type="monotone" dataKey="count" stroke={theme.areaStroke} fill="url(#adminSessionGrad)" strokeWidth={2} dot={false} activeDot={{ fill: theme.activeDotFill, stroke: theme.activeDotStroke, strokeWidth: 2, r: 4 }} />
+                <Brush
+                  dataKey="date"
+                  height={24}
+                  stroke={theme.areaStroke}
+                  fill="#f9fafb"
+                  travellerWidth={8}
+                  tickFormatter={(v) => { const d = new Date(v); return `${d.getMonth() + 1}/${d.getDate()}` }}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
