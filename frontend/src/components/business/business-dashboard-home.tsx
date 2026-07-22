@@ -1,5 +1,26 @@
 import { useState, useEffect } from 'react'
 import { Calendar, Download, AlertTriangle, ClipboardList, UserCog, MoreVertical, RefreshCw } from 'lucide-react'
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Brush,
+} from 'recharts'
+
+const weeklyData = [
+  { week: 'W1', assessments: 42 },
+  { week: 'W2', assessments: 58 },
+  { week: 'W3', assessments: 71 },
+  { week: 'W4', assessments: 63 },
+  { week: 'W5', assessments: 89 },
+  { week: 'W6', assessments: 76 },
+  { week: 'W7', assessments: 95 },
+  { week: 'W8', assessments: 110 },
+]
 
 export const BusinessDashboardHome = () => {
   const [dateRange] = useState('May 1 - May 26, 2026')
@@ -87,8 +108,56 @@ export const BusinessDashboardHome = () => {
             <h3 className="font-semibold text-gray-900 dark:text-[#e8eaed]">Weekly Trends</h3>
             <span className="text-xs text-gray-500 dark:text-[#6b7080] bg-gray-100 dark:bg-[#1a1d25] px-3 py-1 rounded-full">Last 8 Weeks ▾</span>
           </div>
-          <div className="h-44 flex items-center justify-center text-gray-400 dark:text-[#525666] text-sm">
-            Chart data loading...
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={weeklyData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="weeklyGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00A8A8" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#00A8A8" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <XAxis
+                  dataKey="week"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="assessments"
+                  stroke="#00A8A8"
+                  strokeWidth={2}
+                  fill="url(#weeklyGradient)"
+                  dot={{ r: 3, fill: '#00A8A8', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: '#00A8A8', stroke: '#fff', strokeWidth: 2 }}
+                />
+                <Brush
+                  dataKey="week"
+                  height={28}
+                  stroke="#00A8A8"
+                  fill="#f9fafb"
+                  travellerWidth={8}
+                  startIndex={0}
+                  endIndex={weeklyData.length - 1}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
