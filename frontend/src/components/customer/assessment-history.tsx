@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, ChevronRight, FileText, Loader2, MessageSquare, Plus, RefreshCw } from 'lucide-react'
+import { Calendar, ChevronRight, Loader2, MessageSquare, Plus, RefreshCw } from 'lucide-react'
 import { ApiError, listSessions, type SessionEntry } from '@/lib/api'
 
 type Filter = 'All' | 'Ongoing' | 'Completed'
@@ -56,7 +56,7 @@ export const AssessmentHistory = () => {
       <div className="flex items-center justify-between gap-2"><div className="flex gap-1.5 overflow-x-auto">{FILTERS.map((item) => <button key={item} onClick={() => setFilter(item)} className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${filter === item ? 'bg-[#073B4C] text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}`}>{item}</button>)}</div><button onClick={load} aria-label="Refresh assessments" className="p-2 text-gray-400 hover:text-[#073B4C]"><RefreshCw className="w-4 h-4" /></button></div>
     </div>
     <div className="flex-1 min-h-0 overflow-y-auto">
-      {loading ? <div className="h-full grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-[#073B4C]" /></div> : error ? <div className="p-6 text-center"><p className="text-sm text-gray-600 dark:text-gray-300">{error}</p><button onClick={load} className="mt-3 text-sm text-[#073B4C] font-medium">Try again</button></div> : filtered.length === 0 ? <div className="h-full grid place-items-center text-center p-6"><div><FileText className="w-6 h-6 text-gray-400 mx-auto mb-2" /><p className="text-sm font-medium text-gray-900 dark:text-gray-100">No assessments found</p><p className="text-xs text-gray-500 mt-1">Start a conversation to create an assessment.</p></div></div> : <div className="divide-y divide-gray-100 dark:divide-gray-800">{filtered.map((session) => {
+      {loading ? <div className="h-full grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-[#073B4C]" /></div> : error ? <div className="p-6 text-center"><p className="text-sm text-gray-600 dark:text-gray-300">{error}</p><button onClick={load} className="mt-3 text-sm text-[#073B4C] font-medium">Try again</button></div> : filtered.length === 0 ? <div className="h-full grid place-items-center text-center p-6"><div className="flex flex-col items-center"><img src="/assets/chat-assessment-empty.svg" alt="" className="w-48 h-auto mb-4 opacity-80" /><p className="text-sm font-medium text-gray-900 dark:text-gray-100">No assessments yet</p><p className="text-xs text-gray-500 mt-1 max-w-[220px]">Start a conversation with MedBot and your assessments will appear here.</p></div></div> : <div className="divide-y divide-gray-100 dark:divide-gray-800">{filtered.map((session) => {
         const outcome = verdictLabel(session.verdict)
         const completed = session.status === 'closed' || Boolean(session.verdict)
         return <button key={session.sessionId} onClick={() => navigate(completed && session.verdict ? `/dashboard/health-reports?session=${session.sessionId}` : `/dashboard?session=${session.sessionId}`)} className="w-full text-left px-3 sm:px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50">
