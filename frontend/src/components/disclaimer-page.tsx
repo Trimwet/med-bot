@@ -25,6 +25,7 @@ export const DisclaimerPage = ({ onBack, onAccept }: DisclaimerPageProps) => {
             </button>
             {/* Logo */}
             <div className="flex flex-col items-center pt-4">
+              <img src="/assets/contract-signed.svg" alt="" className="w-40 h-auto mb-4" />
               <div className="w-18 h-18 rounded-xl bg-teal flex items-center justify-center text-white font-extrabold text-lg font-display mb-4">
                 <img src="/assets/Logo.jpeg" alt="MedBot Logo" />
               </div>
