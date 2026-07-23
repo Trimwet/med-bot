@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Mail, CheckCircle, XCircle, Search, UserCheck, UserX, Users, Trash2 } from 'lucide-react'
+import { Mail, CheckCircle, XCircle, Search, UserCheck, UserX, Users, Trash2, AlertTriangle, X } from 'lucide-react'
 import { adminApi } from './admin-api'
 
 interface UserData {
@@ -30,6 +30,7 @@ export const AdminUsers = () => {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null)
 
   useEffect(() => {
     adminApi.getUsers()
@@ -50,15 +51,16 @@ export const AdminUsers = () => {
     return matchSearch && matchFilter
   })
 
-  const handleDelete = async (userId: string, userName: string) => {
-    if (!confirm(`Delete user "${userName}"? This cannot be undone.`)) return
-    setDeletingId(userId)
+  const handleDelete = async () => {
+    if (!confirmDelete) return
+    const { id, name } = confirmDelete
+    setDeletingId(id)
+    setConfirmDelete(null)
     try {
-      await adminApi.deleteUser(userId)
-      setUsers((prev) => prev.filter((u) => u._id !== userId))
+      await adminApi.deleteUser(id)
+      setUsers((prev) => prev.filter((u) => u._id !== id))
     } catch (err) {
       console.error('Failed to delete user:', err)
-      alert('Failed to delete user. Please try again.')
     } finally {
       setDeletingId(null)
     }
@@ -207,7 +209,7 @@ export const AdminUsers = () => {
                   </td>
                   <td className="px-3 py-3.5">
                     <button
-                      onClick={() => handleDelete(u._id, u.name || u.email)}
+                      onClick={() => setConfirmDelete({ id: u._id, name: u.name || u.email })}
                       disabled={deletingId === u._id}
                       className="p-1.5 text-gray-300 dark:text-[#525666] hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
                     >
@@ -240,6 +242,43 @@ export const AdminUsers = () => {
           </div>
         )}
       </div>
+      {/* Delete Confirmation Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setConfirmDelete(null)} />
+          <div className="relative bg-white dark:bg-[#1a1d25] rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <button
+              onClick={() => setConfirmDelete(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-[#e8eaed]">Delete User</h3>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-[#6b7080] mb-6">
+              Are you sure you want to delete <span className="font-medium text-gray-900 dark:text-[#e8eaed]">{confirmDelete.name}</span>? This action cannot be undone.
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-[#a0a4ad] bg-gray-100 dark:bg-[#22252d] hover:bg-gray-200 dark:hover:bg-[#2a2d35] rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
