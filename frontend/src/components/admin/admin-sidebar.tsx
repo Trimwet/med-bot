@@ -10,7 +10,6 @@ import {
   X,
   ChevronsLeft,
   ChevronsRight,
-  Shield,
 } from 'lucide-react'
 import { clearAdminSecret } from './admin-api'
 
@@ -53,9 +52,7 @@ export const AdminSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange }: 
         <div className={`h-16 flex items-center border-b border-gray-200 dark:border-[#1e2028] shrink-0 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-[#073B4C] flex items-center justify-center">
-                <Shield className="w-4 h-4 text-white" />
-              </div>
+              <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto" />
               <div>
                 <p className="font-bold text-gray-900 dark:text-[#e8eaed] text-sm">MedBot</p>
                 <p className="text-[10px] text-gray-400 dark:text-[#525666]">Super Admin</p>
@@ -63,9 +60,7 @@ export const AdminSidebar = ({ isOpen, onClose, collapsed, onCollapsedChange }: 
             </div>
           )}
           {collapsed && (
-            <div className="h-8 w-8 rounded-lg bg-[#073B4C] flex items-center justify-center">
-              <Shield className="w-4 h-4 text-white" />
-            </div>
+            <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto" />
           )}
           <button
             onClick={onClose}
