@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useInView } from 'motion/react'
 import NumberFlow from '@number-flow/react'
 import { prepareWithSegments, measureNaturalWidth } from '@chenglou/pretext'
+import { getPublicStats, type PublicStats } from '@/lib/api'
 
 interface AnimatedStatProps {
   value: number
@@ -41,7 +42,7 @@ function AnimatedStat({ value, suffix = '', decimals = 0, label, labelWidth, val
   )
 }
 
-const stats = [
+const fallbackStats = [
   { value: 500, suffix: '+', decimals: 0, label: 'Patients triaged' },
   { value: 62, suffix: '%', decimals: 0, label: 'Avg wait reduction' },
   { value: 99.9, suffix: '%', decimals: 1, label: 'Uptime' },
@@ -51,6 +52,20 @@ const stats = [
 export const StatsSection = () => {
   const headerRef = useRef(null)
   const headerInView = useInView(headerRef, { once: true, margin: '-50px' })
+  const [stats, setStats] = useState(fallbackStats)
+
+  useEffect(() => {
+    getPublicStats()
+      .then((data: PublicStats) => {
+        setStats([
+          { value: data.patientsTriaged || 500, suffix: '+', decimals: 0, label: 'Patients triaged' },
+          { value: 62, suffix: '%', decimals: 0, label: 'Avg wait reduction' },
+          { value: data.uptime || 99.9, suffix: '%', decimals: 1, label: 'Uptime' },
+          { value: data.hospitals || 120, suffix: '+', decimals: 0, label: 'Hospital partners' },
+        ])
+      })
+      .catch(() => {})
+  }, [])
 
   const measurements = useMemo(() => {
     try {
@@ -67,7 +82,7 @@ export const StatsSection = () => {
     } catch {
       return { valueWidths: stats.map(() => 0), labelWidths: stats.map(() => 0), maxValueWidth: 0, maxLabelWidth: 0 }
     }
-  }, [])
+  }, [stats])
 
   return (
     <section className="pt-16 pb-16 px-6 bg-[#0A202A] text-white relative overflow-hidden">
@@ -100,13 +115,13 @@ export const StatsSection = () => {
             <div className="space-y-6 relative z-10">
               <p className="text-lg md:text-xl text-[#9CA3AF] leading-relaxed text-pretty font-medium">
                 MedBot interviews patients by chat or phone, sorts them by
-                clinical urgency, and hands your team a ready queue — not
+                clinical urgency, and hands your team a ready queue not
                 another inbox to sift through.
               </p>
               <div className="h-px w-20 bg-[#9CA3AF]/30" />
               <p className="text-base text-[#9CA3AF]/70 leading-relaxed text-pretty">
                 Every patient gets asked the same clinically grounded questions,
-                every time. Your clinicians always make the final call — MedBot
+                every time. Your clinicians always make the final call MedBot
                 just makes sure nothing falls through the cracks.
               </p>
             </div>

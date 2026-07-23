@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { getPublicStats, type PublicStats } from '@/lib/api'
 
 const footerLinks = [
   {
@@ -39,6 +41,16 @@ const footerLinks = [
 ]
 
 export const DetailedFooter = ({ onRequestDemo }: { onRequestDemo?: () => void }) => {
+  const [hospitalCount, setHospitalCount] = useState(120)
+
+  useEffect(() => {
+    getPublicStats()
+      .then((data: PublicStats) => {
+        if (data.hospitals) setHospitalCount(data.hospitals)
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <footer className="w-full bg-[#0A202A] text-white border-t border-white/5">
       {/* CTA */}
@@ -48,7 +60,7 @@ export const DetailedFooter = ({ onRequestDemo }: { onRequestDemo?: () => void }
             Let's turn your intake line into a sorted queue.
           </h2>
           <p className="text-[#9CA3AF] mb-6 max-w-lg mx-auto text-sm">
-            Join 120+ hospitals already using MedBot to triage patients faster and reduce wait times.
+            Join {hospitalCount}+ hospitals already using MedBot to triage patients faster and reduce wait times.
           </p>
           <button
             type="button"

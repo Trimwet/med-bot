@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { TimelineAnimation } from '@/components/ui/timeline-animation'
 import SplitText from '@/components/ui/SplitText'
+import { getPublicStats, type PublicStats } from '@/lib/api'
 
 const ROTATING_WORDS = [
   'Always Available',
@@ -26,6 +27,7 @@ interface HeroAiInfrastructureProps {
 export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) => {
   const timelineRef = useRef<HTMLDivElement>(null)
   const [wordIndex, setWordIndex] = useState(0)
+  const [hospitalCount, setHospitalCount] = useState(120)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -33,6 +35,14 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
       setWordIndex((prev) => (prev + 1) % ROTATING_WORDS.length)
     }, 3000)
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    getPublicStats()
+      .then((data: PublicStats) => {
+        if (data.hospitals) setHospitalCount(data.hospitals)
+      })
+      .catch(() => {})
   }, [])
 
   return (
@@ -50,7 +60,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             <span className="py-0.5 px-2.5 rounded-full bg-teal text-white font-semibold text-xs">
               New
             </span>
-            <span>Trusted by 120+ hospital partners</span>
+            <span>Trusted by {hospitalCount}+ hospital partners</span>
           </TimelineAnimation>
 
           <TimelineAnimation

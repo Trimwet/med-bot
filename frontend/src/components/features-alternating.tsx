@@ -300,7 +300,7 @@ const features: Array<{
   {
     icon: Activity,
     title: 'Severity Scoring',
-    description: 'Every assessment is automatically scored and categorized — so your team knows exactly who needs attention first, and who can safely self-manage.',
+    description: 'Every assessment is automatically scored and categorized so your team knows exactly who needs attention first, and who can safely self-manage.',
     bullets: [
       'Three-tier severity: self-care, consult, and emergency',
       'Real-time breakdown across all patient assessments',

@@ -508,3 +508,17 @@ export interface TenantSessionDetail {
 export function getTenantSessionDetail(sessionId: string) {
   return request<TenantSessionDetail>(`/api/tenant/analytics/session/${encodeURIComponent(sessionId)}`)
 }
+
+// ── Public Stats ──────────────────────────────────────────────────────
+
+export interface PublicStats {
+  hospitals: number
+  patientsTriaged: number
+  completedSessions: number
+  totalPatients: number
+  uptime: number
+}
+
+export function getPublicStats() {
+  return request<PublicStats>('/api/stats/public')
+}
