@@ -75,4 +75,8 @@ export const adminApi = {
   getTokenUsage(days = 30) {
     return adminFetch(`${API}/api/v1/analytics/tokens?days=${days}`)
   },
+
+  deleteUser(userId: string) {
+    return adminFetch(`${API}/api/admin/users/${userId}`, { method: 'DELETE' })
+  },
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Mail, CheckCircle, XCircle, Search, UserCheck, UserX, Users, MoreVertical } from 'lucide-react'
+import { Mail, CheckCircle, XCircle, Search, UserCheck, UserX, Users, Trash2 } from 'lucide-react'
 import { adminApi } from './admin-api'
 
 interface UserData {
@@ -29,6 +29,7 @@ export const AdminUsers = () => {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     adminApi.getUsers()
@@ -48,6 +49,20 @@ export const AdminUsers = () => {
       (filter === 'unverified' && !u.isVerified)
     return matchSearch && matchFilter
   })
+
+  const handleDelete = async (userId: string, userName: string) => {
+    if (!confirm(`Delete user "${userName}"? This cannot be undone.`)) return
+    setDeletingId(userId)
+    try {
+      await adminApi.deleteUser(userId)
+      setUsers((prev) => prev.filter((u) => u._id !== userId))
+    } catch (err) {
+      console.error('Failed to delete user:', err)
+      alert('Failed to delete user. Please try again.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const verifiedCount = users.filter((u) => u.isVerified).length
   const unverifiedCount = users.length - verifiedCount
@@ -179,12 +194,24 @@ export const AdminUsers = () => {
                   </td>
                   <td className="px-5 py-3.5 text-right text-xs text-gray-400 dark:text-[#525666] tabular-nums">
                     {u.createdAt
-                      ? new Date(u.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' })
+                      ? (() => {
+                          const d = new Date(u.createdAt)
+                          return (
+                            <span className="inline-flex flex-col items-end gap-0.5">
+                              <span>{d.toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                              <span className="text-[10px] text-gray-300 dark:text-[#2a2d35]">{d.toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </span>
+                          )
+                        })()
                       : '-'}
                   </td>
                   <td className="px-3 py-3.5">
-                    <button className="p-1.5 text-gray-300 dark:text-[#525666] hover:text-gray-500 dark:hover:text-[#a0a4ad] hover:bg-gray-100 dark:hover:bg-[#1e2028] rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                      <MoreVertical className="w-4 h-4" />
+                    <button
+                      onClick={() => handleDelete(u._id, u.name || u.email)}
+                      disabled={deletingId === u._id}
+                      className="p-1.5 text-gray-300 dark:text-[#525666] hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
