@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import {
   Activity,
   Users,
@@ -7,6 +7,9 @@ import {
   TrendingUp,
   TrendingDown,
   Download,
+  FileSpreadsheet,
+  Image,
+  ChevronDown,
 } from 'lucide-react'
 import {
   BarChart,
@@ -23,6 +26,8 @@ import {
 import { useChartTheme, CustomTooltip } from '@/components/ui/chart-theme'
 import { adminApi } from './admin-api'
 import NumberFlow from '@number-flow/react'
+import * as XLSX from 'xlsx'
+import { toPng } from 'html-to-image'
 
 interface Stats {
   totalSessions: number
@@ -76,7 +81,20 @@ export const AdminOverview = () => {
   const [dailyUsers, setDailyUsers] = useState<DailyData[]>([])
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState<(typeof TIME_RANGES)[number]>('30d')
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const overviewRef = useRef<HTMLDivElement>(null)
   const theme = useChartTheme()
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -94,55 +112,69 @@ export const AdminOverview = () => {
   const filteredSessions = filterByDays(dailySessions, days)
   const filteredUsers = filterByDays(dailyUsers, days)
 
-  const handleExport = () => {
-    const kpiRows = [
-      { metric: 'Total Sessions', value: stats?.totalSessions ?? 0 },
-      { metric: 'Active Sessions', value: stats?.activeSessions ?? 0 },
-      { metric: 'Completed Sessions', value: stats?.completedSessions ?? 0 },
-      { metric: 'Emergency Sessions', value: stats?.emergencySessions ?? 0 },
-      { metric: 'Total Users', value: stats?.totalUsers ?? 0 },
-      { metric: 'Total Protocols', value: stats?.totalProtocols ?? 0 },
-      { metric: 'Total Rules', value: stats?.totalRules ?? 0 },
-    ]
-    const verdictRows = Object.entries(stats?.verdictBreakdown ?? {}).map(([verdict, count]) => ({
-      verdict,
-      count,
-    }))
-    const sessionRows = filteredSessions.map((d) => ({ date: d.date, sessions: d.count }))
-    const userRows = filteredUsers.map((d) => ({ date: d.date, users: d.count }))
-    const recentRows = (stats?.recentSessions ?? []).map((s) => ({
-      sessionId: s.sessionId,
-      verdict: s.verdict,
-      status: s.status,
-      createdAt: s.createdAt,
-    }))
+  const handleExportExcel = () => {
+    setDropdownOpen(false)
+    const wb = XLSX.utils.book_new()
 
-    const parts = [
-      'KPI Summary',
-      ...kpiRows.map((r) => `${r.metric},${r.value}`),
-      '',
-      'Verdict Breakdown',
-      'verdict,count',
-      ...verdictRows.map((r) => `${r.verdict},${r.count}`),
-      '',
-      `Session Growth (${timeRange})`,
-      'date,sessions',
-      ...sessionRows.map((r) => `${r.date},${r.sessions}`),
-      '',
-      `User Growth (${timeRange})`,
-      'date,users',
-      ...userRows.map((r) => `${r.date},${r.users}`),
-      '',
-      'Recent Sessions',
-      'sessionId,verdict,status,createdAt',
-      ...recentRows.map((r) => `${r.sessionId},${r.verdict},${r.status},${r.createdAt}`),
+    const kpiData = [
+      ['Metric', 'Value'],
+      ['Total Sessions', stats?.totalSessions ?? 0],
+      ['Active Sessions', stats?.activeSessions ?? 0],
+      ['Completed Sessions', stats?.completedSessions ?? 0],
+      ['Emergency Sessions', stats?.emergencySessions ?? 0],
+      ['Total Users', stats?.totalUsers ?? 0],
+      ['Total Protocols', stats?.totalProtocols ?? 0],
+      ['Total Rules', stats?.totalRules ?? 0],
     ]
-    const blob = new Blob([parts.join('\n')], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `medbot-overview-${timeRange}-${new Date().toISOString().slice(0, 10)}.csv`
-    link.click()
-    URL.revokeObjectURL(link.href)
+    const kpiSheet = XLSX.utils.aoa_to_sheet(kpiData)
+    XLSX.utils.book_append_sheet(wb, kpiSheet, 'KPI Summary')
+
+    const verdictData = [
+      ['Verdict', 'Count'],
+      ...Object.entries(stats?.verdictBreakdown ?? {}).map(([verdict, count]) => [verdict, count]),
+    ]
+    const verdictSheet = XLSX.utils.aoa_to_sheet(verdictData)
+    XLSX.utils.book_append_sheet(wb, verdictSheet, 'Verdict Breakdown')
+
+    const sessionData = [
+      ['Date', 'Sessions'],
+      ...filteredSessions.map((d) => [d.date, d.count]),
+    ]
+    const sessionSheet = XLSX.utils.aoa_to_sheet(sessionData)
+    XLSX.utils.book_append_sheet(wb, sessionSheet, `Sessions (${timeRange})`)
+
+    const userData = [
+      ['Date', 'Users'],
+      ...filteredUsers.map((d) => [d.date, d.count]),
+    ]
+    const userSheet = XLSX.utils.aoa_to_sheet(userData)
+    XLSX.utils.book_append_sheet(wb, userSheet, `Users (${timeRange})`)
+
+    const recentData = [
+      ['Session ID', 'Verdict', 'Status', 'Created At'],
+      ...(stats?.recentSessions ?? []).map((s) => [s.sessionId, s.verdict, s.status, s.createdAt]),
+    ]
+    const recentSheet = XLSX.utils.aoa_to_sheet(recentData)
+    XLSX.utils.book_append_sheet(wb, recentSheet, 'Recent Sessions')
+
+    XLSX.writeFile(wb, `medbot-overview-${timeRange}-${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
+  const handleExportImage = async () => {
+    setDropdownOpen(false)
+    if (!overviewRef.current) return
+    try {
+      const dataUrl = await toPng(overviewRef.current, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+      })
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `medbot-overview-${timeRange}-${new Date().toISOString().slice(0, 10)}.png`
+      link.click()
+    } catch (err) {
+      console.error('Failed to export image:', err)
+    }
   }
 
   if (loading) {
@@ -177,7 +209,7 @@ export const AdminOverview = () => {
   const totalVerdicts = verdictEntries.reduce((s, [, v]) => s + v, 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={overviewRef}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -200,13 +232,34 @@ export const AdminOverview = () => {
               </button>
             ))}
           </div>
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 dark:border-[#1e2028] rounded-lg text-sm font-medium text-gray-700 dark:text-[#a0a4ad] hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 dark:border-[#1e2028] rounded-lg text-sm font-medium text-gray-700 dark:text-[#a0a4ad] hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {dropdownOpen && (
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#1a1d25] border border-gray-200 dark:border-[#1e2028] rounded-xl shadow-lg py-1 z-50">
+                <button
+                  onClick={handleExportExcel}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-[#a0a4ad] hover:bg-gray-50 dark:hover:bg-[#22252d] transition-colors"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                  Export as Excel
+                </button>
+                <button
+                  onClick={handleExportImage}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-[#a0a4ad] hover:bg-gray-50 dark:hover:bg-[#22252d] transition-colors"
+                >
+                  <Image className="w-4 h-4 text-blue-500" />
+                  Download as Image
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
