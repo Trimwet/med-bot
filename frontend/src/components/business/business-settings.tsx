@@ -751,7 +751,7 @@ function EmbedSection() {
                 {saved && <Check className="w-3.5 h-3.5" />}
               </button>
               <button
-                onClick={() => setBranding({ primaryColor: '#00A8A8', secondaryColor: '#073B4C', welcomeMessage: 'Hello! I\'m MedBot, your medical triage assistant. How can I help you today?', theme: 'light' })}
+                onClick={() => setBranding({ primaryColor: '#00A8A8', secondaryColor: '#073B4C', welcomeMessage: 'Hello! I\'m MedBot, your medical triage assistant. How can I help you today?', theme: 'light', logoUrl: '', clinicName: '' })}
                 className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-[#a0a4ad] hover:text-gray-900 dark:hover:text-[#e8eaed] transition-colors"
               >
                 Reset

@@ -141,12 +141,8 @@ function ProfileSection() {
         if (p.location) setLocation(p.location)
         if (p.age) setAge(String(p.age))
         if (p.gender) setGender(p.gender)
-        if (p.heightCm) setHeight(String(p.heightCm))
-        if (p.weightKg) setWeight(String(p.weightKg))
         if (p.bloodGroup) setBloodGroup(p.bloodGroup)
-        if (p.allergies) setAllergies(p.allergies)
         if (p.conditions) setConditions(p.conditions)
-        if (p.medications) setMedications(p.medications)
         if (p.emergencyContact) setEmergencyContact(p.emergencyContact)
       }),
     ]).catch(() => {}).finally(() => setLoadingProfile(false))
