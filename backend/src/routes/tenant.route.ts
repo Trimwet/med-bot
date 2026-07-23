@@ -22,22 +22,9 @@ tenantRoute.post("/api/tenants/signup", async (req, res, next) => {
   try {
     const { orgName, orgType, country, email, phone, orgSize, password } = req.body;
     const result = await signupTenant({ orgName, orgType, country, email, phone, orgSize, password });
-    const sent = await sendOtpEmail(email, result.otp);
-
-    if (env.nodeEnv === "development") {
-      logger.info(`[DEV OTP] tenant signup for ${email}: ${result.otp}`);
-    }
-
-    if (!sent) {
-      res.json({
-        message: result.message,
-        emailSent: false,
-      });
-      return;
-    }
-
-    res.json({ message: result.message, emailSent: true });
+    res.json({ message: result.message, token: result.token, tenant: result.tenant, emailSent: false });
   } catch (err) {
+    console.error("[tenant-signup]", err);
     next(err);
   }
 });
@@ -116,6 +103,10 @@ tenantRoute.get("/api/tenants/me", authMiddleware, async (req, res, next) => {
       entitlements: tenant.entitlements,
       whitelabelConfig: tenant.whitelabelConfig,
       webhookConfig: tenant.webhookConfig,
+      contactEmail: tenant.contactEmail || user.email,
+      contactPhone: tenant.contactPhone || (user as any).phone || '',
+      address: tenant.address || '',
+      website: tenant.website || '',
       createdAt: tenant.createdAt,
     });
   } catch (err) {
@@ -138,6 +129,33 @@ tenantRoute.put("/api/tenants/:id/branding", authMiddleware, async (req, res, ne
       ...(welcomeMessage !== undefined && { welcomeMessage }),
       ...(theme !== undefined && { theme }),
     });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+tenantRoute.put("/api/tenants/:id/profile", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user.id;
+    const user = await getUserById(userId);
+    if (!user?.tenantId || user.tenantId !== req.params.id) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+    const { name, contactPhone, address, website } = req.body;
+    const db = await import("@/db/client").then((m) => m.getDb());
+    const updateFields: Record<string, unknown> = {};
+    if (name !== undefined) updateFields.name = name;
+    if (contactPhone !== undefined) updateFields.contactPhone = contactPhone;
+    if (address !== undefined) updateFields.address = address;
+    if (website !== undefined) updateFields.website = website;
+    if (Object.keys(updateFields).length > 0) {
+      await db.collection("tenants").updateOne(
+        { _id: new (await import("mongodb")).ObjectId(req.params.id) },
+        { $set: updateFields }
+      );
+    }
     res.json({ success: true });
   } catch (err) {
     next(err);

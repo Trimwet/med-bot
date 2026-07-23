@@ -88,22 +88,31 @@ export async function signupTenant(input: TenantSignupInput) {
   const tenants = db.collection<TenantDocument>(COLLECTIONS.tenants);
 
   const existingUser = await users.findOne({ email });
-  if (existingUser?.isVerified) {
-    throw new AppError("An account with this email already exists", 409, "USER_EXISTS");
+  if (existingUser?.isVerified && existingUser?.tenantId) {
+    throw new AppError("This email is already registered as a business account. Please log in instead.", 409, "USER_EXISTS");
   }
 
-  const otp = generateOtp();
-  const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+  // NOTE: To re-enable OTP verification, uncomment the lines below and
+  // set isVerified to false. Then restore the OTP step in business-signup.tsx
+  // and the sendOtpEmail/verifyTenantOtp flow in tenant.route.ts / tenant.service.ts.
+  //
+  // const otp = generateOtp();
+  // const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+  //
   const hashedPassword = hashPassword(input.password);
   const now = new Date().toISOString();
 
-  // Create tenant
-  const slug = generateSlug(input.orgName);
+  // Create tenant — ensure slug is unique
+  const baseSlug = generateSlug(input.orgName);
+  const suffix = Math.random().toString(36).slice(2, 8);
+  const slug = `${baseSlug}-${suffix}`;
+  const name = input.orgName;
+
   const plan: TenantPlan = "starter";
   const entitlements = PLAN_ENTITLEMENTS[plan];
   
   const tenantDoc: TenantDocument = {
-    name: input.orgName,
+    name,
     slug,
     status: "trial",
     plan,
@@ -134,12 +143,11 @@ export async function signupTenant(input: TenantSignupInput) {
           name: input.orgName,
           email,
           password: hashedPassword,
-          otp,
-          otpExpires,
-          isVerified: false,
+          isVerified: true,
           tenantId,
           updatedAt: now,
         },
+        $unset: { otp: "", otpExpires: "" },
       }
     );
   } else {
@@ -152,16 +160,16 @@ export async function signupTenant(input: TenantSignupInput) {
       country: input.country,
       orgSize: input.orgSize,
       tenantId,
-      otp,
-      otpExpires,
-      isVerified: false,
+      isVerified: true,
       role: "admin",
       createdAt: now,
       updatedAt: now,
     } as any);
   }
 
-  return { otp, message: "Organization created. Check your email for the verification code." };
+  const user = await users.findOne({ email });
+  const token = signJwtToken(user!._id!);
+  return { token, tenant: toPublicTenant(user!, tenantDoc as TenantDocument), message: "Organization created successfully." };
 }
 
 export async function verifyTenantOtp(input: { email: string; otp: string }) {

@@ -107,10 +107,42 @@ function ProfileSection() {
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [website, setWebsite] = useState('')
+  const [tenantId, setTenantId] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    // TODO: Fetch hospital profile from API
+    const token = localStorage.getItem('token')
+    if (!token) return
+    fetch(`${API_URL}/api/tenants/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data._id) {
+          setTenantId(data._id)
+          setHospitalName(data.name || '')
+          setEmail(data.contactEmail || '')
+          setPhone(data.contactPhone || '')
+          setAddress(data.address || '')
+          setWebsite(data.website || '')
+        }
+      })
+      .catch(() => {})
   }, [])
+
+  const handleSave = async (field: string, value: string) => {
+    if (!tenantId) return
+    setSaving(true)
+    try {
+      const token = localStorage.getItem('token')
+      await fetch(`${API_URL}/api/tenants/${tenantId}/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ [field]: value }),
+      })
+    } catch {}
+    setSaving(false)
+  }
 
   const inputClass = 'w-full px-3 py-2 text-sm border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#1a1d25] text-gray-900 dark:text-[#e8eaed] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C]'
 
@@ -122,19 +154,19 @@ function ProfileSection() {
       </div>
 
       <div className="space-y-0">
-        <EditableRow label="Hospital name" value={hospitalName || '-'} expanded={expandedRow === 'name'} onEdit={() => setExpandedRow('name')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
+        <EditableRow label="Hospital name" value={hospitalName || '-'} expanded={expandedRow === 'name'} onEdit={() => setExpandedRow('name')} onCancel={() => setExpandedRow(null)} onSave={() => { handleSave('name', hospitalName); setExpandedRow(null) }}>
           <input type="text" value={hospitalName} onChange={(e) => setHospitalName(e.target.value)} className={inputClass} />
         </EditableRow>
-        <EditableRow label="Address" value={address || '-'} expanded={expandedRow === 'address'} onEdit={() => setExpandedRow('address')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
+        <EditableRow label="Address" value={address || '-'} expanded={expandedRow === 'address'} onEdit={() => setExpandedRow('address')} onCancel={() => setExpandedRow(null)} onSave={() => { handleSave('address', address); setExpandedRow(null) }}>
           <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} />
         </EditableRow>
-        <EditableRow label="Phone number" value={phone || '-'} expanded={expandedRow === 'phone'} onEdit={() => setExpandedRow('phone')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
+        <EditableRow label="Phone number" value={phone || '-'} expanded={expandedRow === 'phone'} onEdit={() => setExpandedRow('phone')} onCancel={() => setExpandedRow(null)} onSave={() => { handleSave('contactPhone', phone); setExpandedRow(null) }}>
           <input type="tel" value={phone} onChange={(e) => setPhone(formatPhoneInput(e.target.value))} placeholder="e.g. 09063546819" className={inputClass} />
         </EditableRow>
-        <EditableRow label="Email" value={email || '-'} expanded={expandedRow === 'email'} onEdit={() => setExpandedRow('email')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
+        <EditableRow label="Email" value={email || '-'} expanded={expandedRow === 'email'} onEdit={() => setExpandedRow('email')} onCancel={() => setExpandedRow(null)} onSave={() => { handleSave('contactEmail', email); setExpandedRow(null) }}>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
         </EditableRow>
-        <EditableRow label="Website" value={website || '-'} expanded={expandedRow === 'website'} onEdit={() => setExpandedRow('website')} onCancel={() => setExpandedRow(null)} onSave={() => setExpandedRow(null)}>
+        <EditableRow label="Website" value={website || '-'} expanded={expandedRow === 'website'} onEdit={() => setExpandedRow('website')} onCancel={() => setExpandedRow(null)} onSave={() => { handleSave('website', website); setExpandedRow(null) }}>
           <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} className={inputClass} />
         </EditableRow>
       </div>

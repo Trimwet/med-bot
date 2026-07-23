@@ -5,8 +5,15 @@ import {
   ChevronDown,
   ChevronLeft,
 } from 'lucide-react'
-import { tenantSignup, tenantVerifyOtp } from '@/lib/api'
+import { tenantSignup } from '@/lib/api'
 import { formatPhoneInput } from '@/lib/utils'
+
+// NOTE: To re-enable OTP verification for business signups:
+// 1. Import tenantVerifyOtp from '@/lib/api'
+// 2. Restore the otpStep state and OTP input UI below
+// 3. In handleSubmit, set otpStep(true) after tenantSignup instead of calling onSignupSuccess directly
+// 4. Add back handleVerifyOtp that calls tenantVerifyOtp(email, otp) and calls onSignupSuccess with the returned token
+// 5. On the backend, restore OTP generation in signupTenant and the sendOtpEmail/verifyTenantOtp flow
 
 interface BusinessSignupProps {
   onBack?: () => void
@@ -44,8 +51,6 @@ export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSig
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [otpStep, setOtpStep] = useState(false)
-  const [otp, setOtp] = useState('')
 
   const handleChange = (field: string, value: string) => {
     setForm({ ...form, [field]: value })
@@ -70,64 +75,16 @@ export const BusinessSignup = ({ onBack, onLogin, onSignupSuccess }: BusinessSig
         orgSize: form.orgSize,
         password: form.password,
       })
-      if (res.emailSent !== false) {
-        setOtpStep(true)
+      if (res.token) {
+        onSignupSuccess?.(res.token)
       } else {
-        setError('Could not send OTP email. Contact support.')
+        setError('Signup succeeded but no token received.')
       }
     } catch (err: any) {
       setError(err?.message || 'Signup failed')
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      const res = await tenantVerifyOtp(form.email, otp)
-      if (res.token) {
-        onSignupSuccess?.(res.token)
-      }
-    } catch (err: any) {
-      setError(err?.message || 'Verification failed')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (otpStep) {
-    return (
-      <div className="min-h-screen bg-[#EFF6FF] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 text-center">
-          <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Verify Your Email</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            We sent a 6-digit code to <strong>{form.email}</strong>
-          </p>
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <input
-              type="text"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="Enter OTP"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg text-center tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-[#073B4C]/30"
-              maxLength={6}
-            />
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading || otp.length < 6}
-              className="w-full bg-[#073B4C] text-white py-3 rounded-lg font-semibold text-sm hover:bg-[#0A202A] transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Verifying...' : 'Verify OTP'}
-            </button>
-          </form>
-        </div>
-      </div>
-    )
   }
 
   return (

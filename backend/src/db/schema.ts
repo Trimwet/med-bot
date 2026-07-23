@@ -107,6 +107,9 @@ export interface TenantDocument {
   };
   contactEmail?: string;
   billingEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  website?: string;
   createdAt: string;
 }
 
