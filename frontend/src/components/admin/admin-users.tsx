@@ -246,13 +246,13 @@ export const AdminUsers = () => {
         {filtered.map((u) => (
           <div key={u._id} className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-start gap-3 min-w-0">
                 <div className="w-9 h-9 rounded-full bg-[#073B4C]/10 flex items-center justify-center shrink-0">
                   <span className="text-xs font-semibold text-[#073B4C]">{initials(u.name, u.email)}</span>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-gray-900 dark:text-[#e8eaed] truncate">{u.name || 'Unnamed User'}</p>
-                  <p className="text-xs text-gray-400 dark:text-[#525666] flex items-center gap-1 truncate">
+                <div className="min-w-0 break-words">
+                  <p className="font-medium text-gray-900 dark:text-[#e8eaed] break-words">{u.name || 'Unnamed User'}</p>
+                  <p className="text-xs text-gray-400 dark:text-[#525666] flex items-center gap-1 break-all">
                     <Mail className="w-3 h-3 shrink-0" />
                     {u.email}
                   </p>

@@ -232,13 +232,13 @@ export const AdminPartners = () => {
         {filtered.map((p) => (
           <div key={p.id} className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-start gap-3 min-w-0">
                 <div className="w-9 h-9 rounded-lg bg-[#073B4C]/10 flex items-center justify-center shrink-0">
                   <Building2 className="w-4 h-4 text-[#073B4C]" />
                 </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-gray-900 dark:text-[#e8eaed] truncate">{p.name}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-[#525666] font-mono">{p.id.slice(0, 12)}…</p>
+                <div className="min-w-0 break-words">
+                  <p className="font-medium text-gray-900 dark:text-[#e8eaed] break-words">{p.name}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-[#525666] font-mono break-all">{p.id.slice(0, 12)}…</p>
                 </div>
               </div>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${TIER_BADGE[p.tier] ?? TIER_BADGE.starter}`}>

@@ -15,6 +15,7 @@ import {
   listCategories,
   type ProtocolNodeInput,
 } from "@/services/protocolAdmin.service";
+import { deleteUserAccount } from "@/services/auth.service";
 
 export const adminRoute = Router();
 
@@ -147,6 +148,22 @@ adminRoute.get("/api/admin/users", async (_req, res, next) => {
       .limit(100)
       .toArray();
     res.json({ users });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Delete User ───────────────────────────────────────────────────
+
+adminRoute.delete("/api/admin/users/:userId", async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      res.status(400).json({ error: "userId is required" });
+      return;
+    }
+    await deleteUserAccount(userId);
+    res.status(204).send();
   } catch (err) {
     next(err);
   }
