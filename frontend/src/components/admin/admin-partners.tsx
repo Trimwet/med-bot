@@ -151,39 +151,24 @@ export const AdminPartners = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden">
+      {/* Table — desktop */}
+      <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 dark:border-[#1e2028] bg-gray-50 dark:bg-[#1a1d25]">
-                <th className="text-left px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">
-                  Hospital
-                </th>
-                <th className="text-left px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">
-                  Plan
-                </th>
-                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">
-                  Patients
-                </th>
-                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">
-                  Sessions
-                </th>
-                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">
-                  Token Balance
-                </th>
-                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide hidden md:table-cell">
-                  Since
-                </th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Hospital</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Plan</th>
+                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Patients</th>
+                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Sessions</th>
+                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Token Balance</th>
+                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Since</th>
                 <th className="px-3 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-[#1e2028]">
               {filtered.map((p) => (
-                <tr
-                  key={p.id}
-                  className="hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors group"
-                >
+                <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors group">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-[#073B4C]/10 flex items-center justify-center shrink-0">
@@ -191,18 +176,12 @@ export const AdminPartners = () => {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 dark:text-[#e8eaed]">{p.name}</p>
-                        <p className="text-[10px] text-gray-400 dark:text-[#525666] font-mono">
-                          {p.id.slice(0, 12)}…
-                        </p>
+                        <p className="text-[10px] text-gray-400 dark:text-[#525666] font-mono">{p.id.slice(0, 12)}…</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <span
-                      className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                        TIER_BADGE[p.tier] ?? TIER_BADGE.starter
-                      }`}
-                    >
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${TIER_BADGE[p.tier] ?? TIER_BADGE.starter}`}>
                       {p.tier || 'starter'}
                     </span>
                   </td>
@@ -215,14 +194,8 @@ export const AdminPartners = () => {
                   <td className="px-5 py-4 text-right tabular-nums text-gray-600 dark:text-[#a0a4ad]">
                     {(p.tokenBalance ?? 0).toLocaleString()}
                   </td>
-                  <td className="px-5 py-4 text-right text-xs text-gray-400 dark:text-[#525666] hidden md:table-cell">
-                    {p.createdAt
-                      ? new Date(p.createdAt).toLocaleDateString('en-NG', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                        })
-                      : '—'}
+                  <td className="px-5 py-4 text-right text-xs text-gray-400 dark:text-[#525666]">
+                    {p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                   </td>
                   <td className="px-3 py-4">
                     <button className="p-1.5 text-gray-300 dark:text-[#525666] hover:text-gray-500 dark:hover:text-[#a0a4ad] hover:bg-gray-100 dark:hover:bg-[#1e2028] rounded-lg transition-colors opacity-0 group-hover:opacity-100">
@@ -231,33 +204,73 @@ export const AdminPartners = () => {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-5 py-16 text-center">
-                    <Building2 className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
-                    <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
-                      {search ? `No partners matching "${search}"` : 'No partners found'}
-                    </p>
-                    {search && (
-                      <button
-                        onClick={() => setSearch('')}
-                        className="mt-2 text-xs text-[#073B4C] dark:text-[#00A8A8] hover:underline"
-                      >
-                        Clear search
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
         {filtered.length > 0 && (
           <div className="px-5 py-3 border-t border-gray-100 dark:border-[#1e2028]">
-            <p className="text-xs text-gray-400 dark:text-[#525666]">
-              Showing {filtered.length} of {partners.length} partners
+            <p className="text-xs text-gray-400 dark:text-[#525666]">Showing {filtered.length} of {partners.length} partners</p>
+          </div>
+        )}
+        {filtered.length === 0 && (
+          <div className="px-5 py-16 text-center">
+            <Building2 className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
+              {search ? `No partners matching "${search}"` : 'No partners found'}
+            </p>
+            {search && (
+              <button onClick={() => setSearch('')} className="mt-2 text-xs text-[#073B4C] dark:text-[#00A8A8] hover:underline">
+                Clear search
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Cards — mobile */}
+      <div className="space-y-3 md:hidden">
+        {filtered.map((p) => (
+          <div key={p.id} className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-[#073B4C]/10 flex items-center justify-center shrink-0">
+                  <Building2 className="w-4 h-4 text-[#073B4C]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 dark:text-[#e8eaed] truncate">{p.name}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-[#525666] font-mono">{p.id.slice(0, 12)}…</p>
+                </div>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${TIER_BADGE[p.tier] ?? TIER_BADGE.starter}`}>
+                {p.tier || 'starter'}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-gray-100 dark:border-[#1e2028]">
+              <div className="text-center">
+                <p className="text-sm font-bold text-gray-900 dark:text-[#e8eaed] tabular-nums">{(p.patientCount ?? 0).toLocaleString()}</p>
+                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Patients</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-bold text-gray-900 dark:text-[#e8eaed] tabular-nums">{(p.sessionCount ?? 0).toLocaleString()}</p>
+                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Sessions</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-bold text-gray-900 dark:text-[#e8eaed] tabular-nums">{(p.tokenBalance ?? 0).toLocaleString()}</p>
+                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Tokens</p>
+              </div>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl px-5 py-16 text-center">
+            <Building2 className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
+              {search ? `No partners matching "${search}"` : 'No partners found'}
             </p>
           </div>
+        )}
+        {filtered.length > 0 && (
+          <p className="text-xs text-gray-400 dark:text-[#525666] text-center pt-1">Showing {filtered.length} of {partners.length} partners</p>
         )}
       </div>
     </div>

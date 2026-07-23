@@ -396,7 +396,8 @@ export const AdminOverview = () => {
             <p className="text-xs text-gray-400 dark:text-[#525666] mt-0.5">Latest triage activity across all tenants</p>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Table — desktop */}
+          <div className="overflow-x-auto hidden md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-[#1e2028]">
@@ -427,17 +428,36 @@ export const AdminOverview = () => {
                     </td>
                   </tr>
                 ))}
-                {(!stats?.recentSessions || stats.recentSessions.length === 0) && (
-                  <tr>
-                    <td colSpan={4} className="px-5 py-12 text-center">
-                      <Clock className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-2" />
-                      <p className="text-sm text-gray-400 dark:text-[#525666]">No sessions recorded yet</p>
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
+
+          {/* Cards — mobile */}
+          <div className="md:hidden divide-y divide-gray-100 dark:divide-[#1e2028]">
+            {stats?.recentSessions?.slice(0, 8).map((s) => (
+              <div key={s.sessionId} className="px-4 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-xs text-gray-900 dark:text-[#e8eaed] truncate">{s.sessionId.slice(0, 12)}...</p>
+                  <span className="text-[10px] text-gray-400 dark:text-[#525666] capitalize">{s.status}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${VERDICT_BADGE[s.verdict] || 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                    {VERDICT_LABELS[s.verdict] || s.verdict || 'pending'}
+                  </span>
+                  <span className="text-[10px] text-gray-400 dark:text-[#525666] tabular-nums">
+                    {new Date(s.createdAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {(!stats?.recentSessions || stats.recentSessions.length === 0) && (
+            <div className="px-5 py-12 text-center">
+              <Clock className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-2" />
+              <p className="text-sm text-gray-400 dark:text-[#525666]">No sessions recorded yet</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

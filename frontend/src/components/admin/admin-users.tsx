@@ -142,15 +142,15 @@ export const AdminUsers = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden">
+      {/* Table — desktop */}
+      <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 dark:border-[#1e2028] bg-gray-50 dark:bg-[#1a1d25]">
                 <th className="text-left px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">User</th>
                 <th className="text-center px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Status</th>
-                <th className="text-left px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide hidden md:table-cell">Tenant</th>
+                <th className="text-left px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Tenant</th>
                 <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Joined</th>
                 <th className="px-3 py-3" />
               </tr>
@@ -185,7 +185,7 @@ export const AdminUsers = () => {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-3.5 hidden md:table-cell">
+                  <td className="px-5 py-3.5">
                     {u.tenantId ? (
                       <code className="text-xs font-mono text-gray-400 dark:text-[#525666] bg-gray-50 dark:bg-[#1a1d25] px-2 py-0.5 rounded">
                         {u.tenantId.slice(0, 14)}…
@@ -218,21 +218,6 @@ export const AdminUsers = () => {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-5 py-16 text-center">
-                    <Users className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
-                    <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
-                      {search ? `No users matching "${search}"` : 'No users found'}
-                    </p>
-                    {search && (
-                      <button onClick={() => setSearch('')} className="mt-2 text-xs text-[#073B4C] dark:text-[#00A8A8] hover:underline">
-                        Clear search
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -240,6 +225,80 @@ export const AdminUsers = () => {
           <div className="px-5 py-3 border-t border-gray-100 dark:border-[#1e2028]">
             <p className="text-xs text-gray-400 dark:text-[#525666]">Showing {filtered.length} of {users.length} users</p>
           </div>
+        )}
+        {filtered.length === 0 && (
+          <div className="px-5 py-16 text-center">
+            <Users className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
+              {search ? `No users matching "${search}"` : 'No users found'}
+            </p>
+            {search && (
+              <button onClick={() => setSearch('')} className="mt-2 text-xs text-[#073B4C] dark:text-[#00A8A8] hover:underline">
+                Clear search
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Cards — mobile */}
+      <div className="space-y-3 md:hidden">
+        {filtered.map((u) => (
+          <div key={u._id} className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-full bg-[#073B4C]/10 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-semibold text-[#073B4C]">{initials(u.name, u.email)}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 dark:text-[#e8eaed] truncate">{u.name || 'Unnamed User'}</p>
+                  <p className="text-xs text-gray-400 dark:text-[#525666] flex items-center gap-1 truncate">
+                    <Mail className="w-3 h-3 shrink-0" />
+                    {u.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setConfirmDelete({ id: u._id, name: u.name || u.email })}
+                disabled={deletingId === u._id}
+                className="p-1.5 text-gray-300 dark:text-[#525666] hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors shrink-0 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-[#1e2028]">
+              <div className="flex items-center gap-3">
+                {u.isVerified ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                    <CheckCircle className="w-2.5 h-2.5" /> Verified
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                    <XCircle className="w-2.5 h-2.5" /> Pending
+                  </span>
+                )}
+                {u.tenantId && (
+                  <code className="text-[10px] font-mono text-gray-400 dark:text-[#525666] bg-gray-50 dark:bg-[#1a1d25] px-1.5 py-0.5 rounded">
+                    {u.tenantId.slice(0, 10)}…
+                  </code>
+                )}
+              </div>
+              <span className="text-[10px] text-gray-400 dark:text-[#525666] tabular-nums">
+                {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+              </span>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl px-5 py-16 text-center">
+            <Users className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
+              {search ? `No users matching "${search}"` : 'No users found'}
+            </p>
+          </div>
+        )}
+        {filtered.length > 0 && (
+          <p className="text-xs text-gray-400 dark:text-[#525666] text-center pt-1">Showing {filtered.length} of {users.length} users</p>
         )}
       </div>
       {/* Delete Confirmation Modal */}

@@ -126,8 +126,8 @@ export const AdminTenants = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden">
+      {/* Table — desktop */}
+      <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -137,7 +137,7 @@ export const AdminTenants = () => {
                 <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Tokens</th>
                 <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Sessions</th>
                 <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Patients</th>
-                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide hidden md:table-cell">Created</th>
+                <th className="text-right px-5 py-3 font-semibold text-gray-500 dark:text-[#6b7080] text-xs uppercase tracking-wide">Created</th>
                 <th className="px-3 py-3" />
               </tr>
             </thead>
@@ -171,7 +171,7 @@ export const AdminTenants = () => {
                   </td>
                   <td className="px-5 py-4 text-right tabular-nums text-gray-600 dark:text-[#a0a4ad]">{t.sessionCount}</td>
                   <td className="px-5 py-4 text-right tabular-nums text-gray-600 dark:text-[#a0a4ad]">{t.patientCount}</td>
-                  <td className="px-5 py-4 text-right text-xs text-gray-400 dark:text-[#525666] hidden md:table-cell">
+                  <td className="px-5 py-4 text-right text-xs text-gray-400 dark:text-[#525666]">
                     {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                   </td>
                   <td className="px-3 py-4">
@@ -181,30 +181,79 @@ export const AdminTenants = () => {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-5 py-16 text-center">
-                    <Building2 className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
-                    <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
-                      {search ? `No tenants matching "${search}"` : 'No tenants found'}
-                    </p>
-                    {search && (
-                      <button onClick={() => setSearch('')} className="mt-2 text-xs text-[#073B4C] dark:text-[#00A8A8] hover:underline">
-                        Clear search
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
         {filtered.length > 0 && (
           <div className="px-5 py-3 border-t border-gray-100 dark:border-[#1e2028]">
-            <p className="text-xs text-gray-400 dark:text-[#525666]">
-              Showing {filtered.length} of {tenants.length} tenants
+            <p className="text-xs text-gray-400 dark:text-[#525666]">Showing {filtered.length} of {tenants.length} tenants</p>
+          </div>
+        )}
+        {filtered.length === 0 && (
+          <div className="px-5 py-16 text-center">
+            <Building2 className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
+              {search ? `No tenants matching "${search}"` : 'No tenants found'}
+            </p>
+            {search && (
+              <button onClick={() => setSearch('')} className="mt-2 text-xs text-[#073B4C] dark:text-[#00A8A8] hover:underline">
+                Clear search
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Cards — mobile */}
+      <div className="space-y-3 md:hidden">
+        {filtered.map((t) => (
+          <div key={t.id} className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-[#073B4C]/10 flex items-center justify-center shrink-0">
+                  <Building2 className="w-4 h-4 text-[#073B4C]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 dark:text-[#e8eaed] truncate">{t.name}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-[#525666] font-mono">{t.id.slice(0, 12)}…</p>
+                </div>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
+                t.tier === 'enterprise'
+                  ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                  : t.tier === 'growth'
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+              }`}>
+                {t.tier || 'starter'}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-gray-100 dark:border-[#1e2028]">
+              <div className="text-center">
+                <p className="text-sm font-bold text-gray-900 dark:text-[#e8eaed] tabular-nums">{(t.tokenBalance ?? 0).toLocaleString()}</p>
+                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Tokens</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-bold text-gray-900 dark:text-[#e8eaed] tabular-nums">{t.sessionCount}</p>
+                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Sessions</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-bold text-gray-900 dark:text-[#e8eaed] tabular-nums">{t.patientCount}</p>
+                <p className="text-[10px] text-gray-400 dark:text-[#525666]">Patients</p>
+              </div>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl px-5 py-16 text-center">
+            <Building2 className="w-8 h-8 text-gray-200 dark:text-[#2a2d35] mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-400 dark:text-[#525666]">
+              {search ? `No tenants matching "${search}"` : 'No tenants found'}
             </p>
           </div>
+        )}
+        {filtered.length > 0 && (
+          <p className="text-xs text-gray-400 dark:text-[#525666] text-center pt-1">Showing {filtered.length} of {tenants.length} tenants</p>
         )}
       </div>
     </div>
