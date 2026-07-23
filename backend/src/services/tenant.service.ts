@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { getDb, COLLECTIONS } from "@/db/client";
 import { env } from "@/config/env";
-import type { TenantDocument, UserDocument } from "@/db/schema";
+import type { TenantDocument, UserDocument, TenantPlan, TenantStatus, TenantWebhookConfig } from "@/db/schema";
 import { AppError, ValidationError } from "@/lib/errors";
 import { hashPassword, comparePassword, signJwtToken } from "@/services/auth.service";
 
@@ -18,10 +18,34 @@ export interface TenantSignupInput {
 export interface Tenant {
   id: string;
   name: string;
+  slug: string;
   tier: string;
+  plan: TenantPlan;
+  status: TenantStatus;
   email: string;
   createdAt: string;
 }
+
+const PLAN_ENTITLEMENTS: Record<TenantPlan, { monthlyAssessmentLimit: number; overagePriceNgn: number; enabledChannels: TenantDocument["entitlements"]["enabledChannels"]; apiEnabled: boolean }> = {
+  starter: {
+    monthlyAssessmentLimit: 500,
+    overagePriceNgn: 200,
+    enabledChannels: ["web", "embed"],
+    apiEnabled: false,
+  },
+  growth: {
+    monthlyAssessmentLimit: 2000,
+    overagePriceNgn: 150,
+    enabledChannels: ["web", "embed", "whatsapp"],
+    apiEnabled: false,
+  },
+  enterprise: {
+    monthlyAssessmentLimit: 10000,
+    overagePriceNgn: 100,
+    enabledChannels: ["web", "embed", "whatsapp", "api"],
+    apiEnabled: true,
+  },
+};
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -31,11 +55,22 @@ function generateOtp() {
   return (100000 + Math.floor(Math.random() * 900000)).toString();
 }
 
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 50);
+}
+
 function toPublicTenant(user: UserDocument, tenant: TenantDocument): Tenant {
   return {
     id: user._id?.toString() ?? "",
     name: tenant.name,
+    slug: tenant.slug,
     tier: tenant.tier,
+    plan: tenant.plan,
+    status: tenant.status,
     email: user.email,
     createdAt: tenant.createdAt,
   };
@@ -63,13 +98,27 @@ export async function signupTenant(input: TenantSignupInput) {
   const now = new Date().toISOString();
 
   // Create tenant
+  const slug = generateSlug(input.orgName);
+  const plan: TenantPlan = "starter";
+  const entitlements = PLAN_ENTITLEMENTS[plan];
+  
   const tenantDoc: TenantDocument = {
     name: input.orgName,
+    slug,
+    status: "trial",
+    plan,
     tier: "growth",
     tokenBalance: 1000000,
     subscriptionStartDate: now,
-    subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    subscriptionEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+    entitlements: {
+      ...entitlements,
+      assessmentsUsed: 0,
+    },
+    webhookConfig: { events: [] },
     whitelabelConfig: {},
+    contactEmail: email,
+    billingEmail: email,
     createdAt: now,
   };
 
@@ -269,5 +318,61 @@ export async function deductTokens(tenantId: string, cost: number) {
   await db.collection<TenantDocument>(COLLECTIONS.tenants).updateOne(
     { _id: new ObjectId(tenantId) },
     { $inc: { tokenBalance: -cost } }
+  );
+}
+
+export async function getTenantById(tenantId: string): Promise<TenantDocument | null> {
+  const db = await getDb();
+  return db.collection<TenantDocument>(COLLECTIONS.tenants).findOne({ _id: new ObjectId(tenantId) });
+}
+
+export async function getTenantBySlug(slug: string): Promise<TenantDocument | null> {
+  const db = await getDb();
+  return db.collection<TenantDocument>(COLLECTIONS.tenants).findOne({ slug });
+}
+
+export async function checkEntitlement(tenantId: string): Promise<{ allowed: boolean; remaining: number; limit: number }> {
+  const tenant = await getTenantById(tenantId);
+  if (!tenant) return { allowed: false, remaining: 0, limit: 0 };
+  
+  const { monthlyAssessmentLimit, assessmentsUsed } = tenant.entitlements;
+  const remaining = monthlyAssessmentLimit - assessmentsUsed;
+  
+  return {
+    allowed: remaining > 0 || tenant.plan === "enterprise",
+    remaining: Math.max(0, remaining),
+    limit: monthlyAssessmentLimit,
+  };
+}
+
+export async function recordAssessment(tenantId: string): Promise<{ success: boolean; overage: number }> {
+  const db = await getDb();
+  const tenant = await getTenantById(tenantId);
+  if (!tenant) return { success: false, overage: 0 };
+  
+  const { monthlyAssessmentLimit, assessmentsUsed, overagePriceNgn } = tenant.entitlements;
+  const overage = assessmentsUsed >= monthlyAssessmentLimit ? overagePriceNgn : 0;
+  
+  await db.collection<TenantDocument>(COLLECTIONS.tenants).updateOne(
+    { _id: new ObjectId(tenantId) },
+    { $inc: { "entitlements.assessmentsUsed": 1 } }
+  );
+  
+  return { success: true, overage };
+}
+
+export async function updateTenantBranding(tenantId: string, config: TenantDocument["whitelabelConfig"]): Promise<void> {
+  const db = await getDb();
+  await db.collection<TenantDocument>(COLLECTIONS.tenants).updateOne(
+    { _id: new ObjectId(tenantId) },
+    { $set: { whitelabelConfig: config } }
+  );
+}
+
+export async function updateTenantWebhook(tenantId: string, config: TenantWebhookConfig): Promise<void> {
+  const db = await getDb();
+  await db.collection<TenantDocument>(COLLECTIONS.tenants).updateOne(
+    { _id: new ObjectId(tenantId) },
+    { $set: { webhookConfig: config } }
   );
 }

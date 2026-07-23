@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedBot Embed Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    header h1 {
+      font-size: 32px;
+      color: #073B4C;
+      margin-bottom: 8px;
+    }
+    
+    header p {
+      font-size: 18px;
+      color: #666;
+    }
+    
+    .clinic-demo {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .clinic-header {
+      background: #073B4C;
+      color: white;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .clinic-logo {
+      width: 48px;
+      height: 48px;
+      background: #00A8A8;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .clinic-info h2 {
+      font-size: 20px;
+      margin: 0;
+    }
+    
+    .clinic-info p {
+      font-size: 14px;
+      opacity: 0.8;
+      margin: 0;
+    }
+    
+    .clinic-nav {
+      background: #0A202A;
+      padding: 12px 20px;
+      display: flex;
+      gap: 24px;
+    }
+    
+    .clinic-nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    
+    .clinic-nav a:hover {
+      opacity: 1;
+    }
+    
+    .clinic-content {
+      padding: 40px 20px;
+      text-align: center;
+    }
+    
+    .clinic-content h3 {
+      font-size: 24px;
+      color: #073B4C;
+      margin-bottom: 12px;
+    }
+    
+    .clinic-content p {
+      color: #666;
+      max-width: 600px;
+      margin: 0 auto 24px;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #00A8A8;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    
+    .btn:hover {
+      background: #008f8f;
+    }
+    
+    .embed-code {
+      background: #f0f0f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 40px;
+      text-align: left;
+    }
+    
+    .embed-code h4 {
+      font-size: 14px;
+      color: #073B4C;
+      margin-bottom: 12px;
+    }
+    
+    .embed-code pre {
+      background: #1a1a1a;
+      color: #00A8A8;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+    
+    .feature {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .feature h4 {
+      color: #073B4C;
+      margin-bottom: 8px;
+    }
+    
+    .feature p {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>MedBot Embed Demo</h1>
+      <p>See how MedBot integrates into a clinic website</p>
+    </header>
+    
+    <div class="clinic-demo">
+      <div class="clinic-header">
+        <div class="clinic-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+        </div>
+        <div class="clinic-info">
+          <h2>Lagos Medical Center</h2>
+          <p>Quality healthcare for all</p>
+        </div>
+      </div>
+      
+      <div class="clinic-nav">
+        <a href="#">Home</a>
+        <a href="#">Services</a>
+        <a href="#">Doctors</a>
+        <a href="#">Contact</a>
+      </div>
+      
+      <div class="clinic-content">
+        <h3>Welcome to Our Clinic</h3>
+        <p>We provide comprehensive healthcare services. Use our AI-powered triage system to assess your symptoms and get personalized recommendations.</p>
+        <a href="#" class="btn">Book Appointment</a>
+      </div>
+    </div>
+    
+    <div class="embed-code">
+      <h4>Embed MedBot on your website in 5 minutes</h4>
+      <pre>&lt;script
+  src="https://embed.medbot.ng/v1.js"
+  data-tenant="your-clinic-id"
+  data-theme="light"
+  data-locale="en-NG"
+  data-title="Medical Triage"
+  data-subtitle="AI-powered health assessment"
+  data-welcome="Hello! How can I help you today?"&gt;
+&lt;/script&gt;</pre>
+    </div>
+    
+    <div class="features">
+      <div class="feature">
+        <h4>Instant Setup</h4>
+        <p>Add one line of code to your website and you're ready to go. No technical expertise required.</p>
+      </div>
+      <div class="feature">
+        <h4>Custom Branding</h4>
+        <p>Matches your clinic's brand with custom colors, logo, and welcome messages.</p>
+      </div>
+      <div class="feature">
+        <h4>Emergency Detection</h4>
+        <p>Automatically flags urgent symptoms and directs patients to emergency care.</p>
+      </div>
+    </div>
+    
+    <footer>
+      <p>Powered by MedBot - The Digital Front Door for African Healthcare</p>
+    </footer>
+  </div>
+  
+  <!-- MedBot Widget -->
+  <script
+    src="/embed/v1.js"
+    data-tenant="demo-clinic"
+    data-theme="light"
+    data-locale="en-NG"
+    data-title="Medical Triage"
+    data-subtitle="AI-powered health assessment"
+    data-welcome="Hello! I'm MedBot, your medical triage assistant. How can I help you today?"
+    data-primary-color="#00A8A8"
+    data-secondary-color="#073B4C">
+  </script>
+</body>
+</html>

@@ -68,17 +68,45 @@ export interface ClinicalRuleDocument {
   updatedBy: string;
 }
 
+export type TenantStatus = "active" | "suspended" | "trial" | "cancelled";
+export type TenantPlan = "starter" | "growth" | "enterprise";
+export type ChannelType = "web" | "whatsapp" | "api" | "embed";
+
+export interface TenantEntitlements {
+  monthlyAssessmentLimit: number;
+  assessmentsUsed: number;
+  overagePriceNgn: number;
+  enabledChannels: ChannelType[];
+  apiEnabled: boolean;
+}
+
+export interface TenantWebhookConfig {
+  url?: string;
+  secret?: string;
+  events: string[];
+}
+
 export interface TenantDocument {
   _id?: ObjectId;
   name: string;
+  slug: string;
+  status: TenantStatus;
+  plan: TenantPlan;
   tier: "growth" | "enterprise" | "b2c";
   tokenBalance: number;
   subscriptionStartDate: string;
   subscriptionEndDate: string;
+  entitlements: TenantEntitlements;
+  webhookConfig: TenantWebhookConfig;
   whitelabelConfig: {
     logoUrl?: string;
     primaryColor?: string;
+    accentColor?: string;
+    welcomeMessage?: string;
+    theme?: "light" | "dark";
   };
+  contactEmail?: string;
+  billingEmail?: string;
   createdAt: string;
 }
 

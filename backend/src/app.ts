@@ -13,6 +13,7 @@ import { tenantAnalyticsRoute } from "@/routes/tenant-analytics.route";
 import { notificationRoute } from "@/routes/notification.route";
 import voiceRoute from "@/routes/voice.route";
 import { demoRoute } from "@/routes/demo.route";
+import { partnerApiRoute } from "@/routes/partner-api.route";
 import { toErrorResponse } from "@/lib/errors";
 import { sendErrorWebhook } from "@/lib/webhook";
 import { logger } from "@/lib/logger";
@@ -44,6 +45,7 @@ app.use(tenantAnalyticsRoute);
 app.use(notificationRoute);
 app.use(demoRoute);
 app.use("/api/voice", voiceRoute);
+app.use(partnerApiRoute);
 
 app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const { status, body } = toErrorResponse(err);
