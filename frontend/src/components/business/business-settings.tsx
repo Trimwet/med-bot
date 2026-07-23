@@ -109,10 +109,11 @@ function ProfileSection() {
   const [website, setWebsite] = useState('')
   const [tenantId, setTenantId] = useState('')
   const [saving, setSaving] = useState(false)
+  const [loadingProfile, setLoadingProfile] = useState(true)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (!token) return
+    if (!token) { setLoadingProfile(false); return }
     fetch(`${API_URL}/api/tenants/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -128,6 +129,7 @@ function ProfileSection() {
         }
       })
       .catch(() => {})
+      .finally(() => setLoadingProfile(false))
   }, [])
 
   const handleSave = async (field: string, value: string) => {
@@ -145,6 +147,25 @@ function ProfileSection() {
   }
 
   const inputClass = 'w-full px-3 py-2 text-sm border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#1a1d25] text-gray-900 dark:text-[#e8eaed] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C]'
+
+  if (loadingProfile) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div>
+          <div className="h-6 bg-gray-100 dark:bg-[#1a1d25] rounded w-40 mb-2" />
+          <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded w-64" />
+        </div>
+        <div className="space-y-0">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-[#1e2028]">
+              <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded w-28" />
+              <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded w-36" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

@@ -204,7 +204,21 @@ export const ProtocolAdmin = () => {
           </div>
           <div className="divide-y divide-gray-100 dark:divide-[#1e2028]">
             {loading ? (
-              <div className="px-6 py-12 text-center text-sm text-gray-400 dark:text-[#525666]">Loading...</div>
+              <div className="px-6 py-8 space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1.5fr_0.6fr_0.7fr_1fr_1fr_0.5fr] gap-2 lg:gap-3 items-center">
+                    <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-20" />
+                    <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-16" />
+                    <div className="h-6 bg-gray-100 dark:bg-[#1a1d25] rounded-full animate-pulse w-16" />
+                    <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-32" />
+                    <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-8 mx-auto" />
+                    <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-12 mx-auto" />
+                    <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-14" />
+                    <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-16" />
+                    <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-8 ml-auto" />
+                  </div>
+                ))}
+              </div>
             ) : nodes.length === 0 ? (
               <div className="px-6 py-12 text-center text-sm text-gray-400 dark:text-[#525666]">
                 No protocol nodes yet. Click "New Protocol" to create one.

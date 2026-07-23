@@ -131,25 +131,29 @@ function ProfileSection() {
   const [medications, setMedications] = useState('')
   const [emergencyContact, setEmergencyContact] = useState('')
 
+  const [loadingProfile, setLoadingProfile] = useState(true)
+
   useEffect(() => {
-    getAuthUser().then((res) => {
-      setName(res.user.name || '')
-      setEmail(res.user.email || '')
-    }).catch(() => {})
-    getProfile().then((res) => {
-      const p = res.profile as Record<string, any>
-      if (p.phone) setPhone(p.phone)
-      if (p.location) setLocation(p.location)
-      if (p.age) setAge(String(p.age))
-      if (p.gender) setGender(p.gender)
-      if (p.heightCm) setHeight(String(p.heightCm))
-      if (p.weightKg) setWeight(String(p.weightKg))
-      if (p.bloodGroup) setBloodGroup(p.bloodGroup)
-      if (p.allergies) setAllergies(p.allergies)
-      if (p.conditions) setConditions(p.conditions)
-      if (p.medications) setMedications(p.medications)
-      if (p.emergencyContact) setEmergencyContact(p.emergencyContact)
-    }).catch(() => {})
+    Promise.all([
+      getAuthUser().then((res) => {
+        setName(res.user.name || '')
+        setEmail(res.user.email || '')
+      }),
+      getProfile().then((res) => {
+        const p = res.profile as Record<string, any>
+        if (p.phone) setPhone(p.phone)
+        if (p.location) setLocation(p.location)
+        if (p.age) setAge(String(p.age))
+        if (p.gender) setGender(p.gender)
+        if (p.heightCm) setHeight(String(p.heightCm))
+        if (p.weightKg) setWeight(String(p.weightKg))
+        if (p.bloodGroup) setBloodGroup(p.bloodGroup)
+        if (p.allergies) setAllergies(p.allergies)
+        if (p.conditions) setConditions(p.conditions)
+        if (p.medications) setMedications(p.medications)
+        if (p.emergencyContact) setEmergencyContact(p.emergencyContact)
+      }),
+    ]).catch(() => {}).finally(() => setLoadingProfile(false))
   }, [])
 
   const inputClass = 'w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C] bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'
@@ -167,6 +171,25 @@ function ProfileSection() {
     else if (field === 'medications') update.medications = value || undefined
     else if (field === 'emergencyContact') update.emergencyContact = value || undefined
     updateProfile(update).catch(() => {})
+  }
+
+  if (loadingProfile) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div>
+          <div className="h-6 bg-gray-100 dark:bg-gray-800 rounded w-44 mb-2" />
+          <div className="h-4 bg-gray-100 dark:bg-gray-800 rounded w-72" />
+        </div>
+        <div className="space-y-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
+              <div className="h-4 bg-gray-100 dark:bg-gray-800 rounded w-28" />
+              <div className="h-4 bg-gray-100 dark:bg-gray-800 rounded w-32" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (

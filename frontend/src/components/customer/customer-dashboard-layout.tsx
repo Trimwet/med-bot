@@ -52,6 +52,7 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
   const [mobileOpen, setMobileOpen] = useState(false)
   const [recentSessions, setRecentSessions] = useState<SessionEntry[]>([])
   const [userName, setUserName] = useState('')
+  const [initialLoading, setInitialLoading] = useState(!demo)
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -69,7 +70,10 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
 
   useEffect(() => {
     if (demo) return
-    getAuthUser().then((res) => setUserName(res.user.name || '')).catch(() => {})
+    getAuthUser()
+      .then((res) => setUserName(res.user.name || ''))
+      .catch(() => {})
+      .finally(() => setInitialLoading(false))
   }, [demo])
 
   useEffect(() => {
@@ -101,6 +105,17 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
     localStorage.removeItem('token')
     setMobileOpen(false)
     navigate('/login')
+  }
+
+  if (initialLoading) {
+    return (
+      <div className="h-dvh flex items-center justify-center bg-gray-50 dark:bg-[#0a0c10]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-2 border-gray-200 dark:border-gray-700 border-t-[#073B4C] rounded-full animate-spin" />
+          <p className="text-sm text-gray-400 dark:text-gray-500">Loading MedBot...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

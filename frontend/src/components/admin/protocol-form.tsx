@@ -187,7 +187,26 @@ export const ProtocolForm = ({ nodeId, onSaved, onCancel, showToast }: Props) =>
   }
 
   if (loadingMeta || loadingEdit) {
-    return <div className="text-center py-8 text-sm text-gray-400 dark:text-[#525666]">Loading...</div>
+    return (
+      <div className="space-y-6 max-w-3xl animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded w-24" />
+              <div className="h-10 bg-gray-100 dark:bg-[#1a1d25] rounded-lg w-full" />
+            </div>
+          ))}
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded w-20" />
+          <div className="h-24 bg-gray-100 dark:bg-[#1a1d25] rounded-lg w-full" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-100 dark:bg-[#1a1d25] rounded w-28" />
+          <div className="h-32 bg-gray-100 dark:bg-[#1a1d25] rounded-lg w-full" />
+        </div>
+      </div>
+    )
   }
 
   return (

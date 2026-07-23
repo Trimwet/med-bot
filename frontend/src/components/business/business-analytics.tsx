@@ -191,7 +191,17 @@ export const BusinessAnalytics = () => {
           <h3 className={sectionTitle}>Top Symptoms</h3>
           <div className="space-y-3.5 mt-4">
             {loading ? (
-              <p className="text-xs text-gray-400 dark:text-[#525666] text-center py-6">Loading...</p>
+              <div className="space-y-3.5 py-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-24" />
+                      <div className="h-3 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-8" />
+                    </div>
+                    <div className="h-1.5 bg-gray-100 dark:bg-[#1a1d25] rounded-full animate-pulse w-full" />
+                  </div>
+                ))}
+              </div>
             ) : trends?.topSymptoms && trends.topSymptoms.length > 0 ? (
               trends.topSymptoms.map((s, i) => {
                 const maxCount = trends.topSymptoms[0]?.count || 1
@@ -301,7 +311,19 @@ export const BusinessAnalytics = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="text-center py-8 text-xs text-gray-400">Loading...</td></tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="border-b border-gray-50 dark:border-[#1a1d25]">
+                    <td className="py-3" colSpan={6}>
+                      <div className="flex items-center gap-4">
+                        <div className="h-3 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-28" />
+                        <div className="h-5 bg-gray-100 dark:bg-[#1a1d25] rounded-full animate-pulse w-14" />
+                        <div className="h-3 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-8" />
+                        <div className="h-3 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-20" />
+                        <div className="h-3 bg-gray-100 dark:bg-[#1a1d25] rounded animate-pulse w-16 ml-auto" />
+                      </div>
+                    </td>
+                  </tr>
+                ))
               ) : sessions.length === 0 ? (
                 <tr><td colSpan={6} className="text-center py-8 text-xs text-gray-400">No sessions found</td></tr>
               ) : (
