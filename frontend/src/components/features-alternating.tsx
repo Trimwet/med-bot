@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
-import { Stethoscope, BookOpenText, ArrowRight, Clock } from 'lucide-react'
+import { Stethoscope, BookOpenText, ArrowRight, Clock, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BrowserMockup } from '@/components/ui/browser-mockup'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
@@ -298,7 +298,7 @@ const features: Array<{
     reverse: false,
   },
   {
-    icon: Stethoscope,
+    icon: Activity,
     title: 'Severity Scoring',
     description: 'Every assessment is automatically scored and categorized — so your team knows exactly who needs attention first, and who can safely self-manage.',
     bullets: [

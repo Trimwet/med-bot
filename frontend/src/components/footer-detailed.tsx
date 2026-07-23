@@ -67,7 +67,7 @@ export const DetailedFooter = ({ onRequestDemo }: { onRequestDemo?: () => void }
           {/* Brand */}
           <div className="max-w-xl">
             <div className="flex items-center gap-2.5 mb-4">
-              <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto" />
+              <img src="/assets/Logo.jpeg" alt="MedBot" className="h-8 w-auto rounded-md" />
               <span className="text-white font-bold text-lg font-display">MedBot</span>
             </div>
             <p className="text-sm text-[#9CA3AF] leading-relaxed">
@@ -77,22 +77,20 @@ export const DetailedFooter = ({ onRequestDemo }: { onRequestDemo?: () => void }
 
           {/* Links */}
           <div className="flex flex-wrap gap-12 md:gap-16">
-            <div>
-              <h3 className="text-xs font-semibold text-white uppercase tracking-wider mb-4">Product</h3>
-              <ul className="space-y-2.5">
-                <li><a href="#features" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">Features</a></li>
-                <li><a href="#pricing" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#how" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">How It Works</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xs font-semibold text-white uppercase tracking-wider mb-4">Legal</h3>
-              <ul className="space-y-2.5">
-                <li><a href="#privacy" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#terms" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#security" className="text-sm text-[#9CA3AF] hover:text-white transition-colors">Security</a></li>
-              </ul>
-            </div>
+            {footerLinks.map((group) => (
+              <div key={group.title}>
+                <h3 className="text-xs font-semibold text-white uppercase tracking-wider mb-4">{group.title}</h3>
+                <ul className="space-y-2.5">
+                  {group.links.map((link) => (
+                    <li key={link.label}>
+                      <a href={link.href} className="text-sm text-[#9CA3AF] hover:text-white transition-colors">
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
 

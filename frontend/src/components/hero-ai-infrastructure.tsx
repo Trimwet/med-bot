@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { TimelineAnimation } from '@/components/ui/timeline-animation'
 import SplitText from '@/components/ui/SplitText'
@@ -25,6 +26,7 @@ interface HeroAiInfrastructureProps {
 export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) => {
   const timelineRef = useRef<HTMLDivElement>(null)
   const [wordIndex, setWordIndex] = useState(0)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -48,7 +50,7 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
             <span className="py-0.5 px-2.5 rounded-full bg-teal text-white font-semibold text-xs">
               New
             </span>
-            <span>Trusted by 999+ growing B2B teams</span>
+            <span>Trusted by 120+ hospital partners</span>
           </TimelineAnimation>
 
           <TimelineAnimation
@@ -130,9 +132,9 @@ export const HeroAiInfrastructure = ({ onPartners }: HeroAiInfrastructureProps) 
           <div className="flex flex-wrap gap-3 items-center justify-center w-full">
             <TimelineAnimation
               timelineRef={timelineRef}
-              as="a"
+              as="button"
               animationNum={6}
-              href="/demo"
+              onClick={() => navigate('/demo')}
               className="cursor-pointer bg-teal text-white px-5 py-2.5 rounded-sm font-semibold flex items-center gap-2 hover:bg-teal/80 transition font-display text-sm sm:whitespace-nowrap justify-center"
             >
               Start Symptom Check <ArrowRight size={16} />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Check, X, Building2, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -13,12 +14,12 @@ const b2cPlans = [
     highlight: false,
     features: [
       { text: 'Limited checks/month', included: true },
-      { text: 'No saved history', included: false },
       { text: 'Symptom assessment', included: true },
       { text: 'Basic triage scoring', included: true },
-      { text: 'Email support', included: false },
+      { text: 'Saved history', included: false },
       { text: 'Medication reminders', included: false },
       { text: 'Health tips', included: false },
+      { text: 'Priority response', included: false },
       { text: 'Export health summary', included: false },
     ],
   },
@@ -31,14 +32,14 @@ const b2cPlans = [
     yearlyPeriod: '/year',
     highlight: true,
     features: [
-      { text: 'Unlimited triage', included: true },
-      { text: 'Symptom history', included: true },
+      { text: 'Unlimited checks', included: true },
+      { text: 'Symptom assessment', included: true },
+      { text: 'Advanced triage scoring', included: true },
+      { text: 'Saved history', included: true },
       { text: 'Medication reminders', included: true },
-      { text: 'Basic health tips', included: true },
+      { text: 'Health tips', included: true },
       { text: 'Priority response', included: false },
-      { text: 'Multiple profiles', included: false },
       { text: 'Export health summary', included: false },
-      { text: 'Priority support', included: false },
     ],
   },
   {
@@ -50,14 +51,14 @@ const b2cPlans = [
     yearlyPeriod: '/year',
     highlight: false,
     features: [
-      { text: 'Up to 5 profiles', included: true },
-      { text: 'Unlimited triage', included: true },
-      { text: 'Symptom history', included: true },
+      { text: 'Unlimited checks', included: true },
+      { text: 'Symptom assessment', included: true },
+      { text: 'Advanced triage scoring', included: true },
+      { text: 'Saved history', included: true },
       { text: 'Medication reminders', included: true },
+      { text: 'Health tips', included: true },
       { text: 'Priority response', included: true },
       { text: 'Export health summary', included: true },
-      { text: 'Health tips for all', included: true },
-      { text: 'Priority support', included: true },
     ],
   },
 ]
@@ -130,6 +131,7 @@ const b2bModels = [
 ]
 
 export const PricingSection = () => {
+  const navigate = useNavigate()
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [activeTab, setActiveTab] = useState<'b2c' | 'b2b'>('b2c')
 
@@ -258,6 +260,7 @@ export const PricingSection = () => {
                   </ul>
 
                   <button
+                    onClick={() => navigate('/signup')}
                     className={cn(
                       'w-full py-3 rounded-lg font-semibold text-sm transition-all duration-200 font-display',
                       plan.highlight
@@ -319,7 +322,10 @@ export const PricingSection = () => {
                   ))}
                 </ul>
 
-                <button className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 font-display bg-teal text-white hover:bg-teal/80">
+                <button
+                  onClick={() => window.location.href = 'mailto:sales@medbot.health'}
+                  className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 font-display bg-teal text-white hover:bg-teal/80"
+                >
                   Contact Sales
                 </button>
               </div>
