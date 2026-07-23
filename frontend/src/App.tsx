@@ -33,6 +33,17 @@ import { AdminUsers } from '@/components/admin/admin-users'
 import { AdminAnalytics } from '@/components/admin/admin-analytics'
 import { AdminPartners } from '@/components/admin/admin-partners'
 import { AdminSettings } from '@/components/admin/admin-settings'
+import { AboutUsPage } from '@/pages/info/about-us'
+import { OurTeamPage } from '@/pages/info/our-team'
+import { CareersPage } from '@/pages/info/careers'
+import { DocumentationPage } from '@/pages/info/documentation'
+import { ClinicalProtocolsPage } from '@/pages/info/clinical-protocols'
+import { ApiReferencePage } from '@/pages/info/api-reference'
+import { SupportPage } from '@/pages/info/support'
+import { PrivacyPolicyPage } from '@/pages/info/privacy-policy'
+import { TermsOfServicePage } from '@/pages/info/terms-of-service'
+import { HipaaCompliancePage } from '@/pages/info/hipaa-compliance'
+import { SecurityPage } from '@/pages/info/security'
 
 function AppRoutes() {
   const navigate = useNavigate()
@@ -219,6 +230,19 @@ function AppRoutes() {
         <Route path="partners" element={<AdminPartners />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
+
+      {/* Info Pages */}
+      <Route path="/about" element={<AboutUsPage />} />
+      <Route path="/team" element={<OurTeamPage />} />
+      <Route path="/careers" element={<CareersPage />} />
+      <Route path="/docs" element={<DocumentationPage />} />
+      <Route path="/clinical-protocols" element={<ClinicalProtocolsPage />} />
+      <Route path="/api" element={<ApiReferencePage />} />
+      <Route path="/support" element={<SupportPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
+      <Route path="/hipaa" element={<HipaaCompliancePage />} />
+      <Route path="/security" element={<SecurityPage />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

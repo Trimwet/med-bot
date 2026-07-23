@@ -1,40 +1,39 @@
 import { ArrowRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const footerLinks = [
   {
     title: 'Product',
     links: [
-      { label: 'Features', href: '#features' },
-      { label: 'Pricing', href: '#pricing' },
-      { label: 'How It Works', href: '#how' },
-      { label: 'For Clinicians', href: '#clinicians' },
+      { label: 'Features', href: '/#features' },
+      { label: 'Pricing', href: '/#pricing' },
+      { label: 'How It Works', href: '/#how' },
     ],
   },
   {
     title: 'Company',
     links: [
-      { label: 'About Us', href: '#about' },
-      { label: 'Our Team', href: '#team' },
-      { label: 'Careers', href: '#careers' },
-      { label: 'Press Kit', href: '#press' },
+      { label: 'About Us', href: '/about' },
+      { label: 'Our Team', href: '/team' },
+      { label: 'Careers', href: '/careers' },
     ],
   },
   {
     title: 'Resources',
     links: [
-      { label: 'Documentation', href: '#docs' },
-      { label: 'Clinical Protocols', href: '#protocols' },
-      { label: 'API Reference', href: '#api' },
-      { label: 'Support', href: '#support' },
+      { label: 'Documentation', href: '/docs' },
+      { label: 'Clinical Protocols', href: '/clinical-protocols' },
+      { label: 'API Reference', href: '/api' },
+      { label: 'Support', href: '/support' },
     ],
   },
   {
     title: 'Legal',
     links: [
-      { label: 'Privacy Policy', href: '#privacy' },
-      { label: 'Terms of Service', href: '#terms' },
-      { label: 'HIPAA Compliance', href: '#hipaa' },
-      { label: 'Security', href: '#security' },
+      { label: 'Privacy Policy', href: '/privacy' },
+      { label: 'Terms of Service', href: '/terms' },
+      { label: 'HIPAA Compliance', href: '/hipaa' },
+      { label: 'Security', href: '/security' },
     ],
   },
 ]
@@ -83,9 +82,9 @@ export const DetailedFooter = ({ onRequestDemo }: { onRequestDemo?: () => void }
                 <ul className="space-y-2.5">
                   {group.links.map((link) => (
                     <li key={link.label}>
-                      <a href={link.href} className="text-sm text-[#9CA3AF] hover:text-white transition-colors">
+                      <Link to={link.href} className="text-sm text-[#9CA3AF] hover:text-white transition-colors">
                         {link.label}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
