@@ -44,6 +44,7 @@ import { PrivacyPolicyPage } from '@/pages/info/privacy-policy'
 import { TermsOfServicePage } from '@/pages/info/terms-of-service'
 import { HipaaCompliancePage } from '@/pages/info/hipaa-compliance'
 import { SecurityPage } from '@/pages/info/security'
+import { HowItWorksPage } from '@/pages/info/how-it-works'
 
 function AppRoutes() {
   const navigate = useNavigate()
@@ -232,6 +233,7 @@ function AppRoutes() {
       </Route>
 
       {/* Info Pages */}
+      <Route path="/how-it-works" element={<HowItWorksPage />} />
       <Route path="/about" element={<AboutUsPage />} />
       <Route path="/team" element={<OurTeamPage />} />
       <Route path="/careers" element={<CareersPage />} />
