@@ -82,9 +82,15 @@ export const DetailedFooter = ({ onRequestDemo }: { onRequestDemo?: () => void }
                 <ul className="space-y-2.5">
                   {group.links.map((link) => (
                     <li key={link.label}>
-                      <Link to={link.href} className="text-sm text-[#9CA3AF] hover:text-white transition-colors">
-                        {link.label}
-                      </Link>
+                      {link.href.startsWith('/#') ? (
+                        <a href={link.href} className="text-sm text-[#9CA3AF] hover:text-white transition-colors">
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link to={link.href} className="text-sm text-[#9CA3AF] hover:text-white transition-colors">
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
