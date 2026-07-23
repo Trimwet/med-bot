@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Menu, Search, Bell, Sun, Moon } from 'lucide-react'
+import { Menu, Search, Sun, Moon } from 'lucide-react'
 import { isAdminAuthenticated } from './admin-api'
 
 interface AdminNavbarProps {
@@ -53,12 +53,6 @@ export const AdminNavbar = ({ onMenuClick }: AdminNavbarProps) => {
           aria-label="Toggle dark mode"
         >
           {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </button>
-
-        {/* Notifications */}
-        <button className="relative p-2 text-gray-500 dark:text-[#6b7080] hover:text-gray-700 dark:hover:text-[#cdd0d5] hover:bg-gray-100 dark:hover:bg-[#1a1d25] rounded-lg transition-colors">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
         </button>
 
         {authed && (

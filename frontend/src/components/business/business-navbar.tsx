@@ -1,4 +1,4 @@
-import { Search, Bell, HelpCircle, Menu, Sun, Moon, User } from 'lucide-react'
+import { Search, Menu, Sun, Moon, User } from 'lucide-react'
 import { useDarkMode } from '@/components/business/dark-mode-context'
 
 interface BusinessNavbarProps {
@@ -36,14 +36,6 @@ export const BusinessNavbar = ({ onMenuClick }: BusinessNavbarProps) => {
         >
           {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
-        <button className="relative p-2 text-gray-500 dark:text-[#6b7080] hover:text-gray-700 dark:hover:text-[#cdd0d5] transition-colors">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        <button className="p-2 text-gray-500 dark:text-[#6b7080] hover:text-gray-700 dark:hover:text-[#cdd0d5] transition-colors hidden sm:block">
-          <HelpCircle className="w-5 h-5" />
-        </button>
-
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-medium text-gray-700 dark:text-[#cdd0d5]">Admin User</p>
