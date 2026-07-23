@@ -216,7 +216,7 @@ function AppRoutes() {
 
       {/* Super Admin Routes */}
       <Route
-        path="/admin/login"
+        path="/admin"
         element={
           <AdminLogin
             onBack={() => navigate('/')}
