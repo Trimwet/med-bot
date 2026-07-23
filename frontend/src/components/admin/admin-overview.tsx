@@ -43,6 +43,15 @@ interface DailyData {
 
 const TIME_RANGES = ['7d', '30d', '90d'] as const
 
+const DAYS_MAP: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90 }
+
+function filterByDays(data: DailyData[], days: number): DailyData[] {
+  if (days >= 90) return data
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - days)
+  return data.filter((d) => new Date(d.date) >= cutoff)
+}
+
 const VERDICT_COLORS: Record<string, string> = {
   self_care: '#22C55E',
   consult: '#F59E0B',
@@ -80,6 +89,61 @@ export const AdminOverview = () => {
       setDailyUsers(dailyData.userGrowth || [])
     }).catch(console.error).finally(() => setLoading(false))
   }, [])
+
+  const days = DAYS_MAP[timeRange]
+  const filteredSessions = filterByDays(dailySessions, days)
+  const filteredUsers = filterByDays(dailyUsers, days)
+
+  const handleExport = () => {
+    const kpiRows = [
+      { metric: 'Total Sessions', value: stats?.totalSessions ?? 0 },
+      { metric: 'Active Sessions', value: stats?.activeSessions ?? 0 },
+      { metric: 'Completed Sessions', value: stats?.completedSessions ?? 0 },
+      { metric: 'Emergency Sessions', value: stats?.emergencySessions ?? 0 },
+      { metric: 'Total Users', value: stats?.totalUsers ?? 0 },
+      { metric: 'Total Protocols', value: stats?.totalProtocols ?? 0 },
+      { metric: 'Total Rules', value: stats?.totalRules ?? 0 },
+    ]
+    const verdictRows = Object.entries(stats?.verdictBreakdown ?? {}).map(([verdict, count]) => ({
+      verdict,
+      count,
+    }))
+    const sessionRows = filteredSessions.map((d) => ({ date: d.date, sessions: d.count }))
+    const userRows = filteredUsers.map((d) => ({ date: d.date, users: d.count }))
+    const recentRows = (stats?.recentSessions ?? []).map((s) => ({
+      sessionId: s.sessionId,
+      verdict: s.verdict,
+      status: s.status,
+      createdAt: s.createdAt,
+    }))
+
+    const parts = [
+      'KPI Summary',
+      ...kpiRows.map((r) => `${r.metric},${r.value}`),
+      '',
+      'Verdict Breakdown',
+      'verdict,count',
+      ...verdictRows.map((r) => `${r.verdict},${r.count}`),
+      '',
+      `Session Growth (${timeRange})`,
+      'date,sessions',
+      ...sessionRows.map((r) => `${r.date},${r.sessions}`),
+      '',
+      `User Growth (${timeRange})`,
+      'date,users',
+      ...userRows.map((r) => `${r.date},${r.users}`),
+      '',
+      'Recent Sessions',
+      'sessionId,verdict,status,createdAt',
+      ...recentRows.map((r) => `${r.sessionId},${r.verdict},${r.status},${r.createdAt}`),
+    ]
+    const blob = new Blob([parts.join('\n')], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `medbot-overview-${timeRange}-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(link.href)
+  }
 
   if (loading) {
     return (
@@ -136,7 +200,10 @@ export const AdminOverview = () => {
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 dark:border-[#1e2028] rounded-lg text-sm font-medium text-gray-700 dark:text-[#a0a4ad] hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 dark:border-[#1e2028] rounded-lg text-sm font-medium text-gray-700 dark:text-[#a0a4ad] hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors"
+          >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
           </button>
@@ -184,7 +251,7 @@ export const AdminOverview = () => {
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dailySessions} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+              <AreaChart data={filteredSessions} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="adminSessionGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={theme.areaStroke} stopOpacity={0.25} />
@@ -217,7 +284,7 @@ export const AdminOverview = () => {
           </div>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyUsers} barCategoryGap="20%" barGap={4}>
+              <BarChart data={filteredUsers} barCategoryGap="20%" barGap={4}>
                 <CartesianGrid stroke={theme.grid.stroke} strokeDasharray={theme.grid.strokeDasharray} vertical={false} />
                 <XAxis dataKey="date" tick={theme.axis} tickFormatter={(v) => { const d = new Date(v); return `${d.getMonth() + 1}/${d.getDate()}` }} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} allowDecimals={false} axisLine={false} tickLine={false} width={30} />
