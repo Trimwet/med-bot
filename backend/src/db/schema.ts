@@ -128,7 +128,7 @@ export interface SessionDocument {
   userId: string;
   tenantId?: string;
   patientId?: string;
-  channel: "web" | "whatsapp" | "mobile";
+  channel: "web" | "whatsapp" | "mobile" | "api" | "embed";
   activeNodeId?: string;
   lastFiringScore?: number;
   protocolVersion?: string;

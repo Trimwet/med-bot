@@ -15,8 +15,10 @@ import {
   Copy,
   Trash2,
   Check,
+  Globe,
 } from 'lucide-react'
 import { formatPhoneInput } from '@/lib/utils'
+import { API_URL } from '@/lib/api'
 
 type NavItem = {
   id: string
@@ -26,6 +28,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'profile', label: 'Hospital profile', icon: Building2 },
+  { id: 'embed', label: 'Website embed', icon: Globe },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'staff', label: 'Staff & roles', icon: Users },
@@ -265,7 +268,7 @@ function LogoutSection() {
   )
 }
 
-const API_BASE = 'https://medbot-backend-5rgh.onrender.com'
+const API_BASE = API_URL
 
 const businessFetch = async (path: string, options?: RequestInit) => {
   const token = localStorage.getItem('token')
@@ -489,8 +492,311 @@ function ApiKeysSection() {
   )
 }
 
+function EmbedSection() {
+  const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [tenantId, setTenantId] = useState('')
+  const [tenantSlug, setTenantSlug] = useState('')
+  const [branding, setBranding] = useState({
+    primaryColor: '#00A8A8',
+    secondaryColor: '#073B4C',
+    welcomeMessage: 'Hello! I\'m MedBot, your medical triage assistant. How can I help you today?',
+    theme: 'light' as 'light' | 'dark',
+  })
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) { setLoading(false); return }
+    fetch(`${API_BASE}/api/tenants/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return
+        setTenantId(data._id || '')
+        setTenantSlug(data.slug || '')
+        if (data.whitelabelConfig) {
+          setBranding({
+            primaryColor: data.whitelabelConfig.primaryColor || '#00A8A8',
+            secondaryColor: data.whitelabelConfig.accentColor || '#073B4C',
+            welcomeMessage: data.whitelabelConfig.welcomeMessage || 'Hello! I\'m MedBot, your medical triage assistant. How can I help you today?',
+            theme: data.whitelabelConfig.theme || 'light',
+          })
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const handleSave = async () => {
+    if (!tenantId) return
+    setSaving(true)
+    setSaved(false)
+    try {
+      const token = localStorage.getItem('token')
+      await fetch(`${API_BASE}/api/tenants/${tenantId}/branding`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          primaryColor: branding.primaryColor,
+          accentColor: branding.secondaryColor,
+          welcomeMessage: branding.welcomeMessage,
+          theme: branding.theme,
+        }),
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {}
+    setSaving(false)
+  }
+
+  const embedCode = tenantSlug
+    ? `<!-- MedBot Triage Widget -->\n<script\n  src="https://embed.medbot.ng/v1.js"\n  data-tenant="${tenantSlug}"\n  data-theme="${branding.theme}"\n  data-locale="en-NG"\n  data-welcome="${branding.welcomeMessage}"\n  data-primary-color="${branding.primaryColor}"\n  data-secondary-color="${branding.secondaryColor}"\n></script>`
+    : '<!-- Complete signup to get your embed code -->'
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const inputClass = 'w-full px-3 py-2 text-sm border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#1a1d25] text-gray-900 dark:text-[#e8eaed] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C] transition-colors'
+
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-4xl">
+        <div className="animate-pulse space-y-4">
+          <div className="h-7 w-48 bg-gray-100 dark:bg-[#1a1d25] rounded-lg" />
+          <div className="h-4 w-80 bg-gray-100 dark:bg-[#1a1d25] rounded-lg" />
+          <div className="flex gap-6">
+            <div className="flex-1 space-y-4">
+              <div className="h-44 bg-gray-100 dark:bg-[#1a1d25] rounded-xl" />
+              <div className="h-64 bg-gray-100 dark:bg-[#1a1d25] rounded-xl" />
+            </div>
+            <div className="w-[380px] h-[560px] bg-gray-100 dark:bg-[#1a1d25] rounded-xl shrink-0" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-[#e8eaed] mb-1">Website embed</h2>
+        <p className="text-sm text-gray-500 dark:text-[#6b7080]">Add MedBot triage to your website in minutes. Patients use it on your site; you get safe triage outcomes, emergency flags, and demand insights.</p>
+      </div>
+
+      <div className="flex flex-col xl:flex-row gap-6">
+        <div className="flex-1 space-y-6">
+          <div className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-[#073B4C]/10 rounded-lg flex items-center justify-center">
+                <Globe className="w-4 h-4 text-[#073B4C]" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">Embed code</h3>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-[#6b7080]">Paste this before the closing &lt;/body&gt; tag on your website.</p>
+            <div className="relative group">
+              <pre className="bg-gray-900 text-green-400 rounded-lg p-4 text-xs font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed pr-10">{embedCode}</pre>
+              <button
+                onClick={() => handleCopy(embedCode)}
+                className="absolute top-2.5 right-2.5 p-1.5 rounded-md bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors opacity-80 group-hover:opacity-100"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-[#00A8A8]/10 rounded-lg flex items-center justify-center">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#00A8A8" strokeWidth="2" className="w-4 h-4">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">Branding</h3>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-[#6b7080]">Customize the widget appearance to match your brand.</p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-[#6b7080] mb-1.5">Primary color</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={branding.primaryColor}
+                    onChange={(e) => setBranding({ ...branding, primaryColor: e.target.value })}
+                    className="w-8 h-8 rounded border border-gray-200 dark:border-[#2a2d35] cursor-pointer bg-transparent"
+                  />
+                  <input
+                    type="text"
+                    value={branding.primaryColor}
+                    onChange={(e) => setBranding({ ...branding, primaryColor: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-[#6b7080] mb-1.5">Secondary color</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={branding.secondaryColor}
+                    onChange={(e) => setBranding({ ...branding, secondaryColor: e.target.value })}
+                    className="w-8 h-8 rounded border border-gray-200 dark:border-[#2a2d35] cursor-pointer bg-transparent"
+                  />
+                  <input
+                    type="text"
+                    value={branding.secondaryColor}
+                    onChange={(e) => setBranding({ ...branding, secondaryColor: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-[#6b7080] mb-1.5">Welcome message</label>
+              <input
+                type="text"
+                value={branding.welcomeMessage}
+                onChange={(e) => setBranding({ ...branding, welcomeMessage: e.target.value })}
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-[#6b7080] mb-1.5">Theme</label>
+              <select
+                value={branding.theme}
+                onChange={(e) => setBranding({ ...branding, theme: e.target.value as 'light' | 'dark' })}
+                className={inputClass}
+              >
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-4 py-2 bg-[#073B4C] hover:bg-[#054A5E] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+              >
+                {saving ? 'Saving...' : saved ? 'Saved' : 'Save changes'}
+                {saved && <Check className="w-3.5 h-3.5" />}
+              </button>
+              <button
+                onClick={() => setBranding({ primaryColor: '#00A8A8', secondaryColor: '#073B4C', welcomeMessage: 'Hello! I\'m MedBot, your medical triage assistant. How can I help you today?', theme: 'light' })}
+                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-[#a0a4ad] hover:text-gray-900 dark:hover:text-[#e8eaed] transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-5 xl:w-[380px] shrink-0 flex flex-col">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-gray-100 dark:bg-[#1a1d25] rounded-lg flex items-center justify-center">
+              <Eye className="w-4 h-4 text-gray-500 dark:text-[#6b7080]" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">Widget preview</h3>
+          </div>
+
+          <div className="flex-1 border border-gray-200 dark:border-[#2a2d35] rounded-xl bg-gray-50 dark:bg-[#1a1d25] relative overflow-hidden">
+            <div className="absolute inset-0 flex flex-col">
+              <div className="px-5 pt-4 pb-3">
+                <p className="text-[10px] text-gray-400 dark:text-[#525666] font-medium uppercase tracking-wider">Live preview</p>
+              </div>
+
+              <div className="flex-1 mx-4 mb-4 bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] shadow-md overflow-hidden flex flex-col">
+                <div className="px-5 py-4 flex items-center gap-3 shrink-0" style={{ backgroundColor: branding.secondaryColor }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: branding.primaryColor }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-5 h-5">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white leading-tight">Medical Triage</p>
+                    <p className="text-[11px] text-white/60">AI-powered health assessment</p>
+                  </div>
+                </div>
+
+                <div className="flex-1 px-5 py-5 space-y-4 overflow-y-auto">
+                  <div className="bg-gray-100 dark:bg-[#1a1d25] rounded-2xl rounded-tl-md px-4 py-3 text-[13px] text-gray-700 dark:text-[#a0a4ad] max-w-[85%] leading-relaxed">
+                    {branding.welcomeMessage}
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="rounded-2xl rounded-tr-md px-4 py-3 text-[13px] text-white max-w-[85%] leading-relaxed" style={{ backgroundColor: branding.primaryColor }}>
+                      I have a headache and fever
+                    </div>
+                  </div>
+                  <div className="bg-gray-100 dark:bg-[#1a1d25] rounded-2xl rounded-tl-md px-4 py-3 text-[13px] text-gray-700 dark:text-[#a0a4ad] max-w-[85%] leading-relaxed">
+                    I understand you're experiencing a headache and fever. How long have you had these symptoms?
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="rounded-2xl rounded-tr-md px-4 py-3 text-[13px] text-white max-w-[85%] leading-relaxed" style={{ backgroundColor: branding.primaryColor }}>
+                      Since this morning, about 6 hours
+                    </div>
+                  </div>
+                  <div className="bg-gray-100 dark:bg-[#1a1d25] rounded-2xl rounded-tl-md px-4 py-3 text-[13px] text-gray-700 dark:text-[#a0a4ad] max-w-[85%] leading-relaxed">
+                    Thank you. Based on your symptoms, I recommend consulting with a healthcare professional. If your symptoms worsen, please seek immediate medical attention.
+                  </div>
+                </div>
+
+                <div className="px-3 pb-3 pt-1 shrink-0">
+                  <div className="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+                    <div className="px-4 pt-3.5 pb-1">
+                      <p className="text-[13px] text-gray-400 dark:text-gray-500">Describe your symptoms...</p>
+                    </div>
+                    <div className="flex items-center justify-end px-2 pb-2 pt-1">
+                      <div className="w-8 h-8 flex items-center justify-center rounded-full text-white shrink-0" style={{ backgroundColor: branding.primaryColor }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[18px] h-[18px]">
+                          <line x1="12" y1="19" x2="12" y2="5"/>
+                          <polyline points="5 12 12 5 19 12"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-center text-[10px] text-gray-300 dark:text-[#525666] py-2.5 border-t border-gray-100 dark:border-[#1e2028] shrink-0">Powered by MedBot</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-xl p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">How it works</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { step: '1', title: 'Copy the code', desc: 'Grab the embed snippet above and paste it into your website.' },
+            { step: '2', title: 'Patients use it', desc: 'The chat widget appears on your site for 24/7 triage access.' },
+            { step: '3', title: 'You get insights', desc: 'View triage outcomes, emergency flags, and demand analytics here.' },
+          ].map((item) => (
+            <div key={item.step} className="flex gap-3">
+              <div className="w-7 h-7 rounded-full bg-[#073B4C] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                {item.step}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-[#e8eaed]">{item.title}</p>
+                <p className="text-xs text-gray-500 dark:text-[#6b7080] mt-0.5 leading-relaxed">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const SECTIONS: Record<string, React.ComponentType> = {
   profile: ProfileSection,
+  embed: EmbedSection,
   notifications: NotificationsSection,
   security: SecuritySection,
   staff: StaffSection,

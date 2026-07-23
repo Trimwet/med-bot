@@ -335,11 +335,12 @@ export async function checkEntitlement(tenantId: string): Promise<{ allowed: boo
   const tenant = await getTenantById(tenantId);
   if (!tenant) return { allowed: false, remaining: 0, limit: 0 };
   
+  if (!tenant.entitlements) return { allowed: false, remaining: 0, limit: 0 };
   const { monthlyAssessmentLimit, assessmentsUsed } = tenant.entitlements;
   const remaining = monthlyAssessmentLimit - assessmentsUsed;
   
   return {
-    allowed: remaining > 0 || tenant.plan === "enterprise",
+    allowed: remaining > 0,
     remaining: Math.max(0, remaining),
     limit: monthlyAssessmentLimit,
   };
@@ -347,18 +348,15 @@ export async function checkEntitlement(tenantId: string): Promise<{ allowed: boo
 
 export async function recordAssessment(tenantId: string): Promise<{ success: boolean; overage: number }> {
   const db = await getDb();
-  const tenant = await getTenantById(tenantId);
-  if (!tenant) return { success: false, overage: 0 };
-  
-  const { monthlyAssessmentLimit, assessmentsUsed, overagePriceNgn } = tenant.entitlements;
-  const overage = assessmentsUsed >= monthlyAssessmentLimit ? overagePriceNgn : 0;
-  
-  await db.collection<TenantDocument>(COLLECTIONS.tenants).updateOne(
-    { _id: new ObjectId(tenantId) },
+  const result = await db.collection<TenantDocument>(COLLECTIONS.tenants).findOneAndUpdate(
+    {
+      _id: new ObjectId(tenantId),
+      $expr: { $lt: ["$entitlements.assessmentsUsed", "$entitlements.monthlyAssessmentLimit"] },
+    },
     { $inc: { "entitlements.assessmentsUsed": 1 } }
   );
-  
-  return { success: true, overage };
+  if (!result) return { success: false, overage: 0 };
+  return { success: true, overage: 0 };
 }
 
 export async function updateTenantBranding(tenantId: string, config: TenantDocument["whitelabelConfig"]): Promise<void> {

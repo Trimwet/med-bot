@@ -66,6 +66,12 @@ export async function getSession(sessionId: string, userId: string): Promise<Ses
   return db.collection<SessionDocument>(COLLECTIONS.sessions).findOne({ sessionId, userId });
 }
 
+/** Partner sessions are isolated by tenant, rather than by a dashboard user. */
+export async function getSessionForTenant(sessionId: string, tenantId: string): Promise<SessionDocument | null> {
+  const db = await getDb();
+  return db.collection<SessionDocument>(COLLECTIONS.sessions).findOne({ sessionId, tenantId });
+}
+
 export async function getOrCreateSession(
   sessionId: string,
   userId: string,
@@ -93,6 +99,26 @@ export async function getOrCreateSession(
 
   await collection.insertOne(fresh);
   return fresh;
+}
+
+export async function configurePartnerSession(
+  sessionId: string,
+  userId: string,
+  tenantId: string,
+  channel: SessionDocument["channel"],
+  patientId?: string,
+): Promise<void> {
+  const db = await getDb();
+  await db.collection<SessionDocument>(COLLECTIONS.sessions).updateOne(
+    { sessionId, userId, tenantId },
+    {
+      $set: {
+        channel,
+        ...(patientId ? { patientId } : {}),
+        updatedAt: new Date().toISOString(),
+      },
+    },
+  );
 }
 
 export async function appendMessage(

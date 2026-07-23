@@ -125,6 +125,7 @@ tenantAnalyticsRoute.get("/api/tenant/analytics/sessions", async (req, res, next
         sessionId: d.sessionId,
         userId: d.userId,
         verdict: d.verdict || null,
+        channel: d.channel,
         status: d.status,
         messageCount: d.messages?.length ?? 0,
         firstMessage: d.messages?.find((m) => m.role === "user")?.content?.slice(0, 120) || "",

@@ -20,6 +20,7 @@
     welcomeMessage: 'Hello! How can I help you today?',
     title: 'Medical Triage',
     subtitle: 'AI-powered health assessment',
+    apiUrl: '',
   };
 
   // Parse script tag attributes
@@ -36,18 +37,7 @@
     CONFIG.welcomeMessage = script.getAttribute('data-welcome') || CONFIG.welcomeMessage;
     CONFIG.title = script.getAttribute('data-title') || CONFIG.title;
     CONFIG.subtitle = script.getAttribute('data-subtitle') || CONFIG.subtitle;
-  }
-
-  // Generate a session token for this widget instance
-  function generateSessionToken() {
-    const payload = {
-      tenantId: CONFIG.tenantId,
-      sessionId: 'widget_' + Math.random().toString(36).substr(2, 9),
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
-    };
-    // In production, this would be a signed JWT
-    return btoa(JSON.stringify(payload));
+    CONFIG.apiUrl = script.getAttribute('data-api-url') || window.location.origin;
   }
 
   // Create the widget container
@@ -181,29 +171,41 @@
         .medbot-input-area {
           padding: 12px;
           border-top: 1px solid ${CONFIG.theme === 'dark' ? '#333' : '#eee'};
-          display: flex;
-          gap: 8px;
+        }
+        
+        .medbot-input-wrapper {
+          border-radius: 24px;
+          border: 1px solid ${CONFIG.theme === 'dark' ? '#444' : '#e5e7eb'};
+          background: ${CONFIG.theme === 'dark' ? '#1f2937' : 'white'};
+          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
         
         .medbot-input {
-          flex: 1;
-          padding: 12px;
-          border: 1px solid ${CONFIG.theme === 'dark' ? '#333' : '#ddd'};
-          border-radius: 8px;
+          width: 100%;
+          padding: 14px 16px 4px;
+          border: none;
           font-size: 14px;
-          background: ${CONFIG.theme === 'dark' ? '#2a2a2a' : 'white'};
+          background: transparent;
           color: ${CONFIG.theme === 'dark' ? 'white' : '#333'};
           outline: none;
+          border-radius: 24px 24px 0 0;
         }
         
-        .medbot-input:focus {
-          border-color: ${CONFIG.primaryColor};
+        .medbot-input::placeholder {
+          color: ${CONFIG.theme === 'dark' ? '#666' : '#9ca3af'};
+        }
+        
+        .medbot-send-row {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          padding: 4px 8px 8px;
         }
         
         .medbot-send {
-          width: 44px;
-          height: 44px;
-          border-radius: 8px;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
           background: ${CONFIG.primaryColor};
           color: white;
           border: none;
@@ -211,6 +213,7 @@
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: opacity 0.15s;
         }
         
         .medbot-send:hover {
@@ -270,13 +273,17 @@
         </div>
         
         <div class="medbot-input-area">
-          <input type="text" class="medbot-input" placeholder="Describe your symptoms..." />
-          <button class="medbot-send" aria-label="Send message">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-          </button>
+          <div class="medbot-input-wrapper">
+            <input type="text" class="medbot-input" placeholder="Describe your symptoms..." />
+            <div class="medbot-send-row">
+              <button class="medbot-send" aria-label="Send message">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="19" x2="12" y2="5"/>
+                  <polyline points="5 12 12 5 19 12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
         
         <div class="medbot-powered">
@@ -291,24 +298,38 @@
 
   // API client
   const API = {
-    baseUrl: 'https://api.medbot.ng',
+    baseUrl: '',
     token: null,
+    sessionId: null,
+    consented: false,
 
     async init() {
-      this.token = generateSessionToken();
-      // In production, exchange the widget token for a session
-      // For now, we'll use the demo endpoint
+      this.baseUrl = CONFIG.apiUrl.replace(/\/$/, '');
+      const response = await fetch(`${this.baseUrl}/v1/widget/sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant: CONFIG.tenantId }),
+      });
+      if (!response.ok) throw new Error('Unable to start MedBot widget');
+      const data = await response.json();
+      this.token = data.widgetToken;
+      this.sessionId = data.sessionId;
     },
 
     async sendMessage(message) {
       try {
-        const response = await fetch(`${this.baseUrl}/api/demo/chat`, {
+        if (!this.token || !this.sessionId) await this.init();
+        if (!this.consented) {
+          this.consented = window.confirm('Do you consent to MedBot processing your health information for triage?');
+          if (!this.consented) return { reply: 'Please provide consent before describing symptoms.', sessionId: this.sessionId, triage: null };
+        }
+        const response = await fetch(`${this.baseUrl}/v1/sessions/${encodeURIComponent(this.sessionId)}/messages`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'x-widget-token': this.token,
           },
-          body: JSON.stringify({ message }),
+          body: JSON.stringify({ message, consent: true }),
         });
         
         if (!response.ok) throw new Error('Failed to send message');
@@ -366,7 +387,7 @@
         
         // Add bot response
         const isEmergency = response.triage === 'emergency';
-        messages.innerHTML += `<div class="medbot-message bot ${isEmergency ? 'emergency' : ''}">${escapeHtml(response.reply)}</div>`;
+        messages.innerHTML += `<div class="medbot-message bot ${isEmergency ? 'emergency' : ''}">${escapeHtml(stripEmotionTags(response.reply))}</div>`;
         
         // Emit event for parent page
         window.dispatchEvent(new CustomEvent('medbot:message', {
@@ -397,10 +418,14 @@
     return div.innerHTML;
   }
 
+  function stripEmotionTags(text) {
+    return text.replace(/\[[a-z_]+\]\s*/g, '');
+  }
+
   // Initialize
   parseConfig();
   if (CONFIG.tenantId) {
-    API.init();
+    API.init().catch((error) => console.error('MedBot: widget initialization failed', error));
     
     // Expose global API
     window.MedBot = {

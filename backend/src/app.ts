@@ -32,6 +32,10 @@ function isAllowedOrigin(origin: string): boolean {
 app.use(cors({ origin: (origin, callback) => callback(null, !origin || isAllowedOrigin(origin)) }));
 app.use(express.json({ limit: "32kb" }));
 
+// The widget is deliberately embeddable on a tenant's own website. Its scoped,
+// short-lived token still authenticates every protected request.
+app.use("/v1", cors({ origin: true, allowedHeaders: ["Content-Type", "X-Widget-Token", "X-Api-Key", "Authorization"] }));
+
 app.use(healthRoute);
 app.use(sessionRoute);
 app.use(chatRoute);

@@ -24,7 +24,6 @@ import { BusinessSubscription } from '@/components/business/business-subscriptio
 import { BusinessSettings } from '@/components/business/business-settings'
 import { StaffManagement } from '@/components/business/staff-management'
 import { BusinessPayment } from '@/components/business/business-payment'
-import { ClinicDashboard } from '@/components/clinic-dashboard'
 import { ProtocolAdmin } from '@/components/admin/protocol-admin'
 import { AdminLogin } from '@/components/admin/admin-login'
 import { AdminLayout } from '@/components/admin/admin-layout'
@@ -202,9 +201,6 @@ function AppRoutes() {
         <Route path="payment" element={<BusinessPayment />} />
         <Route path="protocols" element={<ProtocolAdmin />} />
       </Route>
-
-      {/* Clinic Dashboard (B2B2C) */}
-      <Route path="/clinic/dashboard" element={<ClinicDashboard />} />
 
       {/* Super Admin Routes */}
       <Route

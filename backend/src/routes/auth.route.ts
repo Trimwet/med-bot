@@ -296,11 +296,18 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
       const db = await getDb();
       const tenantDoc: TenantDocument = {
         name: user.name || "My Organization",
+        slug: `${(user.name || "organization").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "organization"}-${user._id!.toString().slice(-6)}`,
+        status: "trial",
+        plan: "starter",
         tier: "growth",
         tokenBalance: 1000000,
         subscriptionStartDate: now,
-        subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        subscriptionEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        entitlements: { monthlyAssessmentLimit: 500, assessmentsUsed: 0, overagePriceNgn: 200, enabledChannels: ["web", "embed"], apiEnabled: false },
+        webhookConfig: { events: [] },
         whitelabelConfig: {},
+        contactEmail: user.email,
+        billingEmail: user.email,
         createdAt: now,
       };
       const tenantResult = await db.collection<TenantDocument>(COLLECTIONS.tenants).insertOne(tenantDoc);

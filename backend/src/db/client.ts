@@ -24,6 +24,7 @@ export async function getDb(): Promise<Db> {
 
 export async function ensureIndexes(): Promise<void> {
   const database = await getDb();
+  await migrateLegacyTenants(database);
 
   await Promise.all([
     database.collection("knowledge_collection").createIndex({ nodeId: 1 }, { unique: true }),
@@ -32,6 +33,8 @@ export async function ensureIndexes(): Promise<void> {
     database.collection("sessions_collection").createIndex({ userId: 1, sessionId: 1 }),
     database.collection("users_collection").createIndex({ email: 1 }, { sparse: true }),
     database.collection("tenants").createIndex({ name: 1 }, { unique: true }),
+    database.collection("tenants").createIndex({ slug: 1 }, { unique: true, sparse: true }),
+    database.collection("sessions_collection").createIndex({ tenantId: 1, sessionId: 1 }),
     database.collection("tenants").createIndex({ tier: 1 }),
     database.collection("token_ledger").createIndex({ tenantId: 1, timestamp: -1 }),
     database.collection("token_ledger").createIndex({ tenantId: 1, sessionId: 1 }),
@@ -42,6 +45,29 @@ export async function ensureIndexes(): Promise<void> {
   ]);
 
   logger.info("mongodb indexes ensured");
+}
+
+/** Keep pre-B2B2C tenant records usable after the entitlement fields were introduced. */
+async function migrateLegacyTenants(database: Db): Promise<void> {
+  const tenants = await database.collection("tenants").find({
+    $or: [{ entitlements: { $exists: false } }, { slug: { $exists: false } }, { status: { $exists: false } }],
+  }).toArray();
+  await Promise.all(tenants.map((tenant) => {
+    const suffix = tenant._id.toString().slice(-6);
+    const base = String(tenant.name || "organization").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "organization";
+    return database.collection("tenants").updateOne(
+      { _id: tenant._id },
+      {
+        $set: {
+          slug: tenant.slug || `${base}-${suffix}`,
+          status: tenant.status || "active",
+          plan: tenant.plan || "starter",
+          entitlements: tenant.entitlements || { monthlyAssessmentLimit: 500, assessmentsUsed: 0, overagePriceNgn: 200, enabledChannels: ["web", "embed"], apiEnabled: false },
+          webhookConfig: tenant.webhookConfig || { events: [] },
+        },
+      },
+    );
+  }));
 }
 
 export const COLLECTIONS = {

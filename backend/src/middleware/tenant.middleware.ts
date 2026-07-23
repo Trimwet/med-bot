@@ -3,11 +3,14 @@ import { UnauthorizedError, ForbiddenError } from "@/lib/errors";
 import { verifyJwtToken, getUserById } from "@/services/auth.service";
 import { validateApiKey } from "@/services/apiKey.service";
 import { getTenantById } from "@/services/tenant.service";
+import jwt from "jsonwebtoken";
+import { env } from "@/config/env";
 
 export interface TenantContext {
   tenantId: string;
   source: "jwt" | "api_key" | "widget_token";
   userId?: string;
+  channel?: "web" | "whatsapp" | "api" | "embed";
 }
 
 declare global {
@@ -28,7 +31,7 @@ export async function tenantMiddleware(req: Request, _res: Response, next: NextF
         next(new UnauthorizedError("Invalid or expired API key"));
         return;
       }
-      req.tenantContext = { tenantId, source: "api_key" };
+      req.tenantContext = { tenantId, source: "api_key", channel: "api" };
       next();
       return;
     }
@@ -56,7 +59,7 @@ export async function tenantMiddleware(req: Request, _res: Response, next: NextF
         return;
       }
 
-      req.tenantContext = { tenantId: user.tenantId, source: "jwt", userId: user._id!.toString() };
+      req.tenantContext = { tenantId: user.tenantId, source: "jwt", userId: user._id!.toString(), channel: "web" };
       req.user = {
         id: user._id!.toString(),
         email: user.email,
@@ -71,16 +74,13 @@ export async function tenantMiddleware(req: Request, _res: Response, next: NextF
     // Try widget token (x-widget-token header)
     const widgetToken = req.headers["x-widget-token"] as string | undefined;
     if (widgetToken) {
-      // Widget tokens are signed JWTs with tenantId and sessionId
-      // For now, we'll validate the format and extract tenantId
-      // In production, verify the signature against a secret
       try {
-        const payload = JSON.parse(Buffer.from(widgetToken.split(".")[1], "base64url").toString());
-        if (!payload.tenantId) {
+        const payload = jwt.verify(widgetToken, env.jwtSecret) as { tenantId?: string; sessionId?: string; channel?: string };
+        if (!payload.tenantId || !payload.sessionId || payload.channel !== "embed") {
           next(new UnauthorizedError("Invalid widget token"));
           return;
         }
-        req.tenantContext = { tenantId: payload.tenantId, source: "widget_token" };
+        req.tenantContext = { tenantId: payload.tenantId, source: "widget_token", channel: "embed" };
         next();
         return;
       } catch {
@@ -117,8 +117,17 @@ export async function requireEntitlement(req: Request, _res: Response, next: Nex
     return;
   }
 
-  const { monthlyAssessmentLimit, assessmentsUsed } = tenant.entitlements;
-  if (assessmentsUsed >= monthlyAssessmentLimit && tenant.plan !== "enterprise") {
+  if (!tenant.entitlements) {
+    next(new ForbiddenError("Tenant plan has not been configured"));
+    return;
+  }
+  const { monthlyAssessmentLimit, assessmentsUsed, enabledChannels, apiEnabled } = tenant.entitlements;
+  const channel = req.tenantContext.channel || (req.tenantContext.source === "api_key" ? "api" : "web");
+  if (!enabledChannels.includes(channel) || (channel === "api" && !apiEnabled)) {
+    next(new ForbiddenError("This channel is not enabled for the tenant plan"));
+    return;
+  }
+  if (assessmentsUsed >= monthlyAssessmentLimit) {
     next(new ForbiddenError("Monthly assessment limit reached"));
     return;
   }
