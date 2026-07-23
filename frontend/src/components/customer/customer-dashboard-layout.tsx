@@ -18,6 +18,7 @@ import {
   Play,
 } from 'lucide-react'
 import { listSessions, getAuthUser, type SessionEntry } from '@/lib/api'
+import { LogoutConfirmModal } from '@/components/ui/logout-confirm-modal'
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Chat', href: '/dashboard' },
@@ -53,6 +54,7 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
   const [recentSessions, setRecentSessions] = useState<SessionEntry[]>([])
   const [userName, setUserName] = useState('')
   const [initialLoading, setInitialLoading] = useState(!demo)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -105,6 +107,10 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
     localStorage.removeItem('token')
     setMobileOpen(false)
     navigate('/login')
+  }
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(true)
   }
 
   if (initialLoading) {
@@ -262,7 +268,7 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
           <div className="border-t border-gray-100 dark:border-gray-800 my-1" />
 
           <button
-            onClick={handleLogout}
+            onClick={confirmLogout}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
           >
             <LogOut className="w-4 h-4 shrink-0" />
@@ -312,6 +318,7 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
           </Suspense>
         </div>
       </main>
+      <LogoutConfirmModal open={showLogoutConfirm} onCancel={() => setShowLogoutConfirm(false)} onConfirm={handleLogout} />
     </div>
   )
 }

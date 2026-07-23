@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { formatPhoneInput } from '@/lib/utils'
 import { API_URL } from '@/lib/api'
+import { LogoutConfirmModal } from '@/components/ui/logout-confirm-modal'
 
 type NavItem = {
   id: string
@@ -293,6 +294,14 @@ function StaffSection() {
 }
 
 function LogoutSection() {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    navigate('/')
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -307,16 +316,14 @@ function LogoutSection() {
             <p className="text-sm font-medium text-gray-900 dark:text-[#e8eaed]">Sign out</p>
             <p className="text-xs text-gray-500 dark:text-[#6b7080] mt-0.5">You will be redirected to the login page. Any unsaved changes will be lost.</p>
             <button
-              onClick={() => {
-                localStorage.removeItem('token')
-                window.location.href = '/'
-              }}
+              onClick={() => setShowLogoutConfirm(true)}
               className="mt-3 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors">
               Sign out
             </button>
           </div>
         </div>
       </div>
+      <LogoutConfirmModal open={showLogoutConfirm} onCancel={() => setShowLogoutConfirm(false)} onConfirm={handleLogout} />
     </div>
   )
 }

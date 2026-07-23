@@ -3,10 +3,12 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { DarkModeProvider } from '@/components/business/dark-mode-context'
 import { BusinessSidebar } from '@/components/business/business-sidebar'
 import { BusinessNavbar } from '@/components/business/business-navbar'
+import { LogoutConfirmModal } from '@/components/ui/logout-confirm-modal'
 
 export const BusinessDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -23,7 +25,7 @@ export const BusinessDashboardLayout = () => {
             onClose={() => setSidebarOpen(false)}
             collapsed={collapsed}
             onCollapsedChange={setCollapsed}
-            onLogout={handleLogout}
+            onLogout={() => setShowLogoutConfirm(true)}
           />
           <div className={`flex-1 transition-all duration-300 ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-64'}`}>
             <BusinessNavbar onMenuClick={() => setSidebarOpen(true)} />
@@ -42,6 +44,7 @@ export const BusinessDashboardLayout = () => {
           </div>
         </div>
       </div>
+      <LogoutConfirmModal open={showLogoutConfirm} onCancel={() => setShowLogoutConfirm(false)} onConfirm={handleLogout} />
     </DarkModeProvider>
   )
 }
