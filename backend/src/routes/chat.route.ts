@@ -5,7 +5,7 @@ import { getOrCreateSession, appendMessage, updateSessionGraphState } from "@/se
 import { generateSessionSummary } from "@/services/summary.service";
 import { sendPushToUser } from "@/services/push.service";
 import { sendAssessmentEmail, getNotificationPrefs } from "@/services/notification.service";
-import { hasConsented } from "@/services/consent.service";
+import { hasConsented, grantConsent } from "@/services/consent.service";
 import { vectorSearch } from "../../agents/triage/tools/vectorSearch";
 import { scheduleFollowup } from "../../agents/triage/tools/scheduleFollowup";
 import { getEffectiveMultiplier, computeTokenCost, deductTokens } from "@/services/tenant.service";
@@ -299,8 +299,7 @@ async function preChecks(
 
   const consented = await hasConsented(userId);
   if (!consented) {
-    await appendMessage(sessionId, userId, { role: "assistant", content: CONSENT_REPLY, timestamp: new Date().toISOString() });
-    return { earlyReturn: { status: 200, body: { reply: CONSENT_REPLY, saved: true, consentRequired: true } }, session, userId, userMsg };
+    await grantConsent(userId);
   }
 
   const traversalResult = await vectorSearch({ patientMessage: message, activeNodeId: session.activeNodeId });

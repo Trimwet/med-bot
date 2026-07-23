@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { Eye, EyeOff, ArrowRight, ChevronLeft } from 'lucide-react'
-import { tenantLogin, tenantVerifyLoginOtp } from '@/lib/api'
+import { tenantLogin } from '@/lib/api'
+
+// NOTE: To re-enable OTP verification for business login:
+// 1. Import tenantVerifyLoginOtp from '@/lib/api'
+// 2. Restore the otpStep state and OTP input UI
+// 3. In handleSubmit, set otpStep(true) after tenantLogin instead of calling onLoginSuccess directly
+// 4. Add back handleVerifyOtp that calls tenantVerifyLoginOtp(email, otp) and calls onLoginSuccess with the returned token
+// 5. On the backend, restore OTP generation in requestTenantLoginOtp and the sendOtpEmail/verifyTenantLoginOtp flow
 
 interface BusinessLoginProps {
   onBack?: () => void
@@ -16,69 +23,23 @@ export const BusinessLogin = ({ onBack, onSignup, onLoginSuccess, onForgotPasswo
   const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [otpStep, setOtpStep] = useState(false)
-  const [otp, setOtp] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      await tenantLogin(email, password)
-      setOtpStep(true)
+      const res = await tenantLogin(email, password)
+      if (res.token) {
+        onLoginSuccess?.(res.token)
+      } else {
+        setError('Login succeeded but no token received.')
+      }
     } catch (err: any) {
       setError(err?.message || 'Login failed')
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      const res = await tenantVerifyLoginOtp(email, otp)
-      if (res.token) {
-        onLoginSuccess?.(res.token)
-      }
-    } catch (err: any) {
-      setError(err?.message || 'Verification failed')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (otpStep) {
-    return (
-      <div className="min-h-screen bg-[#EFF6FF] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 text-center">
-          <img src="/assets/Logoico.png" alt="MedBot" className="h-8 w-auto mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Verify Login</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Enter the 6-digit code sent to <strong>{email}</strong>
-          </p>
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <input
-              type="text"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="Enter OTP"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg text-center tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-[#073B4C]/30"
-              maxLength={6}
-            />
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading || otp.length < 6}
-              className="w-full bg-[#073B4C] text-white py-3 rounded-lg font-semibold text-sm hover:bg-[#0A202A] transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Verifying...' : 'Verify OTP'}
-            </button>
-          </form>
-        </div>
-      </div>
-    )
   }
 
   return (

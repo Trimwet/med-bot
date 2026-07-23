@@ -47,21 +47,7 @@ tenantRoute.post("/api/tenants/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const result = await requestTenantLoginOtp({ email, password });
-    const sent = await sendOtpEmail(email, result.otp);
-
-    if (env.nodeEnv === "development") {
-      logger.info(`[DEV OTP] tenant login for ${email}: ${result.otp}`);
-    }
-
-    if (!sent) {
-      res.json({
-        message: "Credentials verified, but we couldn't send the OTP email.",
-        emailSent: false,
-      });
-      return;
-    }
-
-    res.json({ message: result.message });
+    res.json({ message: result.message, token: result.token, tenant: result.tenant });
   } catch (err) {
     next(err);
   }
@@ -122,12 +108,14 @@ tenantRoute.put("/api/tenants/:id/branding", authMiddleware, async (req, res, ne
       res.status(403).json({ error: "Not authorized" });
       return;
     }
-    const { primaryColor, accentColor, welcomeMessage, theme } = req.body;
+    const { primaryColor, accentColor, welcomeMessage, theme, logoUrl, clinicName } = req.body;
     await updateTenantBranding(req.params.id, {
       ...(primaryColor !== undefined && { primaryColor }),
       ...(accentColor !== undefined && { accentColor }),
       ...(welcomeMessage !== undefined && { welcomeMessage }),
       ...(theme !== undefined && { theme }),
+      ...(logoUrl !== undefined && { logoUrl }),
+      ...(clinicName !== undefined && { clinicName }),
     });
     res.json({ success: true });
   } catch (err) {

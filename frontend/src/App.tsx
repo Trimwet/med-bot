@@ -22,7 +22,6 @@ import { PatientInsights } from '@/components/business/patient-insights'
 import { BusinessReports } from '@/components/business/business-reports'
 import { BusinessSubscription } from '@/components/business/business-subscription'
 import { BusinessSettings } from '@/components/business/business-settings'
-import { StaffManagement } from '@/components/business/staff-management'
 import { BusinessPayment } from '@/components/business/business-payment'
 import { ProtocolAdmin } from '@/components/admin/protocol-admin'
 import { AdminLogin } from '@/components/admin/admin-login'
@@ -209,7 +208,6 @@ function AppRoutes() {
         <Route path="reports" element={<BusinessReports />} />
         <Route path="subscriptions" element={<BusinessSubscription />} />
         <Route path="settings" element={<BusinessSettings />} />
-        <Route path="staff" element={<StaffManagement />} />
         <Route path="payment" element={<BusinessPayment />} />
         <Route path="protocols" element={<ProtocolAdmin />} />
       </Route>

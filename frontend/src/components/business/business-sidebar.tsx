@@ -11,7 +11,7 @@ import {
   X,
   ChevronsLeft,
   ChevronsRight,
-  Contact,
+
   FileEdit,
 } from 'lucide-react'
 
@@ -19,7 +19,6 @@ const navItems = [
   { to: '/business/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/business/dashboard/assessments', label: 'Assessments', icon: ClipboardList },
   { to: '/business/dashboard/patient-insights', label: 'Patients Insights', icon: Users },
-  { to: '/business/dashboard/staff', label: 'Staff Management', icon: Contact },
   { to: '/business/dashboard/reports', label: 'Reports', icon: FileBarChart },
   { to: '/business/dashboard/subscriptions', label: 'Subscriptions', icon: CreditCard },
   { to: '/business/dashboard/protocols', label: 'Protocol Authoring', icon: FileEdit },

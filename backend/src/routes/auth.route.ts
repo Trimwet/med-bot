@@ -10,6 +10,7 @@ import type { TenantDocument, UserDocument } from "@/db/schema";
 import {
   getAuthenticatedUser,
   requestLoginOtp,
+  loginNoOtp,
   resendLoginOtp,
   resendOtp,
   signJwtToken,
@@ -115,28 +116,12 @@ authRoute.post("/api/auth/resend-otp", async (req, res, next) => {
   }
 });
 
-// Step 1 of login: verify email + password, then send an OTP.
-// No token is issued here.
+// Login: verify email + password, return token directly (no OTP).
 authRoute.post("/api/auth/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const result = await requestLoginOtp({ email, password });
-    const sent = await sendOtpEmail(email, result.otp);
-
-    if (env.nodeEnv === "development") {
-      logger.info(`[DEV OTP] login for ${email}: ${result.otp}`);
-    }
-
-    if (!sent) {
-      res.json({
-        message: "Credentials verified, but we couldn't send the OTP email. Please try resending the code.",
-        emailSent: false,
-
-      });
-      return;
-    }
-
-    res.json({ message: result.message });
+    const result = await loginNoOtp({ email, password });
+    res.json({ message: "Login successful", token: result.token, user: result.user });
   } catch (err) {
     next(err);
   }
@@ -321,8 +306,10 @@ authRoute.get("/api/auth/google/callback", async (req, res) => {
 
     if (fromParam === "business" || (user as any).tenantId) {
       res.redirect(`${env.clientUrl}/business/dashboard#token=${encodeURIComponent(token)}`);
-    } else {
+    } else if (user.profile && user.profile.age && user.profile.gender) {
       res.redirect(`${env.clientUrl}/dashboard#token=${encodeURIComponent(token)}`);
+    } else {
+      res.redirect(`${env.clientUrl}/health-profile#token=${encodeURIComponent(token)}`);
     }
   } catch (err: any) {
     console.error("[google-auth] Callback error:", err?.message || err);

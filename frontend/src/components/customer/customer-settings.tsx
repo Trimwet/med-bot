@@ -123,12 +123,8 @@ function ProfileSection() {
   const [location, setLocation] = useState('')
   const [age, setAge] = useState('')
   const [gender, setGender] = useState('')
-  const [height, setHeight] = useState('')
-  const [weight, setWeight] = useState('')
   const [bloodGroup, setBloodGroup] = useState('')
-  const [allergies, setAllergies] = useState('')
   const [conditions, setConditions] = useState('')
-  const [medications, setMedications] = useState('')
   const [emergencyContact, setEmergencyContact] = useState('')
 
   const [loadingProfile, setLoadingProfile] = useState(true)
@@ -163,12 +159,8 @@ function ProfileSection() {
     const update: Record<string, any> = {}
     if (field === 'age') update.age = value ? Number(value) : undefined
     else if (field === 'gender') update.gender = value || undefined
-    else if (field === 'heightCm') update.heightCm = value ? Number(value) : undefined
-    else if (field === 'weightKg') update.weightKg = value ? Number(value) : undefined
     else if (field === 'bloodGroup') update.bloodGroup = value || undefined
-    else if (field === 'allergies') update.allergies = value || undefined
     else if (field === 'conditions') update.conditions = value || undefined
-    else if (field === 'medications') update.medications = value || undefined
     else if (field === 'emergencyContact') update.emergencyContact = value || undefined
     updateProfile(update).catch(() => {})
   }
@@ -228,26 +220,14 @@ function ProfileSection() {
           <option value="other">Other</option>
         </select>
       </EditableRow>
-      <EditableRow label="Height (cm)" value={height} expanded={expandedRow === 'height'} onEdit={() => setExpandedRow('height')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('heightCm', height); setExpandedRow(null) }}>
-        <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g. 170" className={inputClass} />
-      </EditableRow>
-      <EditableRow label="Weight (kg)" value={weight} expanded={expandedRow === 'weight'} onEdit={() => setExpandedRow('weight')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('weightKg', weight); setExpandedRow(null) }}>
-        <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="e.g. 70" className={inputClass} />
-      </EditableRow>
       <EditableRow label="Blood group" value={bloodGroup} expanded={expandedRow === 'bloodGroup'} onEdit={() => setExpandedRow('bloodGroup')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('bloodGroup', bloodGroup); setExpandedRow(null) }}>
         <select value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)} className={selectClass}>
           <option value="">Select</option>
           {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((g) => <option key={g} value={g}>{g}</option>)}
         </select>
       </EditableRow>
-      <EditableRow label="Allergies" value={allergies} expanded={expandedRow === 'allergies'} onEdit={() => setExpandedRow('allergies')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('allergies', allergies); setExpandedRow(null) }}>
-        <input type="text" value={allergies} onChange={(e) => setAllergies(e.target.value)} placeholder="e.g. Penicillin" className={inputClass} />
-      </EditableRow>
       <EditableRow label="Existing conditions" value={conditions} expanded={expandedRow === 'conditions'} onEdit={() => setExpandedRow('conditions')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('conditions', conditions); setExpandedRow(null) }}>
         <input type="text" value={conditions} onChange={(e) => setConditions(e.target.value)} placeholder="e.g. Asthma" className={inputClass} />
-      </EditableRow>
-      <EditableRow label="Medications" value={medications} expanded={expandedRow === 'medications'} onEdit={() => setExpandedRow('medications')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('medications', medications); setExpandedRow(null) }}>
-        <input type="text" value={medications} onChange={(e) => setMedications(e.target.value)} placeholder="e.g. Ibuprofen" className={inputClass} />
       </EditableRow>
       <EditableRow label="Emergency contact" value={emergencyContact} expanded={expandedRow === 'emergencyContact'} onEdit={() => setExpandedRow('emergencyContact')} onCancel={() => setExpandedRow(null)} onSave={() => { saveHealth('emergencyContact', emergencyContact); setExpandedRow(null) }}>
         <input type="text" value={emergencyContact} onChange={(e) => setEmergencyContact(e.target.value)} placeholder="Name and phone number" className={inputClass} />

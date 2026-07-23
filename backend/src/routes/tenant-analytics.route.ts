@@ -11,11 +11,11 @@ export const tenantAnalyticsRoute = Router();
 async function getTenantId(req: any): Promise<string> {
   const auth = req.headers.authorization;
   if (!auth?.startsWith("Bearer ")) throw new UnauthorizedError("Missing token");
-  const payload = verifyJwtToken(auth.slice(7)) as any;
-  if (!payload?.id) throw new UnauthorizedError("Invalid token");
+  const userId = verifyJwtToken(auth.slice(7));
+  if (!userId) throw new UnauthorizedError("Invalid token");
 
   const db = await getDb();
-  const user = await db.collection("users_collection").findOne({ _id: new ObjectId(payload.id) });
+  const user = await db.collection("users_collection").findOne({ _id: new ObjectId(userId) });
   if (!user?.tenantId) throw new UnauthorizedError("Not a business account");
   return user.tenantId;
 }

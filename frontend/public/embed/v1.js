@@ -114,7 +114,7 @@
           width: 40px;
           height: 40px;
           border-radius: 8px;
-          background: ${CONFIG.primaryColor};
+          background: transparent;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -314,6 +314,7 @@
       const data = await response.json();
       this.token = data.widgetToken;
       this.sessionId = data.sessionId;
+      if (data.branding) applyBranding(data.branding);
     },
 
     async sendMessage(message) {
@@ -344,6 +345,36 @@
   // Widget controller
   let widget = null;
   let isOpen = false;
+
+  function applyBranding(b) {
+    if (!widget) return;
+    if (b.logoUrl) {
+      const logo = widget.querySelector('.medbot-header-logo');
+      if (logo) logo.innerHTML = `<img src="${b.logoUrl}" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:8px" />`;
+    }
+    if (b.clinicName) {
+      const title = widget.querySelector('.medbot-header-text h3');
+      if (title) title.textContent = b.clinicName;
+    }
+    if (b.primaryColor) {
+      CONFIG.primaryColor = b.primaryColor;
+      const fab = widget.querySelector('.medbot-fab');
+      if (fab) fab.style.background = b.primaryColor;
+      const send = widget.querySelector('.medbot-send');
+      if (send) send.style.background = b.primaryColor;
+      const msgs = widget.querySelectorAll('.medbot-message.user');
+      msgs.forEach(m => m.style.background = b.primaryColor);
+    }
+    if (b.accentColor) {
+      CONFIG.secondaryColor = b.accentColor;
+      const header = widget.querySelector('.medbot-header');
+      if (header) header.style.background = b.accentColor;
+    }
+    if (b.welcomeMessage) {
+      const welcome = widget.querySelector('.medbot-message.bot');
+      if (welcome) welcome.textContent = b.welcomeMessage;
+    }
+  }
 
   function toggleWidget() {
     if (!widget) {
@@ -425,6 +456,8 @@
   // Initialize
   parseConfig();
   if (CONFIG.tenantId) {
+    widget = createWidget();
+    setupEventListeners();
     API.init().catch((error) => console.error('MedBot: widget initialization failed', error));
     
     // Expose global API

@@ -17,7 +17,7 @@ import {
   ArrowLeft,
   Play,
 } from 'lucide-react'
-import { listSessions, getAuthUser, type SessionEntry } from '@/lib/api'
+import { listSessions, getAuthUser, getProfile, type SessionEntry } from '@/lib/api'
 import { LogoutConfirmModal } from '@/components/ui/logout-confirm-modal'
 
 const NAV_ITEMS = [
@@ -51,6 +51,8 @@ function getGreeting(name: string): string {
 export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const [recentSessions, setRecentSessions] = useState<SessionEntry[]>([])
   const [userName, setUserName] = useState('')
   const [initialLoading, setInitialLoading] = useState(!demo)
@@ -78,6 +80,22 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
       .finally(() => setInitialLoading(false))
   }, [demo])
 
+  // Redirect to health profile if profile is incomplete
+  useEffect(() => {
+    if (demo) return
+    let cancelled = false
+    getProfile()
+      .then((res) => {
+        if (cancelled) return
+        const p = res.profile
+        if (!p || !p.age || !p.gender || !p.bloodGroup || !p.emergencyContact) {
+          navigate('/health-profile')
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [demo, navigate])
+
   useEffect(() => {
     if (demo) return
     let cancelled = false
@@ -103,6 +121,14 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
     return () => clearInterval(interval)
   }, [])
 
+  const filteredSessions = recentSessions.filter((s) => {
+    const q = searchQuery.toLowerCase()
+    return (
+      (s.summary || '').toLowerCase().includes(q) ||
+      (s.firstMessage || '').toLowerCase().includes(q)
+    )
+  })
+
   const handleLogout = () => {
     localStorage.removeItem('token')
     setMobileOpen(false)
@@ -126,6 +152,67 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
 
   return (
     <div className="h-dvh flex bg-gray-50 dark:bg-[#0a0c10] overflow-hidden">
+      {/* Search overlay */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[15vh] px-4" onClick={() => setSearchOpen(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-w-lg bg-white dark:bg-[#0f1117] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Input */}
+            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-gray-800">
+              <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
+              <input
+                autoFocus
+                type="text"
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Escape' && setSearchOpen(false)}
+                className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+              />
+              <button
+                onClick={() => setSearchOpen(false)}
+                className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-xs font-medium"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Results */}
+            <div className="max-h-80 overflow-y-auto [scrollbar-width:thin]">
+              {recentSessions.length === 0 ? (
+                <p className="px-4 py-8 text-sm text-gray-400 dark:text-gray-500 text-center">No conversations yet</p>
+              ) : filteredSessions.length === 0 ? (
+                <p className="px-4 py-8 text-sm text-gray-400 dark:text-gray-500 text-center">No results for &ldquo;{searchQuery}&rdquo;</p>
+              ) : (
+                <div className="py-2">
+                  {filteredSessions.map((session) => (
+                    <button
+                      key={session.sessionId}
+                      onClick={() => {
+                        navigate(`/dashboard?session=${session.sessionId}`)
+                        setSearchOpen(false)
+                        setMobileOpen(false)
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                        {session.summary || session.firstMessage || 'New assessment'}
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                        {formatRecentTime(session.updatedAt)}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile backdrop */}
       {mobileOpen && (
         <div
@@ -172,7 +259,9 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
             <Plus className="w-4 h-4 shrink-0" />
             {isExpanded && <span>New chat</span>}
           </button>
-          {!demo && <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          {!demo && <button
+            onClick={() => { setSearchOpen(true); setSearchQuery('') }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <Search className="w-4 h-4 shrink-0" />
             {isExpanded && <span>Search</span>}
           </button>}

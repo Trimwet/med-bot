@@ -337,6 +337,35 @@ export async function requestLoginOtp(input: LoginInput) {
 }
 
 /**
+ * Login without OTP: verify email + password, return token directly.
+ */
+export async function loginNoOtp(input: LoginInput) {
+  const email = normalizeEmail(input.email);
+  const password = input.password?.trim();
+
+  if (!email || !password) {
+    throw new ValidationError("Email and password are required");
+  }
+
+  const user = await getUserByEmail(email);
+  if (!user || !user.password) {
+    throw new AppError("Invalid email or password", 401, "INVALID_CREDENTIALS");
+  }
+
+  if (!user.isVerified) {
+    throw new AppError("Please verify your email before logging in", 403, "UNVERIFIED_USER");
+  }
+
+  const isMatch = comparePassword(password, user.password);
+  if (!isMatch) {
+    throw new AppError("Invalid email or password", 401, "INVALID_CREDENTIALS");
+  }
+
+  const token = signJwtToken(user._id!);
+  return { token, user: { id: user._id?.toString(), name: user.name, email: user.email }, message: "Login successful" };
+}
+
+/**
  * Step 2 of login: verify the OTP sent in requestLoginOtp, then issue the token.
  */
 export async function verifyLoginOtp(input: { email: string; otp: string }) {

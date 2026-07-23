@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { User, Heart, Ruler, Weight, Droplets, AlertTriangle, Pill, Phone } from 'lucide-react'
+import { User, Heart, Droplets, Phone } from 'lucide-react'
 import { Select } from './ui/select'
 import { updateProfile, ApiError } from '@/lib/api'
 
@@ -14,12 +14,8 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
   const [form, setForm] = useState({
     age: '',
     gender: '',
-    height: '',
-    weight: '',
     bloodGroup: '',
-    allergies: '',
     conditions: '',
-    medications: '',
     emergencyContact: '',
   })
   const [saving, setSaving] = useState(false)
@@ -32,16 +28,17 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
     setSaving(true)
     setError('')
     try {
+      if (!form.age || !form.gender || !form.bloodGroup || !form.emergencyContact) {
+        setError('Please fill in Age, Gender, Blood Group, and Emergency Contact.')
+        setSaving(false)
+        return
+      }
       await updateProfile({
-        age: form.age ? Number(form.age) : undefined,
-        gender: form.gender || undefined,
-        heightCm: form.height ? Number(form.height) : undefined,
-        weightKg: form.weight ? Number(form.weight) : undefined,
-        bloodGroup: form.bloodGroup || undefined,
-        allergies: form.allergies || undefined,
+        age: Number(form.age),
+        gender: form.gender as 'male' | 'female' | 'other',
+        bloodGroup: form.bloodGroup as any,
+        emergencyContact: form.emergencyContact,
         conditions: form.conditions || undefined,
-        medications: form.medications || undefined,
-        emergencyContact: form.emergencyContact || undefined,
       })
       onContinue?.()
     } catch (err) {
@@ -66,9 +63,8 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                 Create Your Health Profile
               </h1>
               <p className="text-sm text-[#9CA3AF] max-w-xs mx-auto">
-                Help us personalize your experience and provide better health guidance.
+                Fields marked <span className="text-red-500">*</span> are required.
               </p>
-              <p className="text-xs text-muted/40 -mt-1">Only Age and Gender are required. Fill in the rest to get better guidance.</p>
             </div>
 
             {/* Form */}
@@ -78,7 +74,7 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-ink mb-1.5">
                     <User className="size-3.5 text-teal" />
-                    Age
+                    Age <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -91,7 +87,7 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-ink mb-1.5">
                     <User className="size-3.5 text-teal" />
-                    Gender
+                    Gender <span className="text-red-500">*</span>
                   </label>
                   <Select
                     value={form.gender}
@@ -106,48 +102,11 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className="flex items-center gap-3 pt-1">
-                <div className="flex-1 h-px bg-line" />
-                <span className="text-[11px] font-medium text-muted/40 uppercase tracking-wider">Optional</span>
-                <div className="flex-1 h-px bg-line" />
-              </div>
-
-              {/* Height & Weight row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="flex items-center gap-1.5 text-sm font-medium text-ink mb-1.5">
-                    <Ruler className="size-3.5 text-teal" />
-                    Height <span className="text-xs text-muted/40 font-normal">(cm)</span>
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 170"
-                    value={form.height}
-                    onChange={(e) => update('height', e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="flex items-center gap-1.5 text-sm font-medium text-ink mb-1.5">
-                    <Weight className="size-3.5 text-teal" />
-                    Weight <span className="text-xs text-muted/40 font-normal">(kg)</span>
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 70"
-                    value={form.weight}
-                    onChange={(e) => update('weight', e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all"
-                  />
-                </div>
-              </div>
-
               {/* Blood Group */}
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-ink mb-1.5">
                   <Droplets className="size-3.5 text-teal" />
-                  Blood Group
+                  Blood Group <span className="text-red-500">*</span>
                 </label>
                   <Select
                     value={form.bloodGroup}
@@ -155,23 +114,6 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                     placeholder="Select your blood group"
                     options={bloodGroups.map((bg) => ({ label: bg, value: bg }))}
                   />
-              </div>
-
-              {/* Allergies */}
-              <div>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-ink mb-1.5">
-                  <AlertTriangle className="size-3.5 text-teal" />
-                  Allergies <span className="text-xs text-muted/40 font-normal">(optional)</span>
-                </label>
-                <textarea
-                  placeholder="E.g. Peanuts, Pollen, Dust"
-                  maxLength={100}
-                  rows={1}
-                  value={form.allergies}
-                  onChange={(e) => update('allergies', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all resize-none"
-                />
-                <p className="text-xs text-muted/50 text-right -mt-1">{form.allergies.length}/100</p>
               </div>
 
               {/* Existing Conditions */}
@@ -191,28 +133,11 @@ export const HealthProfilePage = ({ onBack, onContinue }: HealthProfilePageProps
                 <p className="text-xs text-muted/50 text-right -mt-1">{form.conditions.length}/100</p>
               </div>
 
-              {/* Medications */}
-              <div>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-ink mb-1.5">
-                  <Pill className="size-3.5 text-teal" />
-                  Medications <span className="text-xs text-muted/40 font-normal">(optional)</span>
-                </label>
-                <textarea
-                  placeholder="List any current medications"
-                  maxLength={100}
-                  rows={1}
-                  value={form.medications}
-                  onChange={(e) => update('medications', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-line bg-white text-ink text-sm placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal/40 transition-all resize-none"
-                />
-                <p className="text-xs text-muted/50 text-right -mt-1">{form.medications.length}/100</p>
-              </div>
-
               {/* Emergency Contact */}
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-ink mb-1.5">
                   <Phone className="size-3.5 text-teal" />
-                  Emergency Contact <span className="text-xs text-muted/40 font-normal">(optional)</span>
+                  Emergency Contact <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   placeholder="Name and phone number"

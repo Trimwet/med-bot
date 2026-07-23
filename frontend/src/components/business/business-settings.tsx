@@ -4,7 +4,6 @@ import {
   Building2,
   Shield,
   Bell,
-  Users,
   LogOut,
   ChevronLeft,
   AlertTriangle,
@@ -32,7 +31,6 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'embed', label: 'Website embed', icon: Globe },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'security', label: 'Security', icon: Shield },
-  { id: 'staff', label: 'Staff & roles', icon: Users },
   { id: 'api-keys', label: 'API Keys', icon: Key },
   { id: 'logout', label: 'Logout', icon: LogOut },
 ]
@@ -260,33 +258,6 @@ function SecuritySection() {
             <p className="text-xs text-gray-500 dark:text-[#6b7080] mt-0.5">2 devices currently logged in</p>
           </div>
           <button className="text-sm text-red-600 hover:underline">Sign out all</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function StaffSection() {
-  const [requireApproval, setRequireApproval] = useState(true)
-  const [allowExport, setAllowExport] = useState(false)
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-[#e8eaed] mb-1">Staff & roles</h2>
-        <p className="text-sm text-gray-500 dark:text-[#6b7080]">Manage staff access permissions and roles.</p>
-      </div>
-
-      <div>
-        <p className="text-xs font-medium text-gray-400 dark:text-[#525666] uppercase tracking-wider mb-2">Permissions</p>
-        <ToggleRow label="Require admin approval" description="New staff accounts need admin approval before activation" enabled={requireApproval} onChange={setRequireApproval} />
-        <ToggleRow label="Allow data export" description="Let staff members export patient data" enabled={allowExport} onChange={setAllowExport} />
-      </div>
-
-      <div>
-        <p className="text-xs font-medium text-gray-400 dark:text-[#525666] uppercase tracking-wider mb-2">Roles</p>
-        <div className="space-y-2">
-          {/* TODO: Fetch roles from API */}
         </div>
       </div>
     </div>
@@ -564,6 +535,8 @@ function EmbedSection() {
     secondaryColor: '#073B4C',
     welcomeMessage: 'Hello! I\'m MedBot, your medical triage assistant. How can I help you today?',
     theme: 'light' as 'light' | 'dark',
+    logoUrl: '',
+    clinicName: '',
   })
 
   useEffect(() => {
@@ -583,6 +556,8 @@ function EmbedSection() {
             secondaryColor: data.whitelabelConfig.accentColor || '#073B4C',
             welcomeMessage: data.whitelabelConfig.welcomeMessage || 'Hello! I\'m MedBot, your medical triage assistant. How can I help you today?',
             theme: data.whitelabelConfig.theme || 'light',
+            logoUrl: data.whitelabelConfig.logoUrl || '',
+            clinicName: data.whitelabelConfig.clinicName || '',
           })
         }
       })
@@ -604,6 +579,8 @@ function EmbedSection() {
           accentColor: branding.secondaryColor,
           welcomeMessage: branding.welcomeMessage,
           theme: branding.theme,
+          logoUrl: branding.logoUrl,
+          clinicName: branding.clinicName,
         }),
       })
       setSaved(true)
@@ -613,7 +590,7 @@ function EmbedSection() {
   }
 
   const embedCode = tenantSlug
-    ? `<!-- MedBot Triage Widget -->\n<script\n  src="https://embed.medbot.ng/v1.js"\n  data-tenant="${tenantSlug}"\n  data-theme="${branding.theme}"\n  data-locale="en-NG"\n  data-welcome="${branding.welcomeMessage}"\n  data-primary-color="${branding.primaryColor}"\n  data-secondary-color="${branding.secondaryColor}"\n></script>`
+    ? `<!-- MedBot Triage Widget -->\n<script\n  src="https://medbotfrontend.vercel.app/embed/v1.js"\n  data-tenant="${tenantSlug}"\n  data-theme="${branding.theme}"\n  data-locale="en-NG"\n  data-welcome="${branding.welcomeMessage}"\n  data-primary-color="${branding.primaryColor}"\n  data-secondary-color="${branding.secondaryColor}"\n></script>`
     : '<!-- Complete signup to get your embed code -->'
 
   const handleCopy = (text: string) => {
@@ -719,6 +696,30 @@ function EmbedSection() {
             </div>
 
             <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-[#6b7080] mb-1.5">Logo URL</label>
+              <input
+                type="url"
+                value={branding.logoUrl}
+                onChange={(e) => setBranding({ ...branding, logoUrl: e.target.value })}
+                placeholder="https://example.com/logo.png"
+                className={inputClass}
+              />
+              <p className="text-[10px] text-gray-400 dark:text-[#525666] mt-1">Paste a direct link to your logo image (PNG, SVG, or JPG)</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-[#6b7080] mb-1.5">Hospital / Clinic Name</label>
+              <input
+                type="text"
+                value={branding.clinicName}
+                onChange={(e) => setBranding({ ...branding, clinicName: e.target.value })}
+                placeholder="e.g. Q9 Multi Speciality Hospital"
+                className={inputClass}
+              />
+              <p className="text-[10px] text-gray-400 dark:text-[#525666] mt-1">Displayed in the widget header instead of "Medical Triage"</p>
+            </div>
+
+            <div>
               <label className="block text-xs font-medium text-gray-500 dark:text-[#6b7080] mb-1.5">Welcome message</label>
               <input
                 type="text"
@@ -775,13 +776,17 @@ function EmbedSection() {
 
               <div className="flex-1 mx-4 mb-4 bg-white dark:bg-[#0f1117] rounded-xl border border-gray-200 dark:border-[#1e2028] shadow-md overflow-hidden flex flex-col">
                 <div className="px-5 py-4 flex items-center gap-3 shrink-0" style={{ backgroundColor: branding.secondaryColor }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: branding.primaryColor }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-5 h-5">
-                      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                    </svg>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: branding.primaryColor }}>
+                    {branding.logoUrl ? (
+                      <img src={branding.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-5 h-5">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                      </svg>
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white leading-tight">Medical Triage</p>
+                    <p className="text-sm font-semibold text-white leading-tight">{branding.clinicName || 'Medical Triage'}</p>
                     <p className="text-[11px] text-white/60">AI-powered health assessment</p>
                   </div>
                 </div>
@@ -859,7 +864,6 @@ const SECTIONS: Record<string, React.ComponentType> = {
   embed: EmbedSection,
   notifications: NotificationsSection,
   security: SecuritySection,
-  staff: StaffSection,
   'api-keys': ApiKeysSection,
   logout: LogoutSection,
 }

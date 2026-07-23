@@ -104,6 +104,7 @@ export interface TenantDocument {
     accentColor?: string;
     welcomeMessage?: string;
     theme?: "light" | "dark";
+    clinicName?: string;
   };
   contactEmail?: string;
   billingEmail?: string;

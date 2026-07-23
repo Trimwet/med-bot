@@ -59,9 +59,9 @@ export const AuthPage = ({ initialMode = 'signup', onBack, onToggleMode, onSignu
         setStep('otp')
         setInfo('We sent a verification code to your email.')
       } else {
-        await login({ email, password })
-        setStep('otp')
-        setInfo('We sent a login code to your email.')
+        const result = await login({ email, password })
+        saveSession(result.token, result.user)
+        onLoginSuccess?.()
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')

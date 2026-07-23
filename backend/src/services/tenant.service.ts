@@ -245,15 +245,11 @@ export async function requestTenantLoginOtp(input: { email: string; password: st
     throw new AppError("Invalid email or password", 401, "INVALID_CREDENTIALS");
   }
 
-  const otp = generateOtp();
-  const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-
-  await users.updateOne(
-    { _id: user._id },
-    { $set: { otp, otpExpires, updatedAt: new Date().toISOString() } }
-  );
-
-  return { otp, message: "OTP sent to email." };
+  // NOTE: To re-enable OTP verification for login, restore the OTP generation
+  // and sendOtpEmail flow in tenant.route.ts, then remove the token return below.
+  const token = signJwtToken(user._id!);
+  const tenant = await db.collection<TenantDocument>(COLLECTIONS.tenants).findOne({ _id: new ObjectId(user.tenantId!) });
+  return { token, tenant: toPublicTenant(user, tenant!), message: "Login successful" };
 }
 
 export async function verifyTenantLoginOtp(input: { email: string; otp: string }) {

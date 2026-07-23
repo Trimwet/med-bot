@@ -344,6 +344,8 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
   const thinkingStartRef = useRef<number | null>(null)
   const [thinkingDuration, setThinkingDuration] = useState<number | null>(null)
   const [thinkingOpen, setThinkingOpen] = useState(false)
+  const [sharedConvo, setSharedConvo] = useState(false)
+  const [sharedMsgIndex, setSharedMsgIndex] = useState<number | null>(null)
   const [demoStatus, setDemoStatus] = useState<DemoStatus | null>(null)
   const [demoError, setDemoError] = useState<string | null>(null)
   const [userName, setUserName] = useState('')
@@ -569,6 +571,34 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
     }
   }, [ttsEngine, supertonicVoice, audioState.playing, audioState.messageIndex, audioState.speed, messages])
 
+  const shareConversation = useCallback(async () => {
+    const url = selectedSessionId
+      ? `${window.location.origin}/dashboard?session=${selectedSessionId}`
+      : window.location.href
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'MedBot Conversation', url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        setSharedConvo(true)
+        setTimeout(() => setSharedConvo(false), 2000)
+      }
+    } catch {}
+  }, [selectedSessionId])
+
+  const shareMessage = useCallback(async (index: number, text: string) => {
+    const clean = stripEmotionTag(text)
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'MedBot response', text: clean })
+      } else {
+        await navigator.clipboard.writeText(clean)
+        setSharedMsgIndex(index)
+        setTimeout(() => setSharedMsgIndex((cur) => (cur === index ? null : cur)), 2000)
+      }
+    } catch {}
+  }, [])
+
   const estimateTokens = (text: string) => Math.ceil(text.length / 4)
 
   const toggleVoiceInput = useCallback(() => {
@@ -705,10 +735,11 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
             <span className="hidden sm:inline">New</span>
           </button>
           <button
+            onClick={shareConversation}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="Share conversation"
           >
-            <Share2 className="w-[18px] h-[18px]" />
+            {sharedConvo ? <Check className="w-[18px] h-[18px] text-green-600" /> : <Share2 className="w-[18px] h-[18px]" />}
           </button>
         </div>}
       </div>
@@ -861,10 +892,11 @@ export const CustomerDashboardHome = ({ demo = false }: { demo?: boolean }) => {
                           <ThumbsDown className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          onClick={() => shareMessage(i, msg.text)}
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           aria-label="Share response"
                         >
-                          <Share2 className="w-3.5 h-3.5" />
+                          {sharedMsgIndex === i ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Share2 className="w-3.5 h-3.5" />}
                         </button>
                       </>
                     )}

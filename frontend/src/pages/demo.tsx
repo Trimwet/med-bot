@@ -2,7 +2,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { ApiError } from '@/lib/api'
-import { getDemoStatus, hasDemoSession } from '@/lib/demo-session'
+import { getDemoStatus, hasDemoSession, startDemo } from '@/lib/demo-session'
 
 export const DemoAccessGuard = () => {
   const navigate = useNavigate()
@@ -10,11 +10,31 @@ export const DemoAccessGuard = () => {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    if (!hasDemoSession()) { setState('missing'); return }
-    getDemoStatus().then(() => setState('ready')).catch((err) => {
-      setMessage(err instanceof Error ? err.message : 'Unable to restore temporary session')
-      setState(err instanceof ApiError && err.code === 'DEMO_TOKEN_MISSING' ? 'missing' : 'invalid')
-    })
+    let cancelled = false
+
+    async function ensureSession() {
+      try {
+        if (hasDemoSession()) await getDemoStatus()
+        else await startDemo()
+        if (!cancelled) setState('ready')
+      } catch (err) {
+        // Landing on /demo directly (refresh, bookmark, shared link) can carry a
+        // missing/expired/invalid token. Self-heal the same way the landing
+        // page's "Try Demo" button does, instead of dead-ending on an error
+        // screen: silently mint a fresh demo session for this browser.
+        try {
+          await startDemo()
+          if (!cancelled) setState('ready')
+        } catch (retryErr) {
+          if (cancelled) return
+          setMessage(retryErr instanceof Error ? retryErr.message : 'Unable to restore temporary session')
+          setState(retryErr instanceof ApiError && retryErr.code === 'DEMO_TOKEN_MISSING' ? 'missing' : 'invalid')
+        }
+      }
+    }
+
+    ensureSession()
+    return () => { cancelled = true }
   }, [])
 
   if (state === 'ready') return <Outlet />
