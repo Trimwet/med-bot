@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Outlet, Navigate } from 'react-router-dom'
 import { AdminSidebar } from './admin-sidebar'
 import { AdminNavbar } from './admin-navbar'
@@ -41,7 +41,16 @@ export const AdminLayout = () => {
         <div className={`flex-1 transition-all duration-300 ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-64'}`}>
           <AdminNavbar onMenuClick={() => setSidebarOpen(true)} />
           <main className="p-4 sm:p-6">
-            <Outlet />
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-20">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-[#073B4C] rounded-full animate-spin" />
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Loading...</p>
+                </div>
+              </div>
+            }>
+              <Outlet />
+            </Suspense>
           </main>
         </div>
       </div>

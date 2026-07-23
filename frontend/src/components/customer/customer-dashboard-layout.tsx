@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Outlet, Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Plus,
@@ -300,7 +300,16 @@ export const CustomerDashboardLayout = ({ demo = false }: { demo?: boolean }) =>
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col">
-          <Outlet />
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-full py-20">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-[#073B4C] rounded-full animate-spin" />
+                <p className="text-xs text-gray-400 dark:text-gray-500">Loading...</p>
+              </div>
+            </div>
+          }>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>
