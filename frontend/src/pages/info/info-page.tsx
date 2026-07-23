@@ -1,6 +1,5 @@
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { DetailedFooter } from '@/components/footer-detailed'
 
 interface InfoPageProps {
   title: string
@@ -61,7 +60,17 @@ export const InfoPage = ({ title, subtitle, badge, children }: InfoPageProps) =>
         {children}
       </div>
 
-      <DetailedFooter />
+      {/* Minimal Footer */}
+      <footer className="border-t border-gray-100 bg-white">
+        <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-gray-400">
+            © 2026 MedBot Health. All rights reserved.
+          </p>
+          <p className="text-xs text-gray-400">
+            Not a substitute for emergency care
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }
