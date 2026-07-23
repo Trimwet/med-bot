@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileText, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface DisclaimerPageProps {
   onBack?: () => void
@@ -39,9 +39,7 @@ export const DisclaimerPage = ({ onBack, onAccept }: DisclaimerPageProps) => {
 
             {/* Divider */}
             <div className="flex justify-center mb-6">
-              <div className="w-10 h-10 rounded-full bg-paper-soft flex items-center justify-center">
-                <FileText className="size-5 text-muted" />
-              </div>
+              <img src="/assets/contract-signed.svg" alt="" className="w-12 h-auto" />
             </div>
 
             {/* Content */}
