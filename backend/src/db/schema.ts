@@ -214,6 +214,7 @@ export interface UserDocument {
   otp?: string;
   otpExpires?: Date;
   profile?: UserProfile;
+  twoFactorEnabled?: boolean;
   phone?: string;
   orgType?: string;
   country?: string;

@@ -375,6 +375,99 @@ authRoute.post("/api/auth/set-password", authMiddleware, async (req, res, next) 
   }
 });
 
+// ── Two-Factor Authentication ──────────────────────────────────────
+
+authRoute.get("/api/auth/2fa/status", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    const db = await getDb();
+    const user = await db.collection<UserDocument>(COLLECTIONS.users).findOne({ _id: new ObjectId(userId) });
+    res.json({ enabled: user?.twoFactorEnabled ?? false, email: user?.email });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Step 1: send OTP to verify identity before enabling
+authRoute.post("/api/auth/2fa/enable", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    const db = await getDb();
+    const user = await db.collection<UserDocument>(COLLECTIONS.users).findOne({ _id: new ObjectId(userId) });
+    if (!user) throw new AppError("User not found", 404, "NOT_FOUND");
+    if (user.twoFactorEnabled) throw new AppError("2FA is already enabled", 400, "ALREADY_ENABLED");
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await db.collection<UserDocument>(COLLECTIONS.users).updateOne({ _id: new ObjectId(userId) }, { $set: { otp, otpExpires } });
+    await sendOtpEmail(user.email, otp);
+    if (env.nodeEnv === "development") logger.info(`[DEV 2FA] enable OTP for ${user.email}: ${otp}`);
+    res.json({ message: `Verification code sent to ${user.email}` });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Step 2: verify OTP and enable 2FA
+authRoute.post("/api/auth/2fa/verify-enable", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    const { otp } = req.body;
+    const db = await getDb();
+    const user = await db.collection<UserDocument>(COLLECTIONS.users).findOne({ _id: new ObjectId(userId) });
+    if (!user) throw new AppError("User not found", 404, "NOT_FOUND");
+    if (!user.otp || !user.otpExpires) throw new AppError("No verification code found. Please request a new one.", 400, "NO_OTP");
+    if (new Date() > user.otpExpires) throw new AppError("Verification code has expired.", 400, "OTP_EXPIRED");
+    if (user.otp !== otp) throw new AppError("Invalid verification code.", 400, "INVALID_OTP");
+    await db.collection<UserDocument>(COLLECTIONS.users).updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { twoFactorEnabled: true }, $unset: { otp: "", otpExpires: "" } }
+    );
+    res.json({ message: "Two-factor authentication enabled successfully." });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Step 1: send OTP to verify identity before disabling
+authRoute.post("/api/auth/2fa/disable", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    const db = await getDb();
+    const user = await db.collection<UserDocument>(COLLECTIONS.users).findOne({ _id: new ObjectId(userId) });
+    if (!user) throw new AppError("User not found", 404, "NOT_FOUND");
+    if (!user.twoFactorEnabled) throw new AppError("2FA is not currently enabled", 400, "NOT_ENABLED");
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await db.collection<UserDocument>(COLLECTIONS.users).updateOne({ _id: new ObjectId(userId) }, { $set: { otp, otpExpires } });
+    await sendOtpEmail(user.email, otp);
+    if (env.nodeEnv === "development") logger.info(`[DEV 2FA] disable OTP for ${user.email}: ${otp}`);
+    res.json({ message: `Verification code sent to ${user.email}` });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Step 2: verify OTP and disable 2FA
+authRoute.post("/api/auth/2fa/verify-disable", authMiddleware, async (req, res, next) => {
+  try {
+    const userId = (req as any).user?.id;
+    const { otp } = req.body;
+    const db = await getDb();
+    const user = await db.collection<UserDocument>(COLLECTIONS.users).findOne({ _id: new ObjectId(userId) });
+    if (!user) throw new AppError("User not found", 404, "NOT_FOUND");
+    if (!user.otp || !user.otpExpires) throw new AppError("No verification code found. Please request a new one.", 400, "NO_OTP");
+    if (new Date() > user.otpExpires) throw new AppError("Verification code has expired.", 400, "OTP_EXPIRED");
+    if (user.otp !== otp) throw new AppError("Invalid verification code.", 400, "INVALID_OTP");
+    await db.collection<UserDocument>(COLLECTIONS.users).updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { twoFactorEnabled: false }, $unset: { otp: "", otpExpires: "" } }
+    );
+    res.json({ message: "Two-factor authentication disabled." });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ── Account Deletion (NDPR compliance) ──────────────────────────────
 
 authRoute.delete("/api/users/me", authMiddleware, async (req, res, next) => {

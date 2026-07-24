@@ -15,6 +15,9 @@ import {
   Trash2,
   Check,
   Globe,
+  Smartphone,
+  X,
+  RefreshCw,
 } from 'lucide-react'
 import { formatPhoneInput } from '@/lib/utils'
 import { API_URL } from '@/lib/api'
@@ -226,10 +229,189 @@ function NotificationsSection() {
   )
 }
 
+function TwoFactorModal({
+  mode,
+  email,
+  onClose,
+  onSuccess,
+}: {
+  mode: 'enable' | 'disable'
+  email: string
+  onClose: () => void
+  onSuccess: () => void
+}) {
+  const [step, setStep] = useState<'send' | 'verify'>('send')
+  const [otp, setOtp] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [resending, setResending] = useState(false)
+
+  const sendOtp = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_URL}/api/auth/2fa/${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed to send code')
+      setStep('verify')
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const verifyOtp = async () => {
+    if (otp.length !== 6) return
+    setLoading(true)
+    setError('')
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_URL}/api/auth/2fa/verify-${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ otp }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Verification failed')
+      onSuccess()
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const resendOtp = async () => {
+    setResending(true)
+    setError('')
+    setOtp('')
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_URL}/api/auth/2fa/${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed to resend')
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setResending(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-sm bg-white dark:bg-[#0f1117] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#1e2028] p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-[#1a1d25] transition-colors">
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${mode === 'enable' ? 'bg-[#073B4C]/10' : 'bg-red-50 dark:bg-red-900/20'}`}>
+            <Smartphone className={`w-5 h-5 ${mode === 'enable' ? 'text-[#073B4C]' : 'text-red-500'}`} />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-[#e8eaed]">
+              {mode === 'enable' ? 'Enable Two-Factor Authentication' : 'Disable Two-Factor Authentication'}
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-[#6b7080]">
+              {mode === 'enable' ? 'Secure your account with email verification' : 'Remove the extra security layer'}
+            </p>
+          </div>
+        </div>
+
+        {step === 'send' ? (
+          <div className="space-y-4">
+            <div className="p-3 bg-gray-50 dark:bg-[#1a1d25] rounded-lg">
+              <p className="text-xs text-gray-600 dark:text-[#a0a4ad] leading-relaxed">
+                {mode === 'enable'
+                  ? `We'll send a 6-digit verification code to ${email}. Enter it to confirm you want to enable 2FA.`
+                  : `We'll send a 6-digit code to ${email} to confirm you want to turn off 2FA.`}
+              </p>
+            </div>
+            {error && <p className="text-xs text-red-500">{error}</p>}
+            <div className="flex gap-2 pt-1">
+              <button onClick={onClose} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 dark:text-[#a0a4ad] border border-gray-200 dark:border-[#2a2d35] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors">Cancel</button>
+              <button
+                onClick={sendOtp}
+                disabled={loading}
+                className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${
+                  mode === 'enable' ? 'bg-[#073B4C] hover:bg-[#0A202A]' : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {loading ? 'Sending...' : 'Send code'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-xs text-gray-500 dark:text-[#6b7080]">A 6-digit code was sent to <strong className="text-gray-700 dark:text-[#e8eaed]">{email}</strong>. It expires in 10 minutes.</p>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="000000"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onKeyDown={(e) => e.key === 'Enter' && verifyOtp()}
+              autoFocus
+              className="w-full px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#1a1d25] text-gray-900 dark:text-[#e8eaed] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C]"
+            />
+            {error && <p className="text-xs text-red-500">{error}</p>}
+            <div className="flex gap-2">
+              <button
+                onClick={resendOtp}
+                disabled={resending}
+                className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-[#6b7080] hover:text-gray-700 dark:hover:text-[#a0a4ad] transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3 h-3 ${resending ? 'animate-spin' : ''}`} />
+                Resend code
+              </button>
+              <button
+                onClick={verifyOtp}
+                disabled={loading || otp.length !== 6}
+                className={`ml-auto px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${
+                  mode === 'enable' ? 'bg-[#073B4C] hover:bg-[#0A202A]' : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {loading ? 'Verifying...' : mode === 'enable' ? 'Enable 2FA' : 'Disable 2FA'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function SecuritySection() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
   const [twoFactor, setTwoFactor] = useState(false)
+  const [twoFactorEmail, setTwoFactorEmail] = useState('')
+  const [twoFactorLoading, setTwoFactorLoading] = useState(true)
+  const [twoFactorModal, setTwoFactorModal] = useState<'enable' | 'disable' | null>(null)
+  const [twoFactorSuccess, setTwoFactorSuccess] = useState('')
   const inputClass = 'w-full px-3 py-2 text-sm border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#1a1d25] text-gray-900 dark:text-[#e8eaed] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#073B4C]/20 focus:border-[#073B4C]'
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) { setTwoFactorLoading(false); return }
+    fetch(`${API_URL}/api/auth/2fa/status`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => { setTwoFactor(data.enabled ?? false); setTwoFactorEmail(data.email ?? '') })
+      .catch(() => {})
+      .finally(() => setTwoFactorLoading(false))
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -247,7 +429,24 @@ function SecuritySection() {
 
       <div>
         <p className="text-xs font-medium text-gray-400 dark:text-[#525666] uppercase tracking-wider mb-2">Two-factor authentication</p>
-        <ToggleRow label="Enable 2FA" description="Add an extra layer of security to your account" enabled={twoFactor} onChange={setTwoFactor} />
+        <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-[#1e2028]">
+          <div className="min-w-0 pr-4">
+            <p className="text-sm font-medium text-gray-900 dark:text-[#e8eaed]">Enable 2FA</p>
+            <p className="text-xs text-gray-500 dark:text-[#6b7080] mt-0.5">Add an extra layer of security to your account</p>
+            {twoFactor && <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1"><Check className="w-3 h-3" />Active — login requires an email code</p>}
+            {twoFactorSuccess && <p className="text-xs text-green-600 dark:text-green-400 mt-1">{twoFactorSuccess}</p>}
+          </div>
+          {twoFactorLoading ? (
+            <div className="w-11 h-6 bg-gray-200 dark:bg-[#2a2d35] rounded-full animate-pulse" />
+          ) : (
+            <button
+              onClick={() => setTwoFactorModal(twoFactor ? 'disable' : 'enable')}
+              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${twoFactor ? 'bg-[#073B4C]' : 'bg-gray-200 dark:bg-[#2a2d35]'}`}
+            >
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform mt-0.5 ${twoFactor ? 'translate-x-5.5 ml-px' : 'translate-x-0.5'}`} />
+            </button>
+          )}
+        </div>
       </div>
 
       <div>
@@ -260,6 +459,21 @@ function SecuritySection() {
           <button className="text-sm text-red-600 hover:underline">Sign out all</button>
         </div>
       </div>
+
+      {twoFactorModal && (
+        <TwoFactorModal
+          mode={twoFactorModal}
+          email={twoFactorEmail}
+          onClose={() => setTwoFactorModal(null)}
+          onSuccess={() => {
+            const enabled = twoFactorModal === 'enable'
+            setTwoFactor(enabled)
+            setTwoFactorModal(null)
+            setTwoFactorSuccess(enabled ? '2FA enabled — your account is now more secure.' : '2FA has been disabled.')
+            setTimeout(() => setTwoFactorSuccess(''), 4000)
+          }}
+        />
+      )}
     </div>
   )
 }
