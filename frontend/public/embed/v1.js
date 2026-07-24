@@ -21,6 +21,7 @@
     title: 'Medical Triage',
     subtitle: 'AI-powered health assessment',
     apiUrl: '',
+    _primaryExplicit: false,
   };
 
   // Parse script tag attributes
@@ -33,6 +34,7 @@
     CONFIG.locale = script.getAttribute('data-locale') || CONFIG.locale;
     CONFIG.position = script.getAttribute('data-position') || CONFIG.position;
     CONFIG.primaryColor = script.getAttribute('data-primary-color') || CONFIG.primaryColor;
+    CONFIG._primaryExplicit = script.hasAttribute('data-primary-color');
     CONFIG.secondaryColor = script.getAttribute('data-secondary-color') || CONFIG.secondaryColor;
     CONFIG.welcomeMessage = script.getAttribute('data-welcome') || CONFIG.welcomeMessage;
     CONFIG.title = script.getAttribute('data-title') || CONFIG.title;
@@ -358,7 +360,7 @@
       const title = widget.querySelector('.medbot-header-text h3');
       if (title) title.textContent = b.clinicName;
     }
-    if (b.primaryColor) {
+    if (b.primaryColor && !CONFIG._primaryExplicit) {
       CONFIG.primaryColor = b.primaryColor;
       const fab = widget.querySelector('.medbot-fab');
       if (fab) fab.style.background = b.primaryColor;
