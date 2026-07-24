@@ -40,10 +40,12 @@ export const AdminUsers = () => {
   }, [])
 
   const filtered = users.filter((u) => {
+    const q = search.toLowerCase()
     const matchSearch =
       !search ||
-      (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
+      (u.name || '').toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      (u.tenantId || '').toLowerCase().includes(q)
     const matchFilter =
       filter === 'all' ||
       (filter === 'verified' && u.isVerified) ||
@@ -119,7 +121,7 @@ export const AdminUsers = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#525666]" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search by name, email, or tenant ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-lg text-sm text-gray-900 dark:text-[#cdd0d5] placeholder-gray-400 dark:placeholder-[#525666] focus:outline-none focus:ring-2 focus:ring-[#073B4C]/30 transition-colors"
@@ -284,7 +286,12 @@ export const AdminUsers = () => {
                 )}
               </div>
               <span className="text-[10px] text-gray-400 dark:text-[#525666] tabular-nums">
-                {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                {u.createdAt ? (
+                  <>
+                    {new Date(u.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {' '}{new Date(u.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
+                  </>
+                ) : '-'}
               </span>
             </div>
           </div>

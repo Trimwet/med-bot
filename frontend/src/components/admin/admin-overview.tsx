@@ -423,7 +423,8 @@ export const AdminOverview = () => {
                     </td>
                     <td className="px-5 py-3 text-right">
                       <span className="text-xs text-gray-400 dark:text-[#525666]">
-                        {new Date(s.createdAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+                        {new Date(s.createdAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        <span className="ml-1.5">{new Date(s.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}</span>
                       </span>
                     </td>
                   </tr>
@@ -445,7 +446,8 @@ export const AdminOverview = () => {
                     {VERDICT_LABELS[s.verdict] || s.verdict || 'pending'}
                   </span>
                   <span className="text-[10px] text-gray-400 dark:text-[#525666] tabular-nums">
-                    {new Date(s.createdAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+                    {new Date(s.createdAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {' '}{new Date(s.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>

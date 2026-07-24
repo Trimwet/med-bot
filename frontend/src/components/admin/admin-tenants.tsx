@@ -28,7 +28,8 @@ export const AdminTenants = () => {
   }, [])
 
   const filtered = tenants.filter((t) => {
-    const matchSearch = !search || t.name.toLowerCase().includes(search.toLowerCase())
+    const q = search.toLowerCase()
+    const matchSearch = !search || t.name.toLowerCase().includes(q) || (t.tier || 'starter').includes(q) || (t.id || '').toLowerCase().includes(q)
     const matchTier = tierFilter === 'all' || t.tier === tierFilter
     return matchSearch && matchTier
   })
@@ -106,7 +107,7 @@ export const AdminTenants = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#525666]" />
           <input
             type="text"
-            placeholder="Search tenants..."
+            placeholder="Search by name, tier, or ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#0f1117] border border-gray-200 dark:border-[#1e2028] rounded-lg text-sm text-gray-900 dark:text-[#cdd0d5] placeholder-gray-400 dark:placeholder-[#525666] focus:outline-none focus:ring-2 focus:ring-[#073B4C]/30 transition-colors"
@@ -175,7 +176,12 @@ export const AdminTenants = () => {
                   <td className="px-5 py-4 text-right tabular-nums text-gray-600 dark:text-[#a0a4ad]">{t.sessionCount}</td>
                   <td className="px-5 py-4 text-right tabular-nums text-gray-600 dark:text-[#a0a4ad]">{t.patientCount}</td>
                   <td className="px-5 py-4 text-right text-xs text-gray-400 dark:text-[#525666]">
-                    {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                    {t.createdAt ? (
+                      <>
+                        {new Date(t.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        <span className="ml-1.5">{new Date(t.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}</span>
+                      </>
+                    ) : '-'}
                   </td>
                   <td className="px-3 py-4">
                     <button className="p-1.5 text-gray-300 dark:text-[#525666] hover:text-gray-500 dark:hover:text-[#a0a4ad] hover:bg-gray-100 dark:hover:bg-[#1e2028] rounded-lg transition-colors opacity-0 group-hover:opacity-100">
@@ -245,6 +251,11 @@ export const AdminTenants = () => {
                 <p className="text-[10px] text-gray-400 dark:text-[#525666]">Patients</p>
               </div>
             </div>
+            {t.createdAt && (
+              <p className="text-[10px] text-gray-400 dark:text-[#525666] mt-2 pt-2 border-t border-gray-100 dark:border-[#1e2028] text-right tabular-nums">
+                Created {new Date(t.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' })} {new Date(t.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
           </div>
         ))}
         {filtered.length === 0 && (
