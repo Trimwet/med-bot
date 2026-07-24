@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { AlertCircle, Search, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
+import { AlertCircle, Search, ChevronLeft, ChevronRight, ExternalLink, RefreshCw } from 'lucide-react'
 import {
   AreaChart,
   Area,
@@ -112,6 +112,13 @@ export const BusinessAnalytics = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={fetchData}
+            className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-[#1e2028] rounded-lg text-sm font-medium text-gray-700 dark:text-[#a0a4ad] hover:bg-gray-50 dark:hover:bg-[#1a1d25] transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
           <div className="flex items-center bg-gray-100 dark:bg-[#1a1d25] rounded-lg p-1">
             {(['7d', '30d', '90d'] as TimeRange[]).map((r) => (
               <button
