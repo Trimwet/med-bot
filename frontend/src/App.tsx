@@ -30,7 +30,6 @@ import { AdminOverview } from '@/components/admin/admin-overview'
 import { AdminTenants } from '@/components/admin/admin-tenants'
 import { AdminUsers } from '@/components/admin/admin-users'
 import { AdminAnalytics } from '@/components/admin/admin-analytics'
-import { AdminPartners } from '@/components/admin/admin-partners'
 import { AdminSettings } from '@/components/admin/admin-settings'
 import { AboutUsPage } from '@/pages/info/about-us'
 import { OurTeamPage } from '@/pages/info/our-team'
@@ -226,7 +225,6 @@ function AppRoutes() {
         <Route path="tenants" element={<AdminTenants />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="analytics" element={<AdminAnalytics />} />
-        <Route path="partners" element={<AdminPartners />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 

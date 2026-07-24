@@ -4,7 +4,6 @@ import {
   Users,
   Building2,
   BarChart3,
-  Handshake,
   Cog,
   LogOut,
   X,
@@ -20,7 +19,6 @@ const navItems = [
   { to: '/admin/dashboard/tenants', label: 'Tenants', icon: Building2 },
   { to: '/admin/dashboard/users', label: 'Users', icon: Users },
   { to: '/admin/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
-  { to: '/admin/dashboard/partners', label: 'Partners', icon: Handshake },
   { to: '/admin/dashboard/settings', label: 'Settings', icon: Cog },
 ]
 

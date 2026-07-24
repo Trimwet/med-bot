@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Building2, Search, Plus, Download, MoreVertical, Coins, Star } from 'lucide-react'
+import { Building2, Search, Plus, Download, MoreVertical, Star, Users, Activity } from 'lucide-react'
 import { adminApi } from './admin-api'
 
 interface Tenant {
@@ -35,6 +35,8 @@ export const AdminTenants = () => {
 
   const enterpriseCount = tenants.filter((t) => t.tier === 'enterprise').length
   const totalTokens = tenants.reduce((s, t) => s + (t.tokenBalance || 0), 0)
+  const totalPatients = tenants.reduce((s, t) => s + (t.patientCount || 0), 0)
+  const totalSessions = tenants.reduce((s, t) => s + (t.sessionCount || 0), 0)
 
   if (loading) {
     return (
@@ -76,11 +78,12 @@ export const AdminTenants = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Tenants', value: tenants.length, icon: Building2, color: '#073B4C' },
-          { label: 'Enterprise Partners', value: enterpriseCount, icon: Star, color: '#8B5CF6' },
-          { label: 'Platform Token Pool', value: totalTokens >= 1000 ? `${(totalTokens / 1000).toFixed(0)}k` : String(totalTokens), icon: Coins, color: '#F59E0B' },
+          { label: 'Enterprise', value: enterpriseCount, icon: Star, color: '#8B5CF6' },
+          { label: 'Patients', value: totalPatients, icon: Users, color: '#00A8A8' },
+          { label: 'Sessions', value: totalSessions, icon: Activity, color: '#F59E0B' },
         ].map((item) => {
           const Icon = item.icon
           return (
