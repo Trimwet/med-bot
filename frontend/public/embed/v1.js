@@ -21,7 +21,6 @@
     title: 'Medical Triage',
     subtitle: 'AI-powered health assessment',
     apiUrl: '',
-    _primaryExplicit: false,
   };
 
   // Parse script tag attributes
@@ -34,7 +33,6 @@
     CONFIG.locale = script.getAttribute('data-locale') || CONFIG.locale;
     CONFIG.position = script.getAttribute('data-position') || CONFIG.position;
     CONFIG.primaryColor = script.getAttribute('data-primary-color') || CONFIG.primaryColor;
-    CONFIG._primaryExplicit = script.hasAttribute('data-primary-color');
     CONFIG.secondaryColor = script.getAttribute('data-secondary-color') || CONFIG.secondaryColor;
     CONFIG.welcomeMessage = script.getAttribute('data-welcome') || CONFIG.welcomeMessage;
     CONFIG.title = script.getAttribute('data-title') || CONFIG.title;
@@ -352,6 +350,26 @@
 
   function applyBranding(b) {
     if (!widget) return;
+    // Inject dynamic style overrides so existing and future elements use API branding
+    const styleId = 'medbot-branding-overrides';
+    let styleEl = document.getElementById(styleId);
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      document.head.appendChild(styleEl);
+    }
+    const rules = [];
+    if (b.primaryColor) {
+      CONFIG.primaryColor = b.primaryColor;
+      rules.push(`#medbot-widget .medbot-fab { background: ${b.primaryColor} !important; }`);
+      rules.push(`#medbot-widget .medbot-send { background: ${b.primaryColor} !important; }`);
+      rules.push(`#medbot-widget .medbot-message.user { background: ${b.primaryColor} !important; }`);
+    }
+    if (b.accentColor) {
+      CONFIG.secondaryColor = b.accentColor;
+      rules.push(`#medbot-widget .medbot-header { background: ${b.accentColor} !important; }`);
+    }
+    styleEl.textContent = rules.join('\n');
     if (b.logoUrl) {
       const logo = widget.querySelector('.medbot-header-logo');
       if (logo) logo.innerHTML = `<img src="${b.logoUrl}" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:8px" />`;
@@ -359,20 +377,6 @@
     if (b.clinicName) {
       const title = widget.querySelector('.medbot-header-text h3');
       if (title) title.textContent = b.clinicName;
-    }
-    if (b.primaryColor && !CONFIG._primaryExplicit) {
-      CONFIG.primaryColor = b.primaryColor;
-      const fab = widget.querySelector('.medbot-fab');
-      if (fab) fab.style.background = b.primaryColor;
-      const send = widget.querySelector('.medbot-send');
-      if (send) send.style.background = b.primaryColor;
-      const msgs = widget.querySelectorAll('.medbot-message.user');
-      msgs.forEach(m => m.style.background = b.primaryColor);
-    }
-    if (b.accentColor) {
-      CONFIG.secondaryColor = b.accentColor;
-      const header = widget.querySelector('.medbot-header');
-      if (header) header.style.background = b.accentColor;
     }
     if (b.welcomeMessage) {
       const welcome = widget.querySelector('.medbot-message.bot');
