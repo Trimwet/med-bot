@@ -45,13 +45,14 @@
     const container = document.createElement('div');
     container.id = 'medbot-widget';
     container.innerHTML = `
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
       <style>
         #medbot-widget {
           position: fixed;
           ${CONFIG.position === 'bottom-left' ? 'left: 20px;' : 'right: 20px;'}
           bottom: 20px;
           z-index: 9999;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
         #medbot-widget * {
@@ -108,6 +109,7 @@
           display: flex;
           align-items: center;
           gap: 12px;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
         .medbot-header-logo {
